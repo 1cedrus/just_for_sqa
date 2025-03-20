@@ -7,18 +7,21 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface IRestaurantPackagePaymentHistoryService {
-Long createRestaurantPackagePaymentHistory(RestaurantPackagePaymentHistoryRequest request);
-Long getNewId();
-String updateRestaurantPackagePaymentHistory(Long id, RestaurantPackagePaymentHistoryRequest request);
+    Long createRestaurantPackagePaymentHistory(RestaurantPackagePaymentHistoryRequest request);
 
-List<StatisticAdminTable> getTotalValueByDate(String code);
+    Long getNewId();
 
-List<StatisticAdminTable> getProfitInCurrentMonth();
-List<StatisticAdminTable> getProfitInLastMonth();
+    String updateRestaurantPackagePaymentHistory(Long id, RestaurantPackagePaymentHistoryRequest request);
 
-List<StatisticAdminTable> getProfitInCurrentWeek();
+    List<StatisticAdminTable> getTotalValueByDate(String code);
 
-List<StatisticAdminTable> getProfitInLastWeek();
+    List<StatisticAdminTable> getProfitInCurrentMonth();
 
-double totalValueInDate(LocalDate date);
+    List<StatisticAdminTable> getProfitInLastMonth();
+
+    List<StatisticAdminTable> getProfitInCurrentWeek();
+
+    List<StatisticAdminTable> getProfitInLastWeek();
+
+    double totalValueInDate(LocalDate date);
 }

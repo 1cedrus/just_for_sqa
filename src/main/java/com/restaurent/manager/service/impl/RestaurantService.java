@@ -26,24 +26,25 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class RestaurantService implements IRestaurantService {
     RestaurantMapper restaurantMapper;
     RestaurantRepository restaurantRepository;
     AccountRepository accountRepository;
     IPackageService packageService;
     AccountService accountService;
+
     @Override
     public RestaurantResponse initRestaurant(RestaurantRequest request) {
-        if(restaurantRepository.existsByAccount_Id(request.getAccountId())){
+        if (restaurantRepository.existsByAccount_Id(request.getAccountId())) {
             throw new AppException(ErrorCode.LIMITED_RESTAURANT);
         }
-        if(restaurantRepository.existsByRestaurantName((request.getRestaurantName()))){
+        if (restaurantRepository.existsByRestaurantName((request.getRestaurantName()))) {
             throw new AppException(ErrorCode.RESTAURANT_NAME_EXISTED);
         }
         Restaurant restaurant = restaurantMapper.toRestaurant(request);
         Account account = accountRepository.findById(request.getAccountId()).orElseThrow(() ->
-                new AppException(ErrorCode.USER_NOT_EXISTED)
+            new AppException(ErrorCode.USER_NOT_EXISTED)
         );
         restaurant.setAccount(account);
         restaurant.setRestaurantPackage(packageService.findByPackName("TRIAL"));
@@ -66,31 +67,31 @@ public class RestaurantService implements IRestaurantService {
     }
 
     @Override
-    public RestaurantResponse updateRestaurant(Long restaurantId,RestaurantUpdateRequest request) {
+    public RestaurantResponse updateRestaurant(Long restaurantId, RestaurantUpdateRequest request) {
         Restaurant restaurant = getRestaurantById(restaurantId);
         restaurant.setRestaurantPackage(packageService.findPackById(request.getPackId()));
         restaurant.setExpiryDate(LocalDateTime.now().plusMonths(request.getMonths()));
-        restaurantMapper.updateRestaurant(restaurant,request);
+        restaurantMapper.updateRestaurant(restaurant, request);
         return restaurantMapper.toRestaurantResponse(restaurantRepository.save(restaurant));
     }
 
     @Override
     public RestaurantResponse updateRestaurant(Long accountId, RestaurantManagerUpdateRequest request) {
         Restaurant restaurant = restaurantRepository.findByAccount_Id(accountId);
-        if(restaurant == null){
+        if (restaurant == null) {
             throw new AppException(ErrorCode.NOT_EXIST);
         }
-        restaurantMapper.updateRestaurant(restaurant,request);
+        restaurantMapper.updateRestaurant(restaurant, request);
         return restaurantMapper.toRestaurantResponse(restaurantRepository.save(restaurant));
     }
 
     @Override
     public RestaurantResponse updateRestaurant(Long accountId, RestaurantPaymentRequest request) {
         Restaurant restaurant = restaurantRepository.findByAccount_Id(accountId);
-        if(restaurant == null){
+        if (restaurant == null) {
             throw new AppException(ErrorCode.NOT_EXIST);
         }
-        restaurantMapper.updateRestaurant(restaurant,request);
+        restaurantMapper.updateRestaurant(restaurant, request);
         return restaurantMapper.toRestaurantResponse(restaurantRepository.save(restaurant));
     }
 
@@ -103,7 +104,7 @@ public class RestaurantService implements IRestaurantService {
     public RestaurantResponse getRestaurantByAccountId(Long accountId) {
         Restaurant restaurant = restaurantRepository.findByAccount_Id(accountId);
         RestaurantResponse response = null;
-        if(restaurant != null){
+        if (restaurant != null) {
             response = restaurantMapper.toRestaurantResponse(restaurant);
             response.setVatActive(restaurant.isVatActive());
         }
@@ -117,31 +118,31 @@ public class RestaurantService implements IRestaurantService {
         double requireMoney;
         long dayLeft = ChronoUnit.DAYS.between(LocalDateTime.now(), restaurant.getExpiryDate());
         Package pack = packageService.findPackById(request.getPackId());
-        if(dayLeft > 0){
-            if(restaurant.getMonthsRegister() >= 12){
+        if (dayLeft > 0) {
+            if (restaurant.getMonthsRegister() >= 12) {
                 // calculate the money remain by year
                 log.info("Price pack per year : " + restaurant.getRestaurantPackage().getPricePerYear());
                 remainMoney = (restaurant.getRestaurantPackage().getPricePerYear() / 365) * dayLeft;
                 log.info("Remain money by year " + remainMoney + "in day left " + dayLeft);
-            }else{
+            } else {
                 // calculate the money remain by month
                 log.info("Price pack per month : " + restaurant.getRestaurantPackage().getPricePerMonth());
                 remainMoney = (restaurant.getRestaurantPackage().getPricePerMonth() / LocalDate.now().lengthOfMonth()) * dayLeft;
                 log.info("Remain money by month " + remainMoney + " in day left " + dayLeft);
             }
             remainMoney = Math.round(remainMoney);
-            if(request.getMonths() >= 12){
+            if (request.getMonths() >= 12) {
                 requireMoney = (((double) request.getMonths() / 12) * pack.getPricePerYear()) - remainMoney;
                 log.info("Require money by year : " + requireMoney);
-            }else{
+            } else {
                 requireMoney = (request.getMonths() * pack.getPricePerMonth()) - remainMoney;
                 log.info("Require money by month : " + requireMoney);
             }
-        }else{
-            if(request.getMonths() >= 12){
-                requireMoney = (((double) request.getMonths() / 12) * pack.getPricePerYear()) ;
+        } else {
+            if (request.getMonths() >= 12) {
+                requireMoney = (((double) request.getMonths() / 12) * pack.getPricePerYear());
                 log.info("Require money by year dont have remain : " + requireMoney);
-            }else{
+            } else {
                 requireMoney = request.getMonths() * pack.getPricePerMonth();
                 log.info("Require money by month dont have remain : " + requireMoney);
             }
@@ -168,6 +169,4 @@ public class RestaurantService implements IRestaurantService {
     public int countRestaurantByDateCreated(LocalDate date) {
         return restaurantRepository.countByDateCreated(date);
     }
-
-
 }

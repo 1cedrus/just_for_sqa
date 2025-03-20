@@ -9,8 +9,12 @@ import java.util.List;
 
 public interface ITableTypeService {
     TableTypeResponse createTableType(TableTypeRequest request);
+
     List<TableTypeResponse> getTableTypes();
+
     void deleteTableType(Long id);
+
     TableType findTableTypeById(Long id);
+
     TableTypeResponse updateTableType(TableTypeUpdateRequest request);
 }

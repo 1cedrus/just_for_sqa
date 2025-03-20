@@ -9,7 +9,10 @@ import java.util.List;
 
 public interface IScheduleDishService {
     void createScheduleDish(Schedule schedule, DishOrderRequest request);
+
     List<ScheduleDishResponse> findDishOrComboBySchedule(Long scheduleId);
+
     void deleteScheduleDishById(Long scheduleDishId);
+
     List<ScheduleDish> findByScheduleId(Long scheduleId);
 }

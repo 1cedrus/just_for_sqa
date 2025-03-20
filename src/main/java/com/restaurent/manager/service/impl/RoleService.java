@@ -18,14 +18,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @AllArgsConstructor
 public class RoleService implements IRoleService {
     RoleRepository roleRepository;
     RoleMapper roleMapper;
+
     @Override
     public RoleResponse createRole(RoleRequest request) {
-        if(roleRepository.existsByName(request.getName())){
+        if (roleRepository.existsByName(request.getName())) {
             throw new AppException(ErrorCode.ROLE_EXISTED);
         }
         Role role = roleRepository.save(roleMapper.toRole(request));
@@ -36,6 +37,7 @@ public class RoleService implements IRoleService {
     public List<RoleResponse> getRoles() {
         return roleRepository.findAll().stream().map(roleMapper::toRoleResponse).toList();
     }
+
     @Override
     public List<RoleResponse> getRolesInRestaurant() {
         List<RoleResponse> roles = new ArrayList<>();
@@ -48,15 +50,15 @@ public class RoleService implements IRoleService {
     @Override
     public RoleResponse findRoleByName(String name) {
         return roleMapper.toRoleResponse(roleRepository.findByName(name)
-                .orElseThrow(
-                        () -> new AppException(ErrorCode.ROLE_NOT_EXISTED)
-                ));
+            .orElseThrow(
+                () -> new AppException(ErrorCode.ROLE_NOT_EXISTED)
+            ));
     }
 
     @Override
     public Role findByRoleName(String name) {
         return roleRepository.findByName(name).orElseThrow(
-                () -> new AppException(ErrorCode.ROLE_NOT_EXISTED)
+            () -> new AppException(ErrorCode.ROLE_NOT_EXISTED)
         );
     }
 }

@@ -19,28 +19,29 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-@FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 public class AreaService implements IAreaService {
     AreaRepository areaRepository;
     AreaMapper areaMapper;
     IRestaurantService restaurantService;
+
     @Override
     public AreaResponse createArea(AreaRequest request) {
         Area area = areaMapper.toArea(request);
         int totalArea = areaRepository.countByRestaurant_Id(request.getRestaurantId());
         Restaurant restaurant = restaurantService.getRestaurantById(request.getRestaurantId());
-        for (Permission permission : restaurant.getRestaurantPackage().getPermissions()){
-            if(permission.getName().equals("AREA_MAX")){
+        for (Permission permission : restaurant.getRestaurantPackage().getPermissions()) {
+            if (permission.getName().equals("AREA_MAX")) {
                 int max = permission.getMaximum();
-                if(totalArea >= max){
+                if (totalArea >= max) {
                     throw new AppException(ErrorCode.MAX_AREA);
                 }
             }
         }
         area.setRestaurant(restaurant);
         return areaMapper.toAreaResponse(
-                areaRepository.save(area)
+            areaRepository.save(area)
         );
     }
 
@@ -52,7 +53,7 @@ public class AreaService implements IAreaService {
     @Override
     public AreaResponse updateArea(Long areaId, AreaRequest request) {
         Area area = areaRepository.findById(areaId).orElseThrow(
-                () -> new AppException(ErrorCode.NOT_EXIST)
+            () -> new AppException(ErrorCode.NOT_EXIST)
         );
         area.setName(request.getName());
         return areaMapper.toAreaResponse(areaRepository.save(area));

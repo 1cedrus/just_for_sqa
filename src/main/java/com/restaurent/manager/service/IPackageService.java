@@ -9,11 +9,18 @@ import java.util.List;
 
 public interface IPackageService {
     PackageResponse create(PackageRequest request);
+
     List<PackageResponse> getPacks();
-    PackageResponse addPermission(Long permissionID,Long packId);
+
+    PackageResponse addPermission(Long permissionID, Long packId);
+
     PackageResponse updatePackage(Long id, PackageRequest packageRequest);
+
     Package findPackById(Long id);
+
     Package findByPackName(String name);
+
     PackUpgradeResponse findPacksToUpgradeForRestaurant(Long restaurantId);
+
     List<PackageResponse> getPacksView();
 }

@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.List;
@@ -28,19 +27,20 @@ import java.util.Locale;
 
 @Service
 @Slf4j
-@FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @AllArgsConstructor
 public class PackageService implements IPackageService {
     PackageRepository packageRepository;
     PackageMapper packageMapper;
     PermissionRepository permissionRepository;
     RestaurantRepository restaurantRepository;
+
     @Override
     public PackageResponse create(PackageRequest request) {
         Package pack = packageMapper.toPackage(request);
         pack.setPackName(request.getPackName().toUpperCase(Locale.ROOT));
         List<Permission> permissions = permissionRepository.findAllById(request.getPermissions());
-        if(!permissions.isEmpty()){
+        if (!permissions.isEmpty()) {
             pack.setPermissions(new HashSet<>(permissions));
             permissions.forEach(permission -> permission.getPackages().add(pack));
         }
@@ -50,18 +50,18 @@ public class PackageService implements IPackageService {
     @Override
     public List<PackageResponse> getPacks() {
         List<PackageResponse> res = packageRepository.findAll().stream().map(packageMapper::toPackResponse).toList();
-        res.forEach((item) -> {
-            item.setTotal(restaurantRepository.countByRestaurantPackage_Id(item.getId()));
-        });
+        res.forEach(item ->
+            item.setTotal(restaurantRepository.countByRestaurantPackage_Id(item.getId()))
+        );
         return res;
     }
 
     @Override
-    public PackageResponse addPermission(Long permissionID,Long packId) {
+    public PackageResponse addPermission(Long permissionID, Long packId) {
         Permission permission = permissionRepository.findById(permissionID).orElseThrow(() ->
-                new AppException(ErrorCode.INVALID_KEY));
+            new AppException(ErrorCode.INVALID_KEY));
         Package pack = packageRepository.findById(packId).orElseThrow(() ->
-                new AppException(ErrorCode.INVALID_KEY));
+            new AppException(ErrorCode.INVALID_KEY));
         permission.addPermissionToPackage(pack);
         return packageMapper.toPackResponse(packageRepository.save(pack));
     }
@@ -69,9 +69,9 @@ public class PackageService implements IPackageService {
     @Override
     public PackageResponse updatePackage(Long id, PackageRequest packageRequest) {
         Package pack = findPackById(id);
-        packageMapper.updatePackage(pack,packageRequest);
+        packageMapper.updatePackage(pack, packageRequest);
         List<Permission> permissions = permissionRepository.findAllById(packageRequest.getPermissions());
-        if(!permissions.isEmpty()){
+        if (!permissions.isEmpty()) {
             pack.setPermissions(new HashSet<>(permissions));
             permissions.forEach(permission -> permission.getPackages().add(pack));
         }
@@ -82,26 +82,26 @@ public class PackageService implements IPackageService {
     @Override
     public Package findPackById(Long id) {
         return packageRepository.findById(id).orElseThrow(
-                () -> new AppException(ErrorCode.NOT_EXIST)
+            () -> new AppException(ErrorCode.NOT_EXIST)
         );
     }
 
     @Override
     public Package findByPackName(String name) {
         return packageRepository.findByPackName(name).orElseThrow(
-                () -> new AppException(ErrorCode.PACKAGE_NOT_EXIST)
+            () -> new AppException(ErrorCode.PACKAGE_NOT_EXIST)
         );
     }
 
     @Override
     public PackUpgradeResponse findPacksToUpgradeForRestaurant(Long restaurantId) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(
-                        () -> new AppException(ErrorCode.NOT_EXIST)
-                );
+            .orElseThrow(
+                () -> new AppException(ErrorCode.NOT_EXIST)
+            );
         Package pack = findPackById(restaurant.getRestaurantPackage().getId());
         List<PackageResponse> packages = packageRepository.findByPricePerMonthGreaterThan(pack.getPricePerMonth()).stream()
-                .map(packageMapper::toPackResponse).toList();
+            .map(packageMapper::toPackResponse).toList();
         double moneyPerDay = pack.getPricePerMonth() / LocalDate.MAX.getDayOfMonth();
         LocalDate expiryDate = restaurant.getExpiryDate().toLocalDate();
         LocalDate currentDate = LocalDate.now();
@@ -110,13 +110,13 @@ public class PackageService implements IPackageService {
         log.info("Price per month :" + pack.getPricePerMonth());
         log.info("moneyPerDay : " + moneyPerDay);
         double deposit = 0;
-        if(daysLeft > 0){
+        if (daysLeft > 0) {
             deposit = moneyPerDay * daysLeft;
         }
         return PackUpgradeResponse.builder()
-                .deposit(Math.ceil(deposit))
-                .packages(packages)
-                .build();
+            .deposit(Math.ceil(deposit))
+            .packages(packages)
+            .build();
     }
 
     @Override

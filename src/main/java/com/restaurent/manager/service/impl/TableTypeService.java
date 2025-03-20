@@ -16,13 +16,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TableTypeService implements ITableTypeService {
     TableTypeRepository tableTypeRepository;
     TableTypeMapper tableTypeMapper;
+
     @Override
     public TableTypeResponse createTableType(TableTypeRequest request) {
         TableType tableType = tableTypeMapper.toTableType(request);
@@ -43,14 +45,14 @@ public class TableTypeService implements ITableTypeService {
     @Override
     public TableType findTableTypeById(Long id) {
         return tableTypeRepository.findById(id).orElseThrow(
-                () -> new AppException(ErrorCode.NOT_EXIST)
+            () -> new AppException(ErrorCode.NOT_EXIST)
         );
     }
 
     @Override
     public TableTypeResponse updateTableType(TableTypeUpdateRequest request) {
         TableType tableType = findTableTypeById(request.getId());
-        tableTypeMapper.updateRestaurant(tableType,request);
+        tableTypeMapper.updateRestaurant(tableType, request);
         return tableTypeMapper.toTableTypeResponse(tableType);
     }
 }

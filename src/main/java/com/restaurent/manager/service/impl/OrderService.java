@@ -41,11 +41,12 @@ public class OrderService implements IOrderService {
     DishOrderRepository dishOrderRepository;
     IComboService comboService;
     ICustomerService customerService;
+
     @Override
     public OrderResponse createOrder(OrderRequest request) {
         TableRestaurant tableRestaurant = tableRestaurantService.findById(request.getTableId());
         Order order = new Order();
-        Customer customer = customerService.findCustomerByPhoneNumber(request.getCustomerResponse().getPhoneNumber(),request.getRestaurantId());
+        Customer customer = customerService.findCustomerByPhoneNumber(request.getCustomerResponse().getPhoneNumber(), request.getRestaurantId());
         order.setCustomer(customer);
         order.setRestaurant(restaurantService.getRestaurantById(request.getRestaurantId()));
         order.setTableRestaurant(tableRestaurant);
@@ -62,25 +63,25 @@ public class OrderService implements IOrderService {
         Order order = findOrderById(orderId);
         Set<DishOrder> dishOrders = order.getDishOrders();
         List<DishOrderResponse> results = new ArrayList<>();
-        for (DishOrderRequest request : requestList){
-                DishOrder dishOrder = dishOrderMapper.toDishOrder(request);
-                if(request.getDishId() != null){
-                    dishOrder.setDish(dishService.findByDishId(request.getDishId()));
-                }else{
-                    dishOrder.setCombo(comboService.findComboById(request.getComboId()));
-                }
-                dishOrder.setOrder(order);
-                dishOrder.setStatus(DISH_ORDER_STATE.WAITING);
-                dishOrder.setOrderDate(LocalDateTime.now());
-                DishOrder saved = dishOrderRepository.save(dishOrder);
-                results.add(dishOrderMapper.toDishOrderResponse(saved));
-                if(dishOrders != null){
-                    dishOrders.add(saved);
-                }else{
-                    dishOrders = new HashSet<>();
-                    dishOrders.add(saved);
-                }
+        for (DishOrderRequest request : requestList) {
+            DishOrder dishOrder = dishOrderMapper.toDishOrder(request);
+            if (request.getDishId() != null) {
+                dishOrder.setDish(dishService.findByDishId(request.getDishId()));
+            } else {
+                dishOrder.setCombo(comboService.findComboById(request.getComboId()));
             }
+            dishOrder.setOrder(order);
+            dishOrder.setStatus(DISH_ORDER_STATE.WAITING);
+            dishOrder.setOrderDate(LocalDateTime.now());
+            DishOrder saved = dishOrderRepository.save(dishOrder);
+            results.add(dishOrderMapper.toDishOrderResponse(saved));
+            if (dishOrders != null) {
+                dishOrders.add(saved);
+            } else {
+                dishOrders = new HashSet<>();
+                dishOrders.add(saved);
+            }
+        }
         order.setDishOrders(dishOrders);
         orderRepository.save(order);
         return results;
@@ -93,13 +94,13 @@ public class OrderService implements IOrderService {
 
     @Override
     public List<DishOrderResponse> findDishByOrderId(Long orderId, Pageable pageable) {
-        return  dishOrderRepository.findDishOrderByOrder_Id(orderId,pageable).stream().map(dishOrderMapper::toDishOrderResponse).toList();
+        return dishOrderRepository.findDishOrderByOrder_Id(orderId, pageable).stream().map(dishOrderMapper::toDishOrderResponse).toList();
     }
 
     @Override
     public Order findOrderById(Long orderId) {
         return orderRepository.findById(orderId).orElseThrow(
-                () -> new AppException(ErrorCode.NOT_EXIST)
+            () -> new AppException(ErrorCode.NOT_EXIST)
         );
     }
 
@@ -111,7 +112,7 @@ public class OrderService implements IOrderService {
     @Override
     public OrderResponse findOrderByTableId(Long tableId) {
         TableRestaurant tableRestaurant = tableRestaurantService.findById(tableId);
-        if(tableRestaurant.getOrderCurrent() != null){
+        if (tableRestaurant.getOrderCurrent() != null) {
             Order order = findOrderById(tableRestaurant.getOrderCurrent());
             return orderMapper.toOrderResponse(order);
         }
@@ -125,18 +126,18 @@ public class OrderService implements IOrderService {
         Restaurant restaurant = restaurantService.getRestaurantById(order.getRestaurant().getId());
         double totalMoney = 0;
         int count = 0;
-        for (DishOrder dishOrder : order.getDishOrders()){
-            if(dishOrder.getStatus() != DISH_ORDER_STATE.DECLINE){
-                if(dishOrder.getDish() != null){
-                    totalMoney +=  (dishOrder.getDish().getPrice() * dishOrder.getQuantity());
-                }else{
-                    totalMoney +=  (dishOrder.getCombo().getPrice() * dishOrder.getQuantity());
+        for (DishOrder dishOrder : order.getDishOrders()) {
+            if (dishOrder.getStatus() != DISH_ORDER_STATE.DECLINE) {
+                if (dishOrder.getDish() != null) {
+                    totalMoney += (dishOrder.getDish().getPrice() * dishOrder.getQuantity());
+                } else {
+                    totalMoney += (dishOrder.getCombo().getPrice() * dishOrder.getQuantity());
                 }
                 count += dishOrder.getQuantity();
             }
         }
-        if(restaurant.isVatActive()){
-            if(restaurant.getVat() != null) {
+        if (restaurant.isVatActive()) {
+            if (restaurant.getVat() != null) {
                 totalMoney += (totalMoney * (restaurant.getVat().getTaxValue() / 100));
             }
 
@@ -149,12 +150,12 @@ public class OrderService implements IOrderService {
     @Override
     public Long createOrder(Customer customer, Employee employee, TableRestaurant table, Restaurant restaurant) {
         Order order = Order.builder()
-                .orderDate(LocalDate.now())
-                .customer(customer)
-                .restaurant(restaurant)
-                .tableRestaurant(table)
-                .employee(employee)
-                .build();
+            .orderDate(LocalDate.now())
+            .customer(customer)
+            .restaurant(restaurant)
+            .tableRestaurant(table)
+            .employee(employee)
+            .build();
         Long id = orderRepository.save(order).getId();
         table.setOrderCurrent(id);
         tableRestaurantRepository.save(table);

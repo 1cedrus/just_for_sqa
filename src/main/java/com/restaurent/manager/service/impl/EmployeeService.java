@@ -3,12 +3,10 @@ package com.restaurent.manager.service.impl;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.openid.connect.sdk.AuthenticationRequest;
 import com.restaurent.manager.dto.PagingResult;
 import com.restaurent.manager.dto.request.employee.EmployeeLoginRequest;
 import com.restaurent.manager.dto.request.employee.EmployeeRequest;
 import com.restaurent.manager.dto.request.employee.EmployeeUpdateInformationRequest;
-import com.restaurent.manager.dto.request.employee.EmployeeUpdateRequest;
 import com.restaurent.manager.dto.response.AuthenticationResponse;
 import com.restaurent.manager.dto.response.EmployeeResponse;
 import com.restaurent.manager.entity.Account;
@@ -35,33 +33,30 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.List;
 import java.util.StringJoiner;
 import java.util.UUID;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EmployeeService implements IEmployeeService, ITokenGenerate<Employee> {
-    @NonFinal
-    @Value("${jwt.signerKey}")
-    String signerKey;
     RestaurantRepository restaurantRepository;
     RoleRepository roleRepository;
     EmployeeMapper employeeMapper;
     EmployeeRepository employeeRepository;
     IAccountService accountService;
+    @NonFinal
+    @Value("${jwt.signerKey}")
+    String signerKey;
+
     @Override
     public EmployeeResponse createEmployee(EmployeeRequest request) {
         Restaurant restaurant = restaurantRepository.findByAccount_Id(request.getAccountId());
-        if(employeeRepository.existsByUsernameAndRestaurant_Id(request.getUsername(),restaurant.getId())){
+        if (employeeRepository.existsByUsernameAndRestaurant_Id(request.getUsername(), restaurant.getId())) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
         Employee employee = employeeMapper.toEmployee(request);
@@ -78,9 +73,9 @@ public class EmployeeService implements IEmployeeService, ITokenGenerate<Employe
     @Override
     public EmployeeResponse updateEmployee(Long employeeId, EmployeeUpdateInformationRequest request) {
         Employee employee = findEmployeeById(employeeId);
-        employeeMapper.updateRestaurant(employee,request);
+        employeeMapper.updateRestaurant(employee, request);
         employee.setRole(roleRepository.findById(request.getRoleId()).orElseThrow(
-                () -> new AppException(ErrorCode.NOT_EXIST)
+            () -> new AppException(ErrorCode.NOT_EXIST)
         ));
         employeeRepository.save(employee);
         return employeeMapper.toEmployeeResponse(employeeRepository.save(employee));
@@ -89,7 +84,7 @@ public class EmployeeService implements IEmployeeService, ITokenGenerate<Employe
     @Override
     public Employee findEmployeeById(Long id) {
         return employeeRepository.findById(id).orElseThrow(
-                () -> new AppException(ErrorCode.USER_NOT_EXISTED)
+            () -> new AppException(ErrorCode.USER_NOT_EXISTED)
         );
     }
 
@@ -107,32 +102,32 @@ public class EmployeeService implements IEmployeeService, ITokenGenerate<Employe
     @Override
     public PagingResult<EmployeeResponse> findEmployeesByAccountId(Long accountId, Pageable pageable, String query) {
         Restaurant restaurant = restaurantRepository.findByAccount_Id(accountId);
-        if(restaurant == null){
+        if (restaurant == null) {
             throw new AppException(ErrorCode.NOT_EXIST);
         }
         return PagingResult.<EmployeeResponse>builder()
-                .results(employeeRepository.findByRestaurant_IdAndEmployeeNameContaining(restaurant.getId(),query,pageable).stream().map(employeeMapper::toEmployeeResponse).toList())
-                .totalItems(employeeRepository.countByRestaurant_IdAndEmployeeNameContaining(restaurant.getId(),query))
-                .build();
+            .results(employeeRepository.findByRestaurant_IdAndEmployeeNameContaining(restaurant.getId(), query, pageable).stream().map(employeeMapper::toEmployeeResponse).toList())
+            .totalItems(employeeRepository.countByRestaurant_IdAndEmployeeNameContaining(restaurant.getId(), query))
+            .build();
     }
 
     @Override
     public AuthenticationResponse authenticated(EmployeeLoginRequest request) {
         Account account = accountService.findAccountByPhoneNumber(request.getPhoneNumberOfRestaurant());
-        Employee employee = employeeRepository.findByUsernameAndRestaurant_Id(request.getUsername(),account.getRestaurant().getId()).orElseThrow(
-                () -> new AppException(ErrorCode.EMPLOYEE_NOT_EXIST)
+        Employee employee = employeeRepository.findByUsernameAndRestaurant_Id(request.getUsername(), account.getRestaurant().getId()).orElseThrow(
+            () -> new AppException(ErrorCode.EMPLOYEE_NOT_EXIST)
         );
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
-        boolean authenticated = passwordEncoder.matches(request.getPassword(),employee.getPassword());
-        if(!authenticated){
+        boolean authenticated = passwordEncoder.matches(request.getPassword(), employee.getPassword());
+        if (!authenticated) {
             throw new AppException(ErrorCode.PASSWORD_INCORRECT);
         }
         String token = generateToken(employee);
 
         return AuthenticationResponse.builder()
-                .token(token)
-                .authenticated(true)
-                .build();
+            .token(token)
+            .authenticated(true)
+            .build();
     }
 
     @Override
@@ -146,9 +141,9 @@ public class EmployeeService implements IEmployeeService, ITokenGenerate<Employe
     @Override
     public String buildScope(Employee employee) {
         StringJoiner stringJoiner = new StringJoiner(" ");
-        if(employee.getRole() != null){
+        if (employee.getRole() != null) {
             stringJoiner.add("ROLE_" + employee.getRole().getName());
-            if(employee.getRestaurant() != null){
+            if (employee.getRestaurant() != null) {
                 employee.getRestaurant().getRestaurantPackage().getPermissions().forEach(permission -> stringJoiner.add(permission.getName()));
             }
         }
@@ -158,20 +153,20 @@ public class EmployeeService implements IEmployeeService, ITokenGenerate<Employe
     @Override
     public String generateToken(Employee employee) {
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .issuer(employee.getEmployeeName())
-                .issueTime(new Date())
-                .expirationTime(new Date(
-                        Instant.now().plus(4, ChronoUnit.HOURS).toEpochMilli()
-                ))
-                .claim("scope",buildScope(employee))
-                .claim("restaurantId",employee.getRestaurant().getId())
-                .claim("employeeId",employee.getId())
-                .claim("accountId",employee.getRestaurant().getAccount().getId())
-                .jwtID(UUID.randomUUID().toString())
-                .build();
+            .issuer(employee.getEmployeeName())
+            .issueTime(new Date())
+            .expirationTime(new Date(
+                Instant.now().plus(4, ChronoUnit.HOURS).toEpochMilli()
+            ))
+            .claim("scope", buildScope(employee))
+            .claim("restaurantId", employee.getRestaurant().getId())
+            .claim("employeeId", employee.getId())
+            .claim("accountId", employee.getRestaurant().getAccount().getId())
+            .jwtID(UUID.randomUUID().toString())
+            .build();
         Payload payload = new Payload(claims.toJSONObject());
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
-        JWSObject token = new JWSObject(header,payload);
+        JWSObject token = new JWSObject(header, payload);
         try {
             token.sign(new MACSigner(signerKey.getBytes()));
         } catch (JOSEException e) {

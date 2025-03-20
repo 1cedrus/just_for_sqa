@@ -2,10 +2,8 @@ package com.restaurent.manager.service.impl;
 
 import com.restaurent.manager.dto.PagingResult;
 import com.restaurent.manager.dto.response.order.DishOrderResponse;
-import com.restaurent.manager.entity.Dish;
 import com.restaurent.manager.entity.DishOrder;
 import com.restaurent.manager.entity.Order;
-import com.restaurent.manager.entity.TableRestaurant;
 import com.restaurent.manager.enums.DISH_ORDER_STATE;
 import com.restaurent.manager.exception.AppException;
 import com.restaurent.manager.exception.ErrorCode;
@@ -13,7 +11,6 @@ import com.restaurent.manager.mapper.DishOrderMapper;
 import com.restaurent.manager.repository.DishOrderRepository;
 import com.restaurent.manager.service.IDishOrderService;
 import com.restaurent.manager.service.IOrderService;
-import com.restaurent.manager.service.ITableRestaurantService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +30,7 @@ public class DishOrderService implements IDishOrderService {
     DishOrderRepository dishOrderRepository;
     DishOrderMapper dishOrderMapper;
     IOrderService orderService;
-    ITableRestaurantService tableRestaurantService;
+
     @Override
     public DishOrderResponse changeStatusDishOrderById(Long id, DISH_ORDER_STATE status) {
         DishOrder dishOrder = findById(id);
@@ -45,12 +42,12 @@ public class DishOrderService implements IDishOrderService {
     @Override
     public List<DishOrderResponse> findDishOrderWaitingByAndRestaurantId(Long restaurantId) {
         List<DishOrderResponse> dishOrderResponses = new ArrayList<>();
-        List<DishOrderResponse> waitingOrder = findDishOrderByRestaurantIdAndState(restaurantId,DISH_ORDER_STATE.WAITING);
-        List<DishOrderResponse> prepareOrder = findDishOrderByRestaurantIdAndState(restaurantId,DISH_ORDER_STATE.PREPARE);
-        if(waitingOrder != null){
+        List<DishOrderResponse> waitingOrder = findDishOrderByRestaurantIdAndState(restaurantId, DISH_ORDER_STATE.WAITING);
+        List<DishOrderResponse> prepareOrder = findDishOrderByRestaurantIdAndState(restaurantId, DISH_ORDER_STATE.PREPARE);
+        if (waitingOrder != null) {
             dishOrderResponses.addAll(waitingOrder);
         }
-        if(prepareOrder != null){
+        if (prepareOrder != null) {
             dishOrderResponses.addAll(prepareOrder);
         }
         return dishOrderResponses;
@@ -59,16 +56,16 @@ public class DishOrderService implements IDishOrderService {
     @Override
     public DishOrder findById(Long dishOrderId) {
         return dishOrderRepository.findById(dishOrderId).orElseThrow(
-                () -> new AppException(ErrorCode.NOT_EXIST)
+            () -> new AppException(ErrorCode.NOT_EXIST)
         );
     }
 
     @Override
     public PagingResult<DishOrderResponse> findDishOrderByOrderId(Long orderId, Pageable pageable) {
         return PagingResult.<DishOrderResponse>builder()
-                .results(dishOrderRepository.findDishOrderByOrder_Id(orderId,pageable).stream().map(dishOrderMapper::toDishOrderResponse).toList())
-                .totalItems(dishOrderRepository.countByOrder_Id(orderId))
-                .build();
+            .results(dishOrderRepository.findDishOrderByOrder_Id(orderId, pageable).stream().map(dishOrderMapper::toDishOrderResponse).toList())
+            .totalItems(dishOrderRepository.countByOrder_Id(orderId))
+            .build();
     }
 
     @Override
@@ -76,7 +73,7 @@ public class DishOrderService implements IDishOrderService {
         LocalDate today = LocalDate.now();
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(23, 59, 59);
-        return dishOrderRepository.findDishOrderByOrder_IdAndStatusAndOrderDateBetweenOrderByOrderDate(orderId,state,startOfDay,endOfDay).stream().map(dishOrderMapper::toDishOrderResponse).toList();
+        return dishOrderRepository.findDishOrderByOrder_IdAndStatusAndOrderDateBetweenOrderByOrderDate(orderId, state, startOfDay, endOfDay).stream().map(dishOrderMapper::toDishOrderResponse).toList();
     }
 
     @Override
@@ -87,10 +84,10 @@ public class DishOrderService implements IDishOrderService {
         LocalDate today = LocalDate.now();
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(23, 59, 59);
-        if(!orders.isEmpty()){
-            for (Order order: orders){
-                orderDishes = dishOrderRepository.findDishOrderByOrder_IdAndStatusAndOrderDateBetweenOrderByOrderDate(order.getId(),state,startOfDay,endOfDay);
-                if(!orderDishes.isEmpty()){
+        if (!orders.isEmpty()) {
+            for (Order order : orders) {
+                orderDishes = dishOrderRepository.findDishOrderByOrder_IdAndStatusAndOrderDateBetweenOrderByOrderDate(order.getId(), state, startOfDay, endOfDay);
+                if (!orderDishes.isEmpty()) {
                     dishOrders.addAll(orderDishes);
                 }
             }

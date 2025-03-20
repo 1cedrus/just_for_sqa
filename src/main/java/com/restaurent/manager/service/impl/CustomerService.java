@@ -33,13 +33,13 @@ public class CustomerService implements ICustomerService {
     @Override
     public CustomerResponse createCustomer(CustomerRequest customerRequest) {
         Optional<Customer> existingCustomer = customerRepository.findByPhoneNumberAndRestaurantId(
-                customerRequest.getPhoneNumber(), customerRequest.getRestaurantId());
+            customerRequest.getPhoneNumber(), customerRequest.getRestaurantId());
         if (existingCustomer.isPresent()) {
             throw new AppException(ErrorCode.PHONENUMBER_EXIST);
         } else {
             // Fetch the Restaurant from the database
             Restaurant restaurant = restaurantRepository.findById(customerRequest.getRestaurantId())
-                    .orElseThrow(() -> new AppException(ErrorCode.RESTAURANT_NOT_EXISTED));
+                .orElseThrow(() -> new AppException(ErrorCode.RESTAURANT_NOT_EXISTED));
 
             Customer customer = customerMapper.toCustomer(customerRequest);
             customer.setRestaurant(restaurant); // Set the Restaurant for the Customer
@@ -52,11 +52,11 @@ public class CustomerService implements ICustomerService {
     @Override
     public CustomerResponse updateCustomer(CustomerUpdateRequest request) {
         Customer customer = customerRepository.findById(request.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         // Check for phone number uniqueness within the same restaurant
         Optional<Customer> otherCustomer = customerRepository.findByPhoneNumberAndRestaurantId(
-                request.getPhoneNumber(), request.getRestaurantId());
+            request.getPhoneNumber(), request.getRestaurantId());
         if (otherCustomer.isPresent() && !otherCustomer.get().getId().equals(request.getId())) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
@@ -69,7 +69,7 @@ public class CustomerService implements ICustomerService {
         if (request.getRestaurantId() != null) {
             // Fetch the Restaurant from the database
             Restaurant restaurant = restaurantRepository.findById(request.getRestaurantId())
-                    .orElseThrow(() -> new AppException(ErrorCode.RESTAURANT_NOT_EXISTED));
+                .orElseThrow(() -> new AppException(ErrorCode.RESTAURANT_NOT_EXISTED));
             customer.setRestaurant(restaurant);
         }
 
@@ -81,43 +81,43 @@ public class CustomerService implements ICustomerService {
     @Override
     public CustomerResponse getCustomerById(Long id) {
         Customer customer = customerRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         return customerMapper.toCustomerResponse(customer);
     }
 
     @Override
     public PagingResult<CustomerResponse> getCustomersOrderByTotalPoint(Long restaurantId, Pageable pageable, String query) {
-        List<Customer> customers = customerRepository.findByRestaurant_IdAndNameContainingOrderByTotalPointDesc(restaurantId,query,pageable);
-       if(!query.isEmpty()){
-           List<Customer> customerPhone = customerRepository.findByRestaurant_IdAndPhoneNumberContainingOrderByTotalPointDesc(restaurantId,query,pageable);
-           if(!customerPhone.isEmpty()){
-               customers.addAll(customerPhone);
-           }
-       }
+        List<Customer> customers = customerRepository.findByRestaurant_IdAndNameContainingOrderByTotalPointDesc(restaurantId, query, pageable);
+        if (!query.isEmpty()) {
+            List<Customer> customerPhone = customerRepository.findByRestaurant_IdAndPhoneNumberContainingOrderByTotalPointDesc(restaurantId, query, pageable);
+            if (!customerPhone.isEmpty()) {
+                customers.addAll(customerPhone);
+            }
+        }
         return PagingResult.<CustomerResponse>builder()
-                .results(customers.stream().map(customerMapper::toCustomerResponse).toList())
-                .totalItems(customerRepository.countByRestaurant_IdAndNameContaining(restaurantId,query))
-                .build();
+            .results(customers.stream().map(customerMapper::toCustomerResponse).toList())
+            .totalItems(customerRepository.countByRestaurant_IdAndNameContaining(restaurantId, query))
+            .build();
     }
 
     @Override
     public CustomerResponse findCustomerResponseByPhoneNumber(String phoneNumber, Long restaurantId) {
-        Customer customer = customerRepository.findByPhoneNumberAndRestaurant_Id(phoneNumber,restaurantId).orElseThrow(
-                () -> new AppException(ErrorCode.CUSTOMER_NOT_EXIST)
+        Customer customer = customerRepository.findByPhoneNumberAndRestaurant_Id(phoneNumber, restaurantId).orElseThrow(
+            () -> new AppException(ErrorCode.CUSTOMER_NOT_EXIST)
         );
         return customerMapper.toCustomerResponse(customer);
     }
+
     @Override
     public Customer findCustomerByPhoneNumber(String phoneNumber, Long restaurantId) {
-        Customer customer = customerRepository.findByPhoneNumberAndRestaurant_Id(phoneNumber,restaurantId).orElseThrow(
-                () -> new AppException(ErrorCode.CUSTOMER_NOT_EXIST)
+        Customer customer = customerRepository.findByPhoneNumberAndRestaurant_Id(phoneNumber, restaurantId).orElseThrow(
+            () -> new AppException(ErrorCode.CUSTOMER_NOT_EXIST)
         );
         return customer;
     }
 
     @Override
     public boolean existCustomerByPhoneNumberAndRestaurantId(String phone, Long restaurantId) {
-        return customerRepository.existsByPhoneNumberAndRestaurant_Id(phone,restaurantId);
+        return customerRepository.existsByPhoneNumberAndRestaurant_Id(phone, restaurantId);
     }
-
 }

@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface IAreaService {
     AreaResponse createArea(AreaRequest request);
+
     List<AreaResponse> getAreasByRestaurantId(Long restaurantId);
+
     AreaResponse updateArea(Long areaId, AreaRequest request);
 }

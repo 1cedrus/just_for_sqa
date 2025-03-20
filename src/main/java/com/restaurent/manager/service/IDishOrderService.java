@@ -10,9 +10,14 @@ import java.util.List;
 
 public interface IDishOrderService {
     DishOrderResponse changeStatusDishOrderById(Long id, DISH_ORDER_STATE status);
+
     List<DishOrderResponse> findDishOrderWaitingByAndRestaurantId(Long restaurantId);
+
     DishOrder findById(Long dishOrderId);
+
     PagingResult<DishOrderResponse> findDishOrderByOrderId(Long orderId, Pageable pageable);
-    List<DishOrderResponse> findDishOrderByOrderIdAndStatus(Long orderId,DISH_ORDER_STATE state);
-    List<DishOrderResponse> findDishOrderByRestaurantIdAndState(Long restaurantId,DISH_ORDER_STATE state);
+
+    List<DishOrderResponse> findDishOrderByOrderIdAndStatus(Long orderId, DISH_ORDER_STATE state);
+
+    List<DishOrderResponse> findDishOrderByRestaurantIdAndState(Long restaurantId, DISH_ORDER_STATE state);
 }

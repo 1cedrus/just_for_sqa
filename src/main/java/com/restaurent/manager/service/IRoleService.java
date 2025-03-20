@@ -8,8 +8,12 @@ import java.util.List;
 
 public interface IRoleService {
     RoleResponse createRole(RoleRequest request);
+
     List<RoleResponse> getRoles();
+
     List<RoleResponse> getRolesInRestaurant();
+
     RoleResponse findRoleByName(String name);
+
     Role findByRoleName(String name);
 }

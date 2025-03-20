@@ -8,7 +8,10 @@ import java.util.List;
 
 public interface IPermissionService {
     PermissionResponse createPermission(PermissionRequest request);
+
     List<PermissionResponse> getPermissions();
-    PermissionResponse updatePermission(Long permissionId,PermissionRequest request);
+
+    PermissionResponse updatePermission(Long permissionId, PermissionRequest request);
+
     Permission findPermissionById(Long permissionId);
 }

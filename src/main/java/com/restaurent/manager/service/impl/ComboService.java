@@ -5,13 +5,11 @@ import com.restaurent.manager.dto.PagingResult;
 import com.restaurent.manager.dto.request.Combo.ComboRequest;
 import com.restaurent.manager.dto.request.Combo.ComboUpdateRequest;
 import com.restaurent.manager.dto.response.Combo.ComboResponse;
-import com.restaurent.manager.entity.Account;
 import com.restaurent.manager.entity.Combo;
 import com.restaurent.manager.entity.Dish;
 import com.restaurent.manager.exception.AppException;
 import com.restaurent.manager.exception.ErrorCode;
 import com.restaurent.manager.mapper.ComboMapper;
-import com.restaurent.manager.repository.AccountRepository;
 import com.restaurent.manager.repository.ComboRepository;
 import com.restaurent.manager.repository.DishRepository;
 import com.restaurent.manager.service.IComboService;
@@ -43,7 +41,7 @@ public class ComboService implements IComboService {
         Set<Dish> dishes = new HashSet<>();
         for (Long dishId : comboRequest.getDishIds()) {
             Dish dish = dishRepository.findById(dishId)
-                    .orElseThrow(() -> new AppException(ErrorCode.DISH_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.DISH_NOT_FOUND));
             dishes.add(dish);
         }
         combo.setDishes(dishes);
@@ -58,15 +56,15 @@ public class ComboService implements IComboService {
 
     public List<ComboResponse> getAllCombos() {
         List<Combo> combos = comboRepository.findAllActiveCombos();
-        return  combos.stream()
-                .map(comboMapper::toComboResponse)
-                .collect(Collectors.toList());
+        return combos.stream()
+            .map(comboMapper::toComboResponse)
+            .collect(Collectors.toList());
     }
 
     @Override
     public ComboResponse updateCombo(Long comboId, ComboUpdateRequest request) {
         Combo combo = comboRepository.findById(comboId)
-                .orElseThrow(() -> new AppException(ErrorCode.COMBO_NOT_EXISTED));
+            .orElseThrow(() -> new AppException(ErrorCode.COMBO_NOT_EXISTED));
 
         combo.setName(request.getName());
         combo.setPrice(request.getPrice());
@@ -76,7 +74,7 @@ public class ComboService implements IComboService {
         Set<Dish> dishes = new HashSet<>();
         for (Long dishId : request.getDishIds()) {
             Dish dish = dishRepository.findById(dishId)
-                    .orElseThrow(() -> new AppException(ErrorCode.DISH_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.DISH_NOT_FOUND));
             dishes.add(dish);
         }
         combo.setDishes(dishes);
@@ -86,7 +84,7 @@ public class ComboService implements IComboService {
         return comboMapper.toComboResponse(updatedCombo);
     }
 
-    public ComboResponse getComboById(Long id){
+    public ComboResponse getComboById(Long id) {
         Combo combo = findComboById(id);
         return comboMapper.toComboResponse(combo);
     }
@@ -94,17 +92,15 @@ public class ComboService implements IComboService {
     @Override
     public Combo findComboById(Long id) {
         return comboRepository.findById(id).orElseThrow(
-                () -> new AppException(ErrorCode.COMBO_NOT_EXISTED)
+            () -> new AppException(ErrorCode.COMBO_NOT_EXISTED)
         );
     }
 
     @Override
     public PagingResult<ComboResponse> getComboByRestaurantID(Long restaurantID, Pageable pageable, String query) {
         return PagingResult.<ComboResponse>builder()
-                .results(comboRepository.findByRestaurant_IdAndNameContaining(restaurantID,query,pageable).stream().map(comboMapper::toComboResponse).toList())
-                .totalItems(comboRepository.countByRestaurant_IdAndNameContaining(restaurantID,query))
-                .build();
+            .results(comboRepository.findByRestaurant_IdAndNameContaining(restaurantID, query, pageable).stream().map(comboMapper::toComboResponse).toList())
+            .totalItems(comboRepository.countByRestaurant_IdAndNameContaining(restaurantID, query))
+            .build();
     }
-
-
 }

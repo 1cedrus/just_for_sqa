@@ -22,11 +22,12 @@ import java.util.List;
 public class PermissionService implements IPermissionService {
     PermissionRepository permissionRepository;
     PermissionMapper permissionMapper;
+
     @Override
     public PermissionResponse createPermission(PermissionRequest request) {
         return permissionMapper.toPermissionResponse(
-                permissionRepository.save(
-                        permissionMapper.toPermission(request)));
+            permissionRepository.save(
+                permissionMapper.toPermission(request)));
     }
 
     @Override
@@ -37,7 +38,7 @@ public class PermissionService implements IPermissionService {
     @Override
     public PermissionResponse updatePermission(Long permissionId, PermissionRequest request) {
         Permission permission = findPermissionById(permissionId);
-        permissionMapper.updatePermission(permission,request);
+        permissionMapper.updatePermission(permission, request);
         permissionRepository.save(permission);
         return permissionMapper.toPermissionResponse(permission);
     }
@@ -45,7 +46,7 @@ public class PermissionService implements IPermissionService {
     @Override
     public Permission findPermissionById(Long permissionId) {
         return permissionRepository.findById(permissionId).orElseThrow(
-                () -> new AppException(ErrorCode.NOT_EXIST)
+            () -> new AppException(ErrorCode.NOT_EXIST)
         );
     }
 }

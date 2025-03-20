@@ -23,16 +23,17 @@ import org.springframework.stereotype.Service;
 public class VatService implements IVatService {
     VatRepository vatRepository;
     VatMapper vatMapper;
+    IRestaurantService restaurantService;
+    RestaurantRepository repository;
     @NonFinal
     @Value("${vat-default}")
     float taxValue;
     @NonFinal
     @Value("${vat-name-default}")
     String taxName;
-    IRestaurantService restaurantService;
-    RestaurantRepository repository;
+
     @Override
-    public Vat createVat(Long restaurantId,VatRequest request) {
+    public Vat createVat(Long restaurantId, VatRequest request) {
         Restaurant restaurant = restaurantService.getRestaurantById(restaurantId);
         Vat vat = vatMapper.toVat(request);
         vat.setTaxValue(taxValue);
@@ -47,14 +48,14 @@ public class VatService implements IVatService {
     @Override
     public Vat updateVatInformation(Long vatId, VatRequest request) {
         Vat vat = findById(vatId);
-        vatMapper.updateVat(vat,request);
+        vatMapper.updateVat(vat, request);
         return vatRepository.save(vat);
     }
 
     @Override
     public Vat findById(Long vatId) {
         return vatRepository.findById(vatId).orElseThrow(
-                () -> new AppException(ErrorCode.NOT_EXIST)
+            () -> new AppException(ErrorCode.NOT_EXIST)
         );
     }
 

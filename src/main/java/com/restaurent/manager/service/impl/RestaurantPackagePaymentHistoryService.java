@@ -11,7 +11,10 @@ import com.restaurent.manager.exception.AppException;
 import com.restaurent.manager.exception.ErrorCode;
 import com.restaurent.manager.mapper.RestaurantPackageHistoryMapper;
 import com.restaurent.manager.repository.RestaurantPackagePaymentHistoryRepository;
-import com.restaurent.manager.service.*;
+import com.restaurent.manager.service.IEmailService;
+import com.restaurent.manager.service.IPackageService;
+import com.restaurent.manager.service.IRestaurantPackagePaymentHistoryService;
+import com.restaurent.manager.service.IRestaurantService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
@@ -34,6 +37,7 @@ public class RestaurantPackagePaymentHistoryService implements IRestaurantPackag
     RestaurantPackageHistoryMapper mapper;
     AccountService accountService;
     IEmailService emailService;
+
     @Override
     public Long createRestaurantPackagePaymentHistory(RestaurantPackagePaymentHistoryRequest request) {
         RestaurantPackagePaymentHistory restaurantPackagePaymentHistory = mapper.toRestaurantPackagePaymentHistory(request);
@@ -53,18 +57,18 @@ public class RestaurantPackagePaymentHistoryService implements IRestaurantPackag
     @Override
     public String updateRestaurantPackagePaymentHistory(Long id, RestaurantPackagePaymentHistoryRequest request) {
         RestaurantPackagePaymentHistory history = restaurantPackagePaymentHistoryRepository.findById(id).orElseThrow(
-                () -> new AppException(ErrorCode.NOT_EXIST)
+            () -> new AppException(ErrorCode.NOT_EXIST)
         );
         restaurantService.updateRestaurant(request.getRestaurantId(), RestaurantUpdateRequest.builder()
-                .months(request.getMonths())
-                .packId(request.getPackageId())
-                .build());
+            .months(request.getMonths())
+            .packId(request.getPackageId())
+            .build());
         history.setPaid(true);
         Package pack = packageService.findPackById(request.getPackageId());
         Account account = accountService.findAccountByID(request.getAccountId());
         String token = accountService.generateToken(account);
         restaurantPackagePaymentHistoryRepository.save(history);
-        emailService.sendEmail(account.getEmail(), EmailContainer.formMailPackage(pack.getPackName()),"Updated Package for Restaurant");
+        emailService.sendEmail(account.getEmail(), EmailContainer.formMailPackage(pack.getPackName()), "Updated Package for Restaurant");
         return token;
     }
 
@@ -84,13 +88,13 @@ public class RestaurantPackagePaymentHistoryService implements IRestaurantPackag
         List<StatisticAdminTable> res = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
         int currentDay = now.getDayOfMonth();
-        for (int i = 0; i < currentDay; i++){
+        for (int i = 0; i < currentDay; i++) {
             LocalDate localDate = now.with(TemporalAdjusters.firstDayOfMonth()).plusDays(i).toLocalDate();
             res.add(StatisticAdminTable.builder()
-                            .day(localDate)
-                            .totalRestaurant(restaurantService.countRestaurantByDateCreated(localDate))
-                            .total(totalValueInDate(localDate))
-                    .build());
+                .day(localDate)
+                .totalRestaurant(restaurantService.countRestaurantByDateCreated(localDate))
+                .total(totalValueInDate(localDate))
+                .build());
         }
         return res;
     }
@@ -105,10 +109,10 @@ public class RestaurantPackagePaymentHistoryService implements IRestaurantPackag
         LocalDate currentDate = firstDayOfLastMonth;
         while (!currentDate.isAfter(lastDayOfLastMonth)) {
             res.add(StatisticAdminTable.builder()
-                    .day(currentDate)
-                    .total(totalValueInDate(currentDate))
-                            .totalRestaurant(restaurantService.countRestaurantByDateCreated(currentDate))
-                    .build());
+                .day(currentDate)
+                .total(totalValueInDate(currentDate))
+                .totalRestaurant(restaurantService.countRestaurantByDateCreated(currentDate))
+                .build());
             currentDate = currentDate.plusDays(1);
         }
         return res;
@@ -124,10 +128,10 @@ public class RestaurantPackagePaymentHistoryService implements IRestaurantPackag
         LocalDate currentDate = startOfWeek;
         while (!currentDate.isAfter(endOfWeek)) {
             res.add(StatisticAdminTable.builder()
-                    .day(currentDate)
-                    .total(totalValueInDate(currentDate))
-                    .totalRestaurant(restaurantService.countRestaurantByDateCreated(currentDate))
-                    .build());
+                .day(currentDate)
+                .total(totalValueInDate(currentDate))
+                .totalRestaurant(restaurantService.countRestaurantByDateCreated(currentDate))
+                .build());
             currentDate = currentDate.plusDays(1);
         }
         return res;
@@ -143,10 +147,10 @@ public class RestaurantPackagePaymentHistoryService implements IRestaurantPackag
         LocalDate currentDate = startOfWeek;
         while (!currentDate.isAfter(endOfWeek)) {
             res.add(StatisticAdminTable.builder()
-                    .day(currentDate)
-                    .total(totalValueInDate(currentDate))
-                    .totalRestaurant(restaurantService.countRestaurantByDateCreated(currentDate))
-                    .build());
+                .day(currentDate)
+                .total(totalValueInDate(currentDate))
+                .totalRestaurant(restaurantService.countRestaurantByDateCreated(currentDate))
+                .build());
             currentDate = currentDate.plusDays(1);
         }
         return res;
@@ -157,14 +161,14 @@ public class RestaurantPackagePaymentHistoryService implements IRestaurantPackag
         double res = 0;
         Date sqlDate = Date.valueOf(date);
         List<RestaurantPackagePaymentHistory> list = restaurantPackagePaymentHistoryRepository.findByDateCreated(sqlDate);
-       if(!list.isEmpty()){
-           for (RestaurantPackagePaymentHistory item : list){
-               if(item.isPaid()){
-                   res += item.getTotalMoney();
-               }
-           }
-           return Math.round(res);
-       }
+        if (!list.isEmpty()) {
+            for (RestaurantPackagePaymentHistory item : list) {
+                if (item.isPaid()) {
+                    res += item.getTotalMoney();
+                }
+            }
+            return Math.round(res);
+        }
         return 0;
     }
 }

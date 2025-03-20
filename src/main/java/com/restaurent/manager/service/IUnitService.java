@@ -8,8 +8,12 @@ import java.util.List;
 
 public interface IUnitService {
     UnitResponse createUnit(UnitRequest request);
+
     List<UnitResponse> getUnitsByAccountId(Long accountId);
-    UnitResponse updateUnit(Long unitId,UnitRequest request);
+
+    UnitResponse updateUnit(Long unitId, UnitRequest request);
+
     void deleteUnitById(Long unitId);
+
     Unit findById(Long id);
 }

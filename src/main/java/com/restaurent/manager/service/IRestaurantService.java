@@ -8,19 +8,25 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface IRestaurantService {
-RestaurantResponse initRestaurant(RestaurantRequest request);
-List<RestaurantResponse> getRestaurants();
+    RestaurantResponse initRestaurant(RestaurantRequest request);
 
-RestaurantResponse updateRestaurant(Long restaurantId,RestaurantUpdateRequest request);
-RestaurantResponse updateRestaurant(Long accountId, RestaurantManagerUpdateRequest request);
-RestaurantResponse updateRestaurant(Long accountId, RestaurantPaymentRequest request);
+    List<RestaurantResponse> getRestaurants();
 
-Restaurant getRestaurantById(Long id);
+    RestaurantResponse updateRestaurant(Long restaurantId, RestaurantUpdateRequest request);
 
-RestaurantResponse getRestaurantByAccountId(Long accountId);
+    RestaurantResponse updateRestaurant(Long accountId, RestaurantManagerUpdateRequest request);
 
-double getMoneyToUpdatePackForRestaurant(Long restaurantId,RestaurantUpdateRequest request);
-void updateRestaurantVatById(Long restaurantId,boolean status);
-RestaurantResponse updatePointForRestaurant(Long restaurantId, PointsRequest request);
-int countRestaurantByDateCreated(LocalDate date);
+    RestaurantResponse updateRestaurant(Long accountId, RestaurantPaymentRequest request);
+
+    Restaurant getRestaurantById(Long id);
+
+    RestaurantResponse getRestaurantByAccountId(Long accountId);
+
+    double getMoneyToUpdatePackForRestaurant(Long restaurantId, RestaurantUpdateRequest request);
+
+    void updateRestaurantVatById(Long restaurantId, boolean status);
+
+    RestaurantResponse updatePointForRestaurant(Long restaurantId, PointsRequest request);
+
+    int countRestaurantByDateCreated(LocalDate date);
 }

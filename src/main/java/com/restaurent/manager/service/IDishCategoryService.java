@@ -10,10 +10,16 @@ import java.util.List;
 
 public interface IDishCategoryService {
     DishCategoryResponse createDishCategory(DishCategoryRequest request);
+
     PagingResult<DishCategoryResponse> getAllDishCategoryByRestaurantId(Long restaurantId, String query, Pageable pageable);
+
     List<DishCategoryResponse> findDishCategoryByRestaurantId(Long restaurantId);
+
     DishCategory findById(Long id);
+
     DishCategory findByCodeAndRestaurantId(String code, Long restaurantId);
+
     void deleteCategoryById(Long id);
+
     DishCategoryResponse updateDishCategoryById(DishCategoryRequest request, Long id);
 }

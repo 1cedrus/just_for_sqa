@@ -24,12 +24,13 @@ public class ScheduleDishService implements IScheduleDishService {
     IComboService comboService;
     ScheduleDishRepository repository;
     ScheduleDishMapper scheduleDishMapper;
+
     @Override
     public void createScheduleDish(Schedule schedule, DishOrderRequest request) {
         ScheduleDish scheduleDish = new ScheduleDish();
-        if(request.getDishId() != null){
+        if (request.getDishId() != null) {
             scheduleDish.setDish(dishService.findByDishId(request.getDishId()));
-        }else{
+        } else {
             scheduleDish.setCombo(comboService.findComboById(request.getComboId()));
         }
         scheduleDish.setSchedule(schedule);

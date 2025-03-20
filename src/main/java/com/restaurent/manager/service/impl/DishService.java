@@ -9,17 +9,15 @@ import com.restaurent.manager.entity.DishCategory;
 import com.restaurent.manager.exception.AppException;
 import com.restaurent.manager.exception.ErrorCode;
 import com.restaurent.manager.mapper.DishMapper;
-import com.restaurent.manager.repository.AccountRepository;
-import com.restaurent.manager.repository.DishCategoryRepository;
 import com.restaurent.manager.repository.DishRepository;
-import com.restaurent.manager.repository.UnitRepository;
-import com.restaurent.manager.service.*;
+import com.restaurent.manager.service.IDishCategoryService;
+import com.restaurent.manager.service.IDishService;
+import com.restaurent.manager.service.IRestaurantService;
+import com.restaurent.manager.service.IUnitService;
 import com.restaurent.manager.utils.SlugUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -34,8 +32,8 @@ public class DishService implements IDishService {
     DishMapper dishMapper;
     IDishCategoryService dishCategoryService;
     IUnitService unitService;
-    IAccountService accountService;
     IRestaurantService restaurantService;
+
     @Override
     public DishResponse createNewDish(DishRequest request) {
         Dish dish = dishMapper.toDish(request);
@@ -48,14 +46,14 @@ public class DishService implements IDishService {
     }
 
     @Override
-    public List<DishResponse> findByRestaurant_Id(Long restaurantId) {
+    public List<DishResponse> findByRestaurantId(Long restaurantId) {
         return dishRepository.findByRestaurant_Id(restaurantId).stream().map(dishMapper::toDishResponse).toList();
     }
 
     @Override
     public DishResponse updateDish(Long dishId, DishUpdateRequest request) {
         Dish dish = findByDishId(dishId);
-        dishMapper.updateDish(dish,request);
+        dishMapper.updateDish(dish, request);
         dish.setDishCategory(dishCategoryService.findById(request.getDishCategoryId()));
         dish.setUnit(unitService.findById(request.getUnitId()));
         dish.setCode(SlugUtils.toSlug(dish.getName()));
@@ -66,29 +64,29 @@ public class DishService implements IDishService {
     @Override
     public Dish findByDishId(Long dishId) {
         return dishRepository.findById(dishId).orElseThrow(
-                () -> new AppException(ErrorCode.NOT_EXIST)
+            () -> new AppException(ErrorCode.NOT_EXIST)
         );
     }
 
     @Override
     public List<DishResponse> findDishesByCategoryCode(String categoryCode, Long restaurantId) {
-        if(categoryCode.equals("all")){
-            return dishRepository.findByRestaurant_IdAndStatus(restaurantId,true).stream().map(dishMapper::toDishResponse).toList();
+        if (categoryCode.equals("all")) {
+            return dishRepository.findByRestaurant_IdAndStatus(restaurantId, true).stream().map(dishMapper::toDishResponse).toList();
         }
-        DishCategory category = dishCategoryService.findByCodeAndRestaurantId(categoryCode,restaurantId);
-        return dishRepository.findByDishCategory_IdAndStatus(category.getId(),true).stream().map(dishMapper::toDishResponse).toList();
+        DishCategory category = dishCategoryService.findByCodeAndRestaurantId(categoryCode, restaurantId);
+        return dishRepository.findByDishCategory_IdAndStatus(category.getId(), true).stream().map(dishMapper::toDishResponse).toList();
     }
 
     @Override
     public List<DishResponse> findDishesByRestaurantActive(Long restaurantId) {
-        return dishRepository.findByRestaurant_IdAndStatus(restaurantId,true).stream().map(dishMapper::toDishResponse).toList();
+        return dishRepository.findByRestaurant_IdAndStatus(restaurantId, true).stream().map(dishMapper::toDishResponse).toList();
     }
 
     @Override
     public PagingResult<DishResponse> getDishesByRestaurantIdAndStatus(Long restaurantId, boolean status, Pageable pageable, String query) {
         return PagingResult.<DishResponse>builder()
-                .results(dishRepository.findByRestaurant_IdAndStatusAndNameContaining(restaurantId,status,pageable, query).stream().map(dishMapper::toDishResponse).toList())
-                .totalItems(dishRepository.countByRestaurant_IdAndStatusAndNameContaining(restaurantId,status,query))
-                .build();
+            .results(dishRepository.findByRestaurant_IdAndStatusAndNameContaining(restaurantId, status, pageable, query).stream().map(dishMapper::toDishResponse).toList())
+            .totalItems(dishRepository.countByRestaurant_IdAndStatusAndNameContaining(restaurantId, status, query))
+            .build();
     }
 }

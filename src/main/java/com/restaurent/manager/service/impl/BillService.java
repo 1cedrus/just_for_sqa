@@ -10,7 +10,10 @@ import com.restaurent.manager.mapper.BillMapper;
 import com.restaurent.manager.repository.BillRepository;
 import com.restaurent.manager.repository.CustomerRepository;
 import com.restaurent.manager.repository.TableRestaurantRepository;
-import com.restaurent.manager.service.*;
+import com.restaurent.manager.service.IBillService;
+import com.restaurent.manager.service.IOrderService;
+import com.restaurent.manager.service.IRestaurantService;
+import com.restaurent.manager.service.ITableRestaurantService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -18,9 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -35,6 +36,7 @@ public class BillService implements IBillService {
     TableRestaurantRepository tableRestaurantRepository;
     IRestaurantService restaurantService;
     CustomerRepository customerRepository;
+
     @Override
     public BillResponse createBill(Long orderId, BillRequest request) {
         Order order = orderService.findOrderById(orderId);
@@ -48,18 +50,18 @@ public class BillService implements IBillService {
         bill.setDateCreated(LocalDateTime.now());
         // handle adding point for customer
         Restaurant restaurant = order.getRestaurant();
-        if(request.getPoints() != 0){
+        if (request.getPoints() != 0) {
             // handle reduce point when apply using point
             bill.setPointUsed(request.getPoints());
             int points = (int) (customer.getCurrentPoint() - request.getPoints());
-            if(points < 0){
+            if (points < 0) {
                 throw new AppException(ErrorCode.POINT_INVALID);
             }
             customer.setCurrentPoint(points);
-        }else{
+        } else {
             // handle adding point when customer paid
             int points = (int) (request.getTotal() / restaurant.getMoneyToPoint());
-            log.info("point : " + points + "money to point : " + restaurant.getMoneyToPoint() + " Total "  + request.getTotal());
+            log.info("point : " + points + "money to point : " + restaurant.getMoneyToPoint() + " Total " + request.getTotal());
             customer.setCurrentPoint(customer.getCurrentPoint() + points);
             customer.setTotalPoint(customer.getTotalPoint() + points);
         }
@@ -70,7 +72,7 @@ public class BillService implements IBillService {
     @Override
     public List<BillResponse> getBillsByRestaurantId(Long restaurantId, Pageable pageable) {
         return billRepository.findByOrder_Restaurant_Id(restaurantId, pageable).stream().map(
-                billMapper::toBillResponse
+            billMapper::toBillResponse
         ).toList();
     }
 
@@ -119,7 +121,7 @@ public class BillService implements IBillService {
         Restaurant restaurant = restaurantService.getRestaurantById(resId);
         double res = 0;
         if (!bills.isEmpty()) {
-            if(restaurant.isVatActive() && restaurant.getVat() != null){
+            if (restaurant.isVatActive() && restaurant.getVat() != null) {
                 for (Bill bill : bills) {
                     res += bill.getTotal() * (restaurant.getVat().getTaxValue() / (100 + restaurant.getVat().getTaxValue()));
                 }
@@ -135,7 +137,7 @@ public class BillService implements IBillService {
         Restaurant restaurant = restaurantService.getRestaurantById(resId);
         double res = 0;
         if (!bills.isEmpty()) {
-            if(restaurant.isVatActive() && restaurant.getVat() != null){
+            if (restaurant.isVatActive() && restaurant.getVat() != null) {
                 for (Bill bill : bills) {
                     res += bill.getTotal() * (restaurant.getVat().getTaxValue() / (100 + restaurant.getVat().getTaxValue()));
                 }
@@ -148,42 +150,15 @@ public class BillService implements IBillService {
     @Override
     public double getTotalValueByTimeAndCurrentForRestaurant(Long restaurantId, String startTime, String endTime) {
         double res = 0;
-        List<Bill> bills = billRepository.findByTimeBetweenAndCurrentDate(restaurantId,startTime,endTime);
-        if(!bills.isEmpty()){
-            for (Bill b : bills){
+        List<Bill> bills = billRepository.findByTimeBetweenAndCurrentDate(restaurantId, startTime, endTime);
+        if (!bills.isEmpty()) {
+            for (Bill b : bills) {
                 res += b.getTotal();
             }
             return Math.round(res);
         }
         return 0;
     }
-
-    @Override
-    public double getTotalValueByTimeAndCurrentWeekForRestaurant(Long restaurantId, String startTime, String endTime) {
-        double res = 0;
-        List<Bill> bills = billRepository.findByTimeBetweenAndCurrentWeek(restaurantId,startTime,endTime);
-        if(!bills.isEmpty()){
-            for (Bill b : bills){
-                res += b.getTotal();
-            }
-            return Math.round(res);
-        }
-        return 0;
-    }
-
-    @Override
-    public double getTotalValueByTimeAndCurrentMonthForRestaurant(Long restaurantId, String startTime, String endTime) {
-        double res = 0;
-        List<Bill> bills = billRepository.findByTimeBetweenAndCurrentMonth(restaurantId,startTime,endTime);
-        if(!bills.isEmpty()){
-            for (Bill b : bills){
-                res += b.getTotal();
-            }
-            return Math.round(res);
-        }
-        return 0;
-    }
-
 }
 
 
