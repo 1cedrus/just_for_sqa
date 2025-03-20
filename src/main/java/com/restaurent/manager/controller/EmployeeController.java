@@ -3,7 +3,6 @@ package com.restaurent.manager.controller;
 import com.restaurent.manager.dto.PagingResult;
 import com.restaurent.manager.dto.request.employee.EmployeeRequest;
 import com.restaurent.manager.dto.request.employee.EmployeeUpdateInformationRequest;
-import com.restaurent.manager.dto.request.employee.EmployeeUpdateRequest;
 import com.restaurent.manager.dto.response.ApiResponse;
 import com.restaurent.manager.dto.response.EmployeeResponse;
 import com.restaurent.manager.service.IEmployeeService;
@@ -15,8 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @Slf4j

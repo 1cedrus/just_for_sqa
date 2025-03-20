@@ -5,7 +5,6 @@ import com.restaurent.manager.dto.request.Combo.ComboRequest;
 import com.restaurent.manager.dto.request.Combo.ComboUpdateRequest;
 import com.restaurent.manager.dto.response.ApiResponse;
 import com.restaurent.manager.dto.response.Combo.ComboResponse;
-import com.restaurent.manager.dto.response.CustomerResponse;
 import com.restaurent.manager.service.IComboService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;

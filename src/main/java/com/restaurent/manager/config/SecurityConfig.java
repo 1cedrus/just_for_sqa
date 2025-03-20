@@ -30,11 +30,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @RequiredArgsConstructor
 @EnableMethodSecurity
 public class SecurityConfig{
-    private final String[] PUBLIC_ENDPOINT = {"/api/identify/refresh-token/{token}","/api/package/view","/api/account/verify/otp","/websocket/**","/api/identify/employee/login","/api/account","/api/account/**","/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html","/swagger-ui/index.html","/api/identify/*","/oauth2/**,/login/oauth2/code/google"};
-    private final String[] PRIVATE_ENDPOINT_ADMIN = {"/api/role/create","/api/permission/**", "/api/restaurant/admin/{restaurantId}"};
-    private final String[] RESTAURANT_MANAGER_ENDPOINT = {"/api/restaurant/init","/api/restaurant/manager/{accountId}","/api/restaurant/manager/payment/{accountId}", "/api/restaurant/{restaurantId}/pack/require-money", "/api/restaurant/{restaurant}/vat/{status}",
+    private static final String[] PUBLIC_ENDPOINT = {"/api/identify/refresh-token/{token}","/api/package/view","/api/account/verify/otp","/websocket/**","/api/identify/employee/login","/api/account","/api/account/**","/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html","/swagger-ui/index.html","/api/identify/*","/oauth2/**,/login/oauth2/code/google"};
+    private static final String[] PRIVATE_ENDPOINT_ADMIN = {"/api/role/create","/api/permission/**", "/api/restaurant/admin/{restaurantId}"};
+    private static final String[] RESTAURANT_MANAGER_ENDPOINT = {"/api/restaurant/init","/api/restaurant/manager/{accountId}","/api/restaurant/manager/payment/{accountId}", "/api/restaurant/{restaurantId}/pack/require-money", "/api/restaurant/{restaurant}/vat/{status}",
     "/api/restaurant/{restaurantId}/point"};
-    private final String[] EMPLOYEE_MANAGER_ENDPOINT = {"/api/employee/**"};
+    private static final String[] EMPLOYEE_MANAGER_ENDPOINT = {"/api/employee/**"};
     @NonFinal
     @Value("${allow-origin}")
     private String allowOrigin;

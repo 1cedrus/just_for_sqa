@@ -1,17 +1,13 @@
 package com.restaurent.manager.config;
 
-
-
-
 import java.text.ParseException;
 import java.util.Objects;
 import javax.crypto.spec.SecretKeySpec;
 
 import com.restaurent.manager.dto.request.IntrospectRequest;
 import com.restaurent.manager.dto.response.IntrospectResponse;
-import com.restaurent.manager.exception.AppException;
 import com.restaurent.manager.service.impl.AuthenticationService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -23,12 +19,12 @@ import org.springframework.stereotype.Component;
 import com.nimbusds.jose.JOSEException;
 
 @Component
+@RequiredArgsConstructor
 public class CustomJwtDecoder implements JwtDecoder {
     @Value("${jwt.signerKey}")
     private String signerKey;
 
-    @Autowired
-    private AuthenticationService authenticationService;
+    private final AuthenticationService authenticationService;
 
     private NimbusJwtDecoder nimbusJwtDecoder = null;
 

@@ -1,11 +1,8 @@
 package com.restaurent.manager.controller;
 
 import com.restaurent.manager.dto.request.Table.TableRestaurantRequest;
-import com.restaurent.manager.dto.request.Table.TableRestaurantUpdateRequest;
 import com.restaurent.manager.dto.response.ApiResponse;
 import com.restaurent.manager.dto.response.TableRestaurantResponse;
-import com.restaurent.manager.entity.TableRestaurant;
-import com.restaurent.manager.mapper.TableRestaurantMapper;
 import com.restaurent.manager.service.ITableRestaurantService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
