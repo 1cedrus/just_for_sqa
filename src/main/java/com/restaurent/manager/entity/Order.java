@@ -41,6 +41,70 @@ public class Order {
         return id != null && id.equals(((Order) o).getId());
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Employee getEmployee() {
+        return employee;
+    }
+
+    public void setEmployee(Employee employee) {
+        this.employee = employee;
+    }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+    }
+
+    public TableRestaurant getTableRestaurant() {
+        return tableRestaurant;
+    }
+
+    public void setTableRestaurant(TableRestaurant tableRestaurant) {
+        this.tableRestaurant = tableRestaurant;
+    }
+
+    public LocalDate getOrderDate() {
+        return orderDate;
+    }
+
+    public void setOrderDate(LocalDate orderDate) {
+        this.orderDate = orderDate;
+    }
+
+    public Bill getBill() {
+        return bill;
+    }
+
+    public void setBill(Bill bill) {
+        this.bill = bill;
+    }
+
+    public Set<DishOrder> getDishOrders() {
+        return dishOrders;
+    }
+
+    public void setDishOrders(Set<DishOrder> dishOrders) {
+        this.dishOrders = dishOrders;
+    }
+
+    public Restaurant getRestaurant() {
+        return restaurant;
+    }
+
+    public void setRestaurant(Restaurant restaurant) {
+        this.restaurant = restaurant;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
     @Override
     public int hashCode() {
         return getClass().hashCode();

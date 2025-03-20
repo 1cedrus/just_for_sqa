@@ -21,4 +21,44 @@ public class Unit {
     @ManyToOne(fetch = FetchType.LAZY)
     Account account;
     boolean hidden;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Set<Dish> getDishes() {
+        return dishes;
+    }
+
+    public void setDishes(Set<Dish> dishes) {
+        this.dishes = dishes;
+    }
+
+    public Account getAccount() {
+        return account;
+    }
+
+    public void setAccount(Account account) {
+        this.account = account;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
+    }
 }

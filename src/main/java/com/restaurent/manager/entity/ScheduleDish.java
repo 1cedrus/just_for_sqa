@@ -16,6 +16,47 @@ public class ScheduleDish {
     Long id;
     @ManyToOne
     Combo combo;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Combo getCombo() {
+        return combo;
+    }
+
+    public void setCombo(Combo combo) {
+        this.combo = combo;
+    }
+
+    public Dish getDish() {
+        return dish;
+    }
+
+    public void setDish(Dish dish) {
+        this.dish = dish;
+    }
+
+    public Schedule getSchedule() {
+        return schedule;
+    }
+
+    public void setSchedule(Schedule schedule) {
+        this.schedule = schedule;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
     @ManyToOne
     Dish dish;
     @ManyToOne

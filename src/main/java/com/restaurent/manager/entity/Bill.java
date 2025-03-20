@@ -24,4 +24,52 @@ public class Bill {
     LocalDateTime dateCreated;
     @Enumerated(EnumType.STRING)
     MethodPayment methodPayment;
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+
+    public void setTotal(double total) {
+        this.total = total;
+    }
+
+    public void setPointUsed(double pointUsed) {
+        this.pointUsed = pointUsed;
+    }
+
+    public void setDateCreated(LocalDateTime dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public void setMethodPayment(MethodPayment methodPayment) {
+        this.methodPayment = methodPayment;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public double getTotal() {
+        return total;
+    }
+
+    public double getPointUsed() {
+        return pointUsed;
+    }
+
+    public LocalDateTime getDateCreated() {
+        return dateCreated;
+    }
+
+    public MethodPayment getMethodPayment() {
+        return methodPayment;
+    }
 }

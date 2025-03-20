@@ -33,4 +33,52 @@ public class Package {
     Set<Permission> permissions = new HashSet<>();
     double pricePerMonth;
     double pricePerYear;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getPackName() {
+        return packName;
+    }
+
+    public void setPackName(String packName) {
+        this.packName = packName;
+    }
+
+    public Set<Restaurant> getRestaurants() {
+        return restaurants;
+    }
+
+    public void setRestaurants(Set<Restaurant> restaurants) {
+        this.restaurants = restaurants;
+    }
+
+    public void setPermissions(Set<Permission> permissions) {
+        this.permissions = permissions;
+    }
+
+    public double getPricePerMonth() {
+        return pricePerMonth;
+    }
+
+    public void setPricePerMonth(double pricePerMonth) {
+        this.pricePerMonth = pricePerMonth;
+    }
+
+    public double getPricePerYear() {
+        return pricePerYear;
+    }
+
+    public void setPricePerYear(double pricePerYear) {
+        this.pricePerYear = pricePerYear;
+    }
+
+    public Set<Permission> getPermissions() {
+        return permissions;
+    }
 }

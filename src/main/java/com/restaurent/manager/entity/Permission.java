@@ -32,6 +32,46 @@ public class Permission {
         return id != null && id.equals(((Permission) o).getId());
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Set<Package> getPackages() {
+        return packages;
+    }
+
+    public void setPackages(Set<Package> packages) {
+        this.packages = packages;
+    }
+
+    public int getMaximum() {
+        return maximum;
+    }
+
+    public void setMaximum(int maximum) {
+        this.maximum = maximum;
+    }
+
     @Override
     public int hashCode() {
         return getClass().hashCode();
