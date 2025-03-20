@@ -8,21 +8,19 @@ import com.restaurent.manager.dto.response.CustomerResponse;
 import com.restaurent.manager.service.ICustomerService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/customers")
+@RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 public class CustomerController {
 
-    @Autowired
-    private ICustomerService customerService;
+    private final ICustomerService customerService;
 
     @PreAuthorize(value = "hasAnyRole('MANAGER', 'WAITER') and hasAuthority('CUSTOMER')")
     @PostMapping("create")

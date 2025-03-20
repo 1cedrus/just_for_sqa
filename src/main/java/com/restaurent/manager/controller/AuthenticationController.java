@@ -29,7 +29,6 @@ public class AuthenticationController {
     @PostMapping("/introspect")
     public ApiResponse<IntrospectResponse> introspect(@RequestBody IntrospectRequest request) throws ParseException, JOSEException {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
-        log.info("Username : " + authentication.getName());
         authentication.getAuthorities().forEach(grantedAuthority -> log.info(grantedAuthority.getAuthority()));
         return  ApiResponse.<IntrospectResponse>builder()
                 .result(authenticationService.introspect(request))
