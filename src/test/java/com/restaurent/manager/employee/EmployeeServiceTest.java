@@ -5,6 +5,8 @@ import com.restaurent.manager.dto.response.EmployeeResponse;
 import com.restaurent.manager.entity.Employee;
 import com.restaurent.manager.entity.Restaurant;
 import com.restaurent.manager.entity.Role;
+import com.restaurent.manager.exception.AppException;
+import com.restaurent.manager.exception.ErrorCode;
 import com.restaurent.manager.mapper.EmployeeMapper;
 import com.restaurent.manager.repository.EmployeeRepository;
 import com.restaurent.manager.repository.RestaurantRepository;
@@ -22,6 +24,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -65,73 +68,90 @@ public class EmployeeServiceTest {
             .password("password")
             .build();
 
-        // ✅ Restaurant mock
         Restaurant restaurant = Restaurant.builder()
-            .id(1L)
+            .id(employeeRequest.getAccountId())
             .restaurantName("My Restaurant")
             .employees(new HashSet<>())
             .build();
 
-        // ✅ Employee mock
-        Employee employee = Employee.builder()
-            .employeeName("test")
-            .username("testUser")
-            .password("encodedPassword")  // Mật khẩu mã hóa
-            .build();
-
-        // ✅ Role mock
         Role role = Role.builder()
-            .id(1L)
+            .id(employeeRequest.getRoleId())
             .employees(new HashSet<>())
             .build();
 
+        Employee employeeBeforeSave = Employee.builder()
+                .employeeName(employeeRequest.getEmployeeName())
+                .username(employeeRequest.getUsername())
+                .password(employeeRequest.getPassword())
+                .build();
+
+        Employee employeeAfterSave = Employee.builder()
+                .employeeName(employeeRequest.getEmployeeName())
+                .username(employeeRequest.getUsername())
+                .password(passwordEncoder.encode(employeeRequest.getPassword()))
+                .build();
+
         EmployeeResponse employeeResponse = EmployeeResponse.builder()
-            .employeeName(employee.getEmployeeName())
-            .username(employee.getUsername())
-            .password(passwordEncoder.encode(employee.getPassword()))
-            .phoneNumber(employee.getPhoneNumber())
+            .employeeName(employeeAfterSave.getEmployeeName())
+            .username(employeeAfterSave.getUsername())
+            .password(employeeAfterSave.getPassword())
+            .phoneNumber(employeeAfterSave.getPhoneNumber())
             .build();
 
-        // 📌 Khi gọi findByAccount_Id -> trả về Restaurant
         Mockito.when(restaurantRepository.findByAccount_Id(employeeRequest.getAccountId()))
             .thenReturn(restaurant);
 
-        // 📌 Khi gọi existsByUsernameAndRestaurant_Id -> trả về false (username chưa tồn tại)
         Mockito.when(employeeRepository.existsByUsernameAndRestaurant_Id(
                 employeeRequest.getUsername(), restaurant.getId()))
             .thenReturn(false);
 
-        // 📌 Khi gọi mapper -> trả về Employee
         Mockito.when(employeeMapper.toEmployee(employeeRequest))
-            .thenReturn(employee);
+            .thenReturn(employeeBeforeSave);
 
-        // 📌 Khi gọi roleRepository.findById -> trả về Role
         Mockito.when(roleRepository.findById(employeeRequest.getRoleId()))
             .thenReturn(Optional.of(role));
 
-        // 📌 Khi gọi save, trả về employee đã lưu
-        Mockito.when(employeeRepository.save(Mockito.any(Employee.class)))
-            .thenReturn(employee);
+        Mockito.when(employeeRepository.save(employeeBeforeSave))
+            .thenReturn(employeeAfterSave);
+        Mockito.when(employeeMapper.toEmployeeResponse(ArgumentMatchers.any(Employee.class))).thenReturn(employeeResponse);
 
-        Mockito.when(employeeMapper.toEmployeeResponse(Mockito.any(Employee.class))).thenReturn(employeeResponse);
-
-        // 🛠 **Gọi service**
         EmployeeResponse result = employeeService.createEmployee(employeeRequest);
 
-        // ✅ **Kiểm tra kết quả**
         Assertions.assertNotNull(result);
         Assertions.assertEquals("test", result.getEmployeeName());
+        Mockito.verify(employeeRepository, Mockito.times(1)).save(employeeBeforeSave);
+        Assertions.assertEquals(1, restaurant.getEmployees().size());
+        Assertions.assertEquals(1, role.getEmployees().size());
+    }
 
-        // ✅ Kiểm tra mật khẩu đã được mã hóa
-        Assertions.assertTrue(passwordEncoder.matches(employee.getPassword(), result.getPassword()));
+    @Test
+    void findEmployeeById_TestChuan() {
+        Employee employee = Employee.builder()
+                .id(1L)
+                .employeeName("test")
+                .username("testUser")
+                .password("password")
+                .role(new Role())
+                .build();
 
-        // ✅ Kiểm tra save được gọi
-        Mockito.verify(employeeRepository, Mockito.times(1)).save(employee);
+        Mockito.when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
 
-        // ✅ Kiểm tra employee được thêm vào restaurant
-        Assertions.assertTrue(restaurant.getEmployees().contains(employee));
+        var result = employeeService.findEmployeeById(1L);
 
-        // ✅ Kiểm tra role được gán đúng
-        Assertions.assertTrue(role.getEmployees().contains(employee));
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1L, result.getId());
+        Assertions.assertEquals("test", result.getEmployeeName());
+        Assertions.assertEquals("testUser", result.getUsername());
+        Assertions.assertEquals("password", result.getPassword());
+        Assertions.assertNotNull(result.getRole());
+        Mockito.verify(employeeRepository, Mockito.times(1)).findById(1L);
+    }
+
+    @Test
+    void findEmployeeById_NgoaiLe1() {
+        Mockito.when(employeeRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
+
+        AppException appException = Assertions.assertThrows(AppException.class, () -> employeeService.findEmployeeById(ArgumentMatchers.anyLong()));
+        Assertions.assertEquals(ErrorCode.USER_NOT_EXISTED, appException.getErrorCode());
     }
 }

@@ -1,10 +1,9 @@
 package com.restaurent.manager.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import net.minidev.json.annotate.JsonIgnore;
+import org.apache.commons.lang3.builder.ToStringExclude;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -30,6 +29,8 @@ public class Role {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
+    @JsonIgnore
+    @ToString.Exclude
     private Set<Employee> employees;
     public void assignAccount(Account account){
         this.accounts.add(account);
