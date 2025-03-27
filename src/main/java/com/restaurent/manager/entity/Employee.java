@@ -1,8 +1,7 @@
 package com.restaurent.manager.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.util.Set;
@@ -10,6 +9,9 @@ import java.util.Set;
 @Entity
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

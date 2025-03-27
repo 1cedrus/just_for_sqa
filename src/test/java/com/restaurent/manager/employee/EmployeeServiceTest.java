@@ -11,58 +11,127 @@ import com.restaurent.manager.repository.RestaurantRepository;
 import com.restaurent.manager.repository.RoleRepository;
 import com.restaurent.manager.service.IAccountService;
 import com.restaurent.manager.service.impl.EmployeeService;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 public class EmployeeServiceTest {
 
-    @InjectMocks
     private EmployeeService employeeService;
 
     @Mock
     private RestaurantRepository restaurantRepository;
-    @Mock
-    private RoleRepository roleRepository;
-    @Mock
-    private EmployeeMapper employeeMapper;
+
     @Mock
     private EmployeeRepository employeeRepository;
+
+    @Mock
+    private RoleRepository roleRepository;
+
+    @Mock
+    private EmployeeMapper employeeMapper;
+
     @Mock
     private IAccountService accountService;
 
+    private PasswordEncoder passwordEncoder;
     @BeforeEach
-    public void setUP() {
-        ReflectionTestUtils.setField(employeeService, "signerKey", "abc");
+    void setup() {
+        MockitoAnnotations.openMocks(this); // Ensure mocks are initialized
+        employeeService = new EmployeeService(restaurantRepository, roleRepository, employeeMapper, employeeRepository, accountService);
+        passwordEncoder = new BCryptPasswordEncoder(10);
     }
 
     @Test
-    void createEmployeeTest() {
-        Restaurant restaurant = new Restaurant();
-        restaurant.setId(1L);
-        Mockito.lenient().doReturn(restaurant).when(restaurantRepository).findByAccount_Id(ArgumentMatchers.anyLong());
+    void createEmployee_TestChuan() {
+        EmployeeRequest employeeRequest = EmployeeRequest.builder()
+            .accountId(1L)
+            .employeeName("test")
+            .phoneNumber("0123456789")
+            .roleId(1L)
+            .username("testUser")
+            .password("password")
+            .build();
 
-        Mockito.lenient().doReturn(false).when(employeeRepository).existsByUsernameAndRestaurant_Id(ArgumentMatchers.anyString(), ArgumentMatchers.anyLong());
+        // ✅ Restaurant mock
+        Restaurant restaurant = Restaurant.builder()
+            .id(1L)
+            .restaurantName("My Restaurant")
+            .employees(new HashSet<>())
+            .build();
 
-        Employee employee = new Employee();
-        Mockito.lenient().doReturn(employee).when(employeeMapper).toEmployee(ArgumentMatchers.any());
+        // ✅ Employee mock
+        Employee employee = Employee.builder()
+            .employeeName("test")
+            .username("testUser")
+            .password("encodedPassword")  // Mật khẩu mã hóa
+            .build();
 
-        Role role = new Role();
-        Mockito.lenient().doReturn(Optional.of(role)).when(roleRepository).findById(ArgumentMatchers.anyLong());
+        // ✅ Role mock
+        Role role = Role.builder()
+            .id(1L)
+            .employees(new HashSet<>())
+            .build();
 
-        EmployeeResponse employeeResponse = new EmployeeResponse();
-        Mockito.lenient().doReturn(employeeResponse).when(employeeMapper).toEmployeeResponse(employee);
+        EmployeeResponse employeeResponse = EmployeeResponse.builder()
+            .employeeName(employee.getEmployeeName())
+            .username(employee.getUsername())
+            .password(passwordEncoder.encode(employee.getPassword()))
+            .phoneNumber(employee.getPhoneNumber())
+            .build();
 
-        Assertions.assertDoesNotThrow(() -> employeeService.createEmployee(new EmployeeRequest()));
+        // 📌 Khi gọi findByAccount_Id -> trả về Restaurant
+        Mockito.when(restaurantRepository.findByAccount_Id(employeeRequest.getAccountId()))
+            .thenReturn(restaurant);
+
+        // 📌 Khi gọi existsByUsernameAndRestaurant_Id -> trả về false (username chưa tồn tại)
+        Mockito.when(employeeRepository.existsByUsernameAndRestaurant_Id(
+                employeeRequest.getUsername(), restaurant.getId()))
+            .thenReturn(false);
+
+        // 📌 Khi gọi mapper -> trả về Employee
+        Mockito.when(employeeMapper.toEmployee(employeeRequest))
+            .thenReturn(employee);
+
+        // 📌 Khi gọi roleRepository.findById -> trả về Role
+        Mockito.when(roleRepository.findById(employeeRequest.getRoleId()))
+            .thenReturn(Optional.of(role));
+
+        // 📌 Khi gọi save, trả về employee đã lưu
+        Mockito.when(employeeRepository.save(Mockito.any(Employee.class)))
+            .thenReturn(employee);
+
+        Mockito.when(employeeMapper.toEmployeeResponse(Mockito.any(Employee.class))).thenReturn(employeeResponse);
+
+        // 🛠 **Gọi service**
+        EmployeeResponse result = employeeService.createEmployee(employeeRequest);
+
+        // ✅ **Kiểm tra kết quả**
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals("test", result.getEmployeeName());
+
+        // ✅ Kiểm tra mật khẩu đã được mã hóa
+        Assertions.assertTrue(passwordEncoder.matches(employee.getPassword(), result.getPassword()));
+
+        // ✅ Kiểm tra save được gọi
+        Mockito.verify(employeeRepository, Mockito.times(1)).save(employee);
+
+        // ✅ Kiểm tra employee được thêm vào restaurant
+        Assertions.assertTrue(restaurant.getEmployees().contains(employee));
+
+        // ✅ Kiểm tra role được gán đúng
+        Assertions.assertTrue(role.getEmployees().contains(employee));
     }
 }
