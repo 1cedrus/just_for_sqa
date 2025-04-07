@@ -163,12 +163,12 @@
 				<executions>
 					<execution>
 						<goals>
-							<goal>prepare-agent</goal> <!-- Kích hoạt JaCoCo khi test -->
+							<goal>prepare-agent</goal>
 						</goals>
 					</execution>
 					<execution>
 						<id>report</id>
-						<phase>verify</phase> <!-- Sinh report khi chạy `mvn verify` -->
+						<phase>prepare-package</phase>
 						<goals>
 							<goal>report</goal>
 						</goals>

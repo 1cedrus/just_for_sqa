@@ -10,8 +10,10 @@ import com.restaurent.manager.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
@@ -25,26 +27,27 @@ public class ApplicationConfig {
 
     @Bean
     ApplicationRunner applicationRunner(AccountRepository repository){
+        System.out.println("Config have init");
         return args -> {
-            if(roleRepository.findByName(RoleSystem.ADMIN.name()).isEmpty()){
-                roleRepository.save(Role.builder()
-                        .name(RoleSystem.ADMIN.name())
-                        .description("Admin of system")
-                        .build());
-            }
-            if(repository.findByEmail("admin@gmail.com").isEmpty()){
-                Account user = Account.builder()
-                        .username("admin")
-                        .phoneNumber("0357753844")
-                        .email("admin@gmail.com")
-                        .status(true)
-                        .role(roleRepository.findByName(RoleSystem.ADMIN.name()).orElseThrow(
-                                () -> new AppException(ErrorCode.ROLE_NOT_EXISTED)
-                        ))
-                        .password(passwordEncoder.encode(defaultPassword))
-                        .build();
-                repository.save(user);
-            }
+//            if(roleRepository.findByName(RoleSystem.ADMIN.name()).isEmpty()){
+//                roleRepository.save(Role.builder()
+//                        .name(RoleSystem.ADMIN.name())
+//                        .description("Admin of system")
+//                        .build());
+//            }
+//            if(repository.findByEmail("admin@gmail.com").isEmpty()){
+//                Account user = Account.builder()
+//                        .username("admin")
+//                        .phoneNumber("0357753844")
+//                        .email("admin@gmail.com")
+//                        .status(true)
+//                        .role(roleRepository.findByName(RoleSystem.ADMIN.name()).orElseThrow(
+//                                () -> new AppException(ErrorCode.ROLE_NOT_EXISTED)
+//                        ))
+//                        .password(passwordEncoder.encode(defaultPassword))
+//                        .build();
+//                repository.save(user);
+//            }
         };
     }
 }
