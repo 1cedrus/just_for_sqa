@@ -155,6 +155,8 @@ public class OrderServiceTest {
         sampleDishResponse.setId(1L);
         DishOrderResponse dishOrderResponse = DishOrderResponse.builder().dish(sampleDishResponse).build();
 
+        sampleOrder.setDishOrders(null);
+
         when(orderRepository.findById(1L)).thenReturn(Optional.of(sampleOrder));
         when(dishOrderMapper.toDishOrder(sampleDishOrderRequest)).thenReturn(dishOrder);
         when(dishService.findByDishId(1L)).thenReturn(sampleDish);
