@@ -44,10 +44,10 @@ public class DishOrderService implements IDishOrderService {
         List<DishOrderResponse> dishOrderResponses = new ArrayList<>();
         List<DishOrderResponse> waitingOrder = findDishOrderByRestaurantIdAndState(restaurantId, DISH_ORDER_STATE.WAITING);
         List<DishOrderResponse> prepareOrder = findDishOrderByRestaurantIdAndState(restaurantId, DISH_ORDER_STATE.PREPARE);
-        if (waitingOrder != null) {
+        if (!waitingOrder.isEmpty()) {
             dishOrderResponses.addAll(waitingOrder);
         }
-        if (prepareOrder != null) {
+        if (!prepareOrder.isEmpty()) {
             dishOrderResponses.addAll(prepareOrder);
         }
         return dishOrderResponses;
