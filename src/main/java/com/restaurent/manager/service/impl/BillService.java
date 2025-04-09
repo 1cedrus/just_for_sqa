@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -150,7 +151,7 @@ public class BillService implements IBillService {
     @Override
     public double getTotalValueByTimeAndCurrentForRestaurant(Long restaurantId, String startTime, String endTime) {
         double res = 0;
-        List<Bill> bills = billRepository.findByTimeBetweenAndCurrentDate(restaurantId, startTime, endTime);
+        List<Bill> bills = billRepository.findByTimeBetweenAndCurrentDate(restaurantId, (startTime), (endTime));
         if (!bills.isEmpty()) {
             for (Bill b : bills) {
                 res += b.getTotal();
