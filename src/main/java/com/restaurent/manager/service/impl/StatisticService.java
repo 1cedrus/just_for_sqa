@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
+import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,21 +29,22 @@ public class StatisticService implements IStatisticService {
     CustomerRepository customerRepository;
     BillRepository billRepository;
     IBillService billService;
+    Clock clock;
 
     @Override
     public StatisticResponse getStatisticRestaurantById(Long restaurantId, String day) {
         return switch (day) {
             case "1" -> StatisticResponse.builder()
                 .numbersCustomer(customerRepository.findCustomerByRestaurant_IdInToday(restaurantId).size())
-                .numbersBill(billRepository.findByDateCreated(restaurantId, Date.valueOf(LocalDateTime.now().toLocalDate())).size())
-                .profit(billService.getProfitRestaurantByIdAndDate(restaurantId, LocalDateTime.now()))
-                .vat(billService.getVatValueForRestaurantCurrent(restaurantId, LocalDateTime.now()))
+                .numbersBill(billRepository.findByDateCreated(restaurantId, Date.valueOf(LocalDateTime.now(clock).toLocalDate())).size())
+                .profit(billService.getProfitRestaurantByIdAndDate(restaurantId, LocalDateTime.now(clock)))
+                .vat(billService.getVatValueForRestaurantCurrent(restaurantId, LocalDateTime.now(clock)))
                 .build();
             case "-1" -> StatisticResponse.builder()
-                .numbersCustomer(customerRepository.findCustomerByRestaurant_IdInYesterday(restaurantId, Date.valueOf(LocalDateTime.now().minusDays(1).toLocalDate())).size())
-                .numbersBill(billRepository.findByDateCreated(restaurantId, Date.valueOf(LocalDateTime.now().minusDays(1).toLocalDate())).size())
-                .profit(billService.getProfitRestaurantByIdAndDate(restaurantId, LocalDateTime.now().minusDays(1)))
-                .vat(billService.getVatValueForRestaurantCurrent(restaurantId, LocalDateTime.now().minusDays(1)))
+                .numbersCustomer(customerRepository.findCustomerByRestaurant_IdInYesterday(restaurantId, Date.valueOf(LocalDateTime.now(clock).minusDays(1).toLocalDate())).size())
+                .numbersBill(billRepository.findByDateCreated(restaurantId, Date.valueOf(LocalDateTime.now(clock).minusDays(1).toLocalDate())).size())
+                .profit(billService.getProfitRestaurantByIdAndDate(restaurantId, LocalDateTime.now(clock).minusDays(1)))
+                .vat(billService.getVatValueForRestaurantCurrent(restaurantId, LocalDateTime.now(clock).minusDays(1)))
                 .build();
             default -> null;
         };
@@ -61,7 +63,7 @@ public class StatisticService implements IStatisticService {
     @Override
     public List<StatisticTableResponse> getDetailStatisticRestaurantEachOfDayInCurrentMonth(Long restaurantId) {
         List<StatisticTableResponse> responses = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
         int currentDay = now.getDayOfMonth();
         for (int i = 0; i < currentDay; i++) {
             LocalDate localDate = now.with(TemporalAdjusters.firstDayOfMonth()).plusDays(i).toLocalDate();
@@ -77,7 +79,7 @@ public class StatisticService implements IStatisticService {
     @Override
     public List<StatisticTableResponse> getDetailStatisticRestaurantEachOfDayInLastMonth(Long restaurantId) {
         List<StatisticTableResponse> responses = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now().minusMonths(1);
+        LocalDateTime now = LocalDateTime.now(clock).minusMonths(1);
         int currentDay = now.getDayOfMonth();
         for (int i = 0; i < currentDay; i++) {
             responses.add(StatisticTableResponse.builder()
@@ -111,7 +113,7 @@ public class StatisticService implements IStatisticService {
     @Override
     public List<StatisticTableResponse> getDetailStatisticRestaurantEachOfDayInCurrentWeek(Long restaurantId) {
         List<StatisticTableResponse> responses = new ArrayList<>();
-        LocalDate now = LocalDate.now();
+        LocalDate now = LocalDate.now(clock);
         LocalDate startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endOfWeek = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
         LocalDate currentDate = startOfWeek;
@@ -129,7 +131,7 @@ public class StatisticService implements IStatisticService {
     @Override
     public List<StatisticTableResponse> getDetailStatisticRestaurantEachOfDayInLastWeek(Long restaurantId) {
         List<StatisticTableResponse> responses = new ArrayList<>();
-        LocalDate now = LocalDate.now();
+        LocalDate now = LocalDate.now(clock);
         LocalDate startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).minusWeeks(1);
         LocalDate endOfWeek = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)).minusWeeks(1);
         LocalDate currentDate = startOfWeek;

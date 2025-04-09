@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -41,11 +42,12 @@ public class ScheduleService implements IScheduleService {
     IEmployeeService employeeService;
     IOrderService orderService;
     CustomerRepository customerRepository;
+    Clock clock;
 
     @Override
     public String createSchedule(Long restaurantId, ScheduleRequest request) {
         //handling about time
-        if (request.getBookedDate().isBefore(LocalDate.now())) {
+        if (request.getBookedDate().isBefore(LocalDate.now(clock))) {
             throw new AppException(ErrorCode.TIME_INVALID);
         }
 
@@ -53,8 +55,8 @@ public class ScheduleService implements IScheduleService {
         LocalTime time = LocalTime.parse(request.getTime());
         LocalTime intendTime = time.plusMinutes(request.getIntendTimeMinutes());
 
-        if (request.getBookedDate().equals(LocalDate.now())) {
-            if (time.isBefore(LocalTime.now())) {
+        if (request.getBookedDate().equals(LocalDate.now(clock))) {
+            if (time.isBefore(LocalTime.now(clock))) {
                 throw new AppException(ErrorCode.TIME_INVALID);
             }
         }
@@ -98,8 +100,8 @@ public class ScheduleService implements IScheduleService {
 
     @Override
     public List<ScheduleResponse> findScheduleRestaurantLate(Long restaurantId) {
-        LocalTime now = LocalTime.now();
-        LocalDate dateNow = LocalDate.now();
+        LocalTime now = LocalTime.now(clock);
+        LocalDate dateNow = LocalDate.now(clock);
         List<ScheduleResponse> res = scheduleRepository.findByRestaurant_IdAndBookedDateAndTimeIsBeforeAndStatus(restaurantId, dateNow, now, SCHEDULE_STATUS.PENDING).stream().map(scheduleMapper::toScheduleResponse).toList();
         for (ScheduleResponse scheduleResponse : res) {
             scheduleResponse.setDishes(scheduleDishService.findDishOrComboBySchedule(scheduleResponse.getId()));
@@ -109,9 +111,9 @@ public class ScheduleService implements IScheduleService {
 
     @Override
     public List<ScheduleResponse> findScheduleRestaurantNearly(Long restaurantId) {
-        LocalTime startTime = LocalTime.now();
-        LocalTime endTime = LocalTime.now().plusHours(1);
-        LocalDate dateNow = LocalDate.now();
+        LocalTime startTime = LocalTime.now(clock);
+        LocalTime endTime = LocalTime.now(clock).plusHours(1);
+        LocalDate dateNow = LocalDate.now(clock);
         List<ScheduleResponse> res = scheduleRepository.findByRestaurant_IdAndBookedDateAndTimeBetweenAndStatus(restaurantId, dateNow, startTime, endTime, SCHEDULE_STATUS.PENDING).stream().map(scheduleMapper::toScheduleResponse).toList();
         for (ScheduleResponse scheduleResponse : res) {
             scheduleResponse.setDishes(scheduleDishService.findDishOrComboBySchedule(scheduleResponse.getId()));
@@ -126,11 +128,12 @@ public class ScheduleService implements IScheduleService {
         );
         schedule.setStatus(status);
         if (status.equals(SCHEDULE_STATUS.ACCEPT)) {
-            if (!schedule.getBookedDate().equals(LocalDate.now())) {
+            if (!schedule.getBookedDate().equals(LocalDate.now(clock))) {
                 throw new AppException(ErrorCode.NOT_TODAY);
             }
             customerReceiveBookTable(employeeId, schedule);
         }
+
         scheduleRepository.save(schedule);
     }
 
@@ -144,7 +147,7 @@ public class ScheduleService implements IScheduleService {
                 .name(schedule.getCustomerName())
                 .phoneNumber(schedule.getCustomerPhone())
                 .restaurant(schedule.getRestaurant())
-                .dateCreated(LocalDateTime.now())
+                .dateCreated(LocalDateTime.now(clock))
                 .build();
             customer = customerRepository.save(customer);
         }
@@ -178,14 +181,14 @@ public class ScheduleService implements IScheduleService {
 
     @Override
     public String updateScheduleRestaurant(Long scheduleId, ScheduleRequest request) {
-        if (request.getBookedDate().isBefore(LocalDate.now())) {
+        if (request.getBookedDate().isBefore(LocalDate.now(clock))) {
             throw new AppException(ErrorCode.NOT_EXIST);
         }
         LocalTime time = LocalTime.parse(request.getTime());
         LocalTime intendTime = time.plusMinutes(request.getIntendTimeMinutes());
 
-        if (request.getBookedDate().equals(LocalDate.now())) {
-            if (time.isBefore(LocalTime.now())) {
+        if (request.getBookedDate().equals(LocalDate.now(clock))) {
+            if (time.isBefore(LocalTime.now(clock))) {
                 throw new AppException(ErrorCode.TIME_INVALID);
             }
         }
@@ -234,8 +237,8 @@ public class ScheduleService implements IScheduleService {
     @Override
     public PagingResult<ScheduleResponse> findSchedulesByTableId(Long tableId, Pageable pageable) {
         return PagingResult.<ScheduleResponse>builder()
-            .results(scheduleRepository.findSchedulesByTableIdAndDate(tableId, LocalDate.now(), pageable).stream().map(scheduleMapper::toScheduleResponse).toList())
-            .totalItems(scheduleRepository.countSchedulesByTableIdAndDate(tableId, LocalDate.now()))
+            .results(scheduleRepository.findSchedulesByTableIdAndDate(tableId, LocalDate.now(clock), pageable).stream().map(scheduleMapper::toScheduleResponse).toList())
+            .totalItems(scheduleRepository.countSchedulesByTableIdAndDate(tableId, LocalDate.now(clock)))
             .build();
     }
 
@@ -249,7 +252,7 @@ public class ScheduleService implements IScheduleService {
 
     @Override
     public List<ScheduleTimeResponse> getNumberScheduleRestaurantWithTime(Long restaurantId) {
-        LocalDate now = LocalDate.now();
+        LocalDate now = LocalDate.now(clock);
         List<ScheduleTimeResponse> res = new ArrayList<>();
         for (int i = 0; i < 7; i++) {
             res.add(ScheduleTimeResponse.builder()
