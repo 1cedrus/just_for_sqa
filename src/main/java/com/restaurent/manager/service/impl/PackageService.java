@@ -106,9 +106,6 @@ public class PackageService implements IPackageService {
         LocalDate expiryDate = restaurant.getExpiryDate().toLocalDate();
         LocalDate currentDate = LocalDate.now();
         long daysLeft = ChronoUnit.DAYS.between(currentDate, expiryDate);
-        log.info("Max day in month :" + LocalDate.MAX.getDayOfMonth());
-        log.info("Price per month :" + pack.getPricePerMonth());
-        log.info("moneyPerDay : " + moneyPerDay);
         double deposit = 0;
         if (daysLeft > 0) {
             deposit = moneyPerDay * daysLeft;

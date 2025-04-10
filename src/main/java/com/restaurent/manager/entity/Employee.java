@@ -3,6 +3,7 @@ package com.restaurent.manager.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import net.minidev.json.annotate.JsonIgnore;
 
 import java.util.Set;
 
@@ -21,6 +22,7 @@ public class Employee {
     String employeeName;
     String phoneNumber;
     @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
     Restaurant restaurant;
     @ManyToOne(fetch = FetchType.LAZY)
     Role role;

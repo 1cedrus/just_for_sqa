@@ -12,9 +12,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 public class DishOrderRequest {
-    @NotBlank(message = "NOT_NULL")
     Long dishId;
-    @NotNull(message = "NOT_NULL")
     Long comboId;
     @NotNull(message = "NOT_NULL")
     @Min(value = 1, message = "QUANTITY_INVALID")

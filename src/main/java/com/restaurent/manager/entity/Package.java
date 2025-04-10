@@ -17,6 +17,7 @@ public class Package {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
+    @Column(unique = true)
     String packName;
     @OneToMany(mappedBy = "restaurantPackage",
             fetch = FetchType.LAZY,
