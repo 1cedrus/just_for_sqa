@@ -11,13 +11,16 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
+@ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class DishOrderRepositoryTest {
 
@@ -96,7 +99,7 @@ public class DishOrderRepositoryTest {
         LocalDateTime startTime = LocalDateTime.of(2025, 4, 9, 0, 0);
         LocalDateTime endTime = LocalDateTime.of(2025, 4, 9, 23, 59);
         List<DishOrder> result = dishOrderRepository.findDishOrderByOrder_IdAndStatusAndOrderDateBetweenOrderByOrderDate(
-                sampleOrder.getId(), DISH_ORDER_STATE.WAITING, startTime, endTime);
+            sampleOrder.getId(), DISH_ORDER_STATE.WAITING, startTime, endTime);
         assertEquals(1, result.size(), "Phải tìm thấy 1 dish order với orderId " + sampleOrder.getId());
         assertEquals(DISH_ORDER_STATE.WAITING, result.get(0).getStatus(), "Status phải là WAITING");
     }
@@ -107,7 +110,7 @@ public class DishOrderRepositoryTest {
         LocalDateTime startTime = LocalDateTime.of(2025, 4, 9, 0, 0);
         LocalDateTime endTime = LocalDateTime.of(2025, 4, 9, 23, 59);
         List<DishOrder> result = dishOrderRepository.findDishOrderByOrder_IdAndStatusAndOrderDateBetweenOrderByOrderDate(
-                sampleOrder.getId(), DISH_ORDER_STATE.PREPARE, startTime, endTime);
+            sampleOrder.getId(), DISH_ORDER_STATE.PREPARE, startTime, endTime);
         assertTrue(result.isEmpty(), "Không được tìm thấy dish order nào với status COMPLETED");
     }
 
@@ -117,7 +120,7 @@ public class DishOrderRepositoryTest {
         LocalDateTime startTime = LocalDateTime.of(2025, 4, 10, 0, 0);
         LocalDateTime endTime = LocalDateTime.of(2025, 4, 10, 23, 59);
         List<DishOrder> result = dishOrderRepository.findDishOrderByOrder_IdAndStatusAndOrderDateBetweenOrderByOrderDate(
-                sampleOrder.getId(), DISH_ORDER_STATE.WAITING, startTime, endTime);
+            sampleOrder.getId(), DISH_ORDER_STATE.WAITING, startTime, endTime);
         assertTrue(result.isEmpty(), "Không được tìm thấy dish order nào ngoài khoảng thời gian");
     }
 
@@ -127,7 +130,7 @@ public class DishOrderRepositoryTest {
         LocalDateTime startTime = LocalDateTime.of(2025, 4, 9, 0, 0);
         LocalDateTime endTime = LocalDateTime.of(2025, 4, 9, 23, 59);
         List<DishOrder> result = dishOrderRepository.findDishOrderByOrder_IdAndStatusAndOrderDateBetweenOrderByOrderDate(
-                999L, DISH_ORDER_STATE.WAITING, startTime, endTime);
+            999L, DISH_ORDER_STATE.WAITING, startTime, endTime);
         assertTrue(result.isEmpty(), "Không được tìm thấy dish order nào với orderId 999");
     }
 }

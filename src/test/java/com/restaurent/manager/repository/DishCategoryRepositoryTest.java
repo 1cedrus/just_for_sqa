@@ -10,15 +10,15 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DataJpaTest
-//@ActiveProfiles("test") // Sử dụng profile test để chạy các test case
+@DataJpaTest//@ActiveProfiles("test") // Sử dụng profile test để chạy các test case
+@ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class DishCategoryRepositoryTest {
 
@@ -26,7 +26,7 @@ public class DishCategoryRepositoryTest {
     @Autowired
     private DishCategoryRepository dishCategoryRepository;
 
-//     Inject TestEntityManager để chèn dữ liệu trực tiếp vào H2 Database
+    //     Inject TestEntityManager để chèn dữ liệu trực tiếp vào H2 Database
     @Autowired
     private TestEntityManager entityManager;
 

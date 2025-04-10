@@ -1,4 +1,4 @@
-package com.restaurent.manager;
+package com.restaurent.manager.service;
 
 import com.restaurent.manager.dto.request.Table.TableRestaurantRequest;
 import com.restaurent.manager.dto.request.Table.TableRestaurantUpdateRequest;
@@ -13,9 +13,7 @@ import com.restaurent.manager.repository.AreaRepository;
 import com.restaurent.manager.repository.ScheduleRepository;
 import com.restaurent.manager.repository.TableRestaurantRepository;
 import com.restaurent.manager.repository.TableTypeRepository;
-import com.restaurent.manager.service.IRestaurantService;
 import com.restaurent.manager.service.impl.TableRestaurantService;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -369,11 +367,6 @@ class TableRestaurantServiceTest {
         assertEquals("Test Table Restaurant", actualResponse.get(0).getName());
 
         verify(tableRestaurantRepository).findByArea_IdAndHidden(1L, false);
-    }
-
-    @Test
-    @Ignore("Proposed feature: Check for area existence")
-    void getTableByAreaIdHaveOrderShouldThrowExceptionWhenAreaNotFound() {
     }
 
     @Test

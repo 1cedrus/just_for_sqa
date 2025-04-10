@@ -1,4 +1,4 @@
-package com.restaurent.manager;
+package com.restaurent.manager.service;
 
 import com.restaurent.manager.dto.request.TaxRequest;
 import com.restaurent.manager.dto.request.VatRequest;
@@ -9,7 +9,6 @@ import com.restaurent.manager.exception.ErrorCode;
 import com.restaurent.manager.mapper.VatMapper;
 import com.restaurent.manager.repository.RestaurantRepository;
 import com.restaurent.manager.repository.VatRepository;
-import com.restaurent.manager.service.IRestaurantService;
 import com.restaurent.manager.service.impl.VatService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

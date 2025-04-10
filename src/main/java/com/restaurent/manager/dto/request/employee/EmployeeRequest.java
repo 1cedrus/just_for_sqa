@@ -7,8 +7,8 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EmployeeRequest {
@@ -18,7 +18,7 @@ public class EmployeeRequest {
     String username;
     @NotNull(message = "NOT_EMPTY")
     @NotBlank(message = "NOT_EMPTY")
-    @Size(min = 6,message = "INVALID_PASSWORD")
+    @Size(min = 6, message = "INVALID_PASSWORD")
     String password;
     @NotNull(message = "NOT_EMPTY")
     @NotBlank(message = "NOT_EMPTY")

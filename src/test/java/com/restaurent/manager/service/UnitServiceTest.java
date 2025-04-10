@@ -1,4 +1,4 @@
-package com.restaurent.manager;
+package com.restaurent.manager.service;
 
 import com.restaurent.manager.dto.request.UnitRequest;
 import com.restaurent.manager.dto.response.UnitResponse;

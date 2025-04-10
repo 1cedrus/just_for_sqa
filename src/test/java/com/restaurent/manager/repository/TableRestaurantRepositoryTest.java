@@ -1,11 +1,8 @@
-package com.restaurent.manager;
+package com.restaurent.manager.repository;
 
 import com.restaurent.manager.entity.Area;
 import com.restaurent.manager.entity.Restaurant;
 import com.restaurent.manager.entity.TableRestaurant;
-import com.restaurent.manager.repository.AreaRepository;
-import com.restaurent.manager.repository.RestaurantRepository;
-import com.restaurent.manager.repository.TableRestaurantRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

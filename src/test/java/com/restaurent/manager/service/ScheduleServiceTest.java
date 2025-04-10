@@ -1,4 +1,4 @@
-package com.restaurent.manager;
+package com.restaurent.manager.service;
 
 import com.restaurent.manager.dto.PagingResult;
 import com.restaurent.manager.dto.request.ScheduleRequest;
@@ -17,7 +17,6 @@ import com.restaurent.manager.mapper.ScheduleMapperImpl;
 import com.restaurent.manager.repository.CustomerRepository;
 import com.restaurent.manager.repository.ScheduleRepository;
 import com.restaurent.manager.repository.TableRestaurantRepository;
-import com.restaurent.manager.service.*;
 import com.restaurent.manager.service.impl.ScheduleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

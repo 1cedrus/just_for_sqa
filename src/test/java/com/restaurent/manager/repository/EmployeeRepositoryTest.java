@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +18,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
+@ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class EmployeeRepositoryTest {
 
@@ -49,7 +51,7 @@ public class EmployeeRepositoryTest {
     public void testFindByRestaurantIdAndEmployeeNameContaining_Success() {
         Pageable pageable = PageRequest.of(0, 10);
         List<Employee> result = employeeRepository.findByRestaurant_IdAndEmployeeNameContaining(
-                sampleRestaurant.getId(), "John", pageable);
+            sampleRestaurant.getId(), "John", pageable);
         assertEquals(1, result.size(), "Phải tìm thấy 1 employee với restaurantId " + sampleRestaurant.getId() + " và query 'John'");
         assertEquals("John Doe", result.get(0).getEmployeeName(), "Tên employee phải là 'John Doe'");
     }
@@ -59,7 +61,7 @@ public class EmployeeRepositoryTest {
     public void testFindByRestaurantIdAndEmployeeNameContaining_NoMatch() {
         Pageable pageable = PageRequest.of(0, 10);
         List<Employee> result = employeeRepository.findByRestaurant_IdAndEmployeeNameContaining(
-                sampleRestaurant.getId(), "Jane", pageable);
+            sampleRestaurant.getId(), "Jane", pageable);
         assertTrue(result.isEmpty(), "Không được tìm thấy employee nào với query 'Jane'");
     }
 
@@ -67,7 +69,7 @@ public class EmployeeRepositoryTest {
     @Test
     public void testCountByRestaurantIdAndEmployeeNameContaining_Success() {
         int count = employeeRepository.countByRestaurant_IdAndEmployeeNameContaining(
-                sampleRestaurant.getId(), "John");
+            sampleRestaurant.getId(), "John");
         assertEquals(1, count, "Phải đếm được 1 employee với restaurantId " + sampleRestaurant.getId() + " và query 'John'");
     }
 
@@ -75,7 +77,7 @@ public class EmployeeRepositoryTest {
     @Test
     public void testCountByRestaurantIdAndEmployeeNameContaining_NoMatch() {
         int count = employeeRepository.countByRestaurant_IdAndEmployeeNameContaining(
-                sampleRestaurant.getId(), "Jane");
+            sampleRestaurant.getId(), "Jane");
         assertEquals(0, count, "Phải đếm được 0 employee với query 'Jane'");
     }
 

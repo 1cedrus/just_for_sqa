@@ -12,12 +12,14 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
+@ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class DishRepositoryTest {
 
@@ -89,7 +91,7 @@ public class DishRepositoryTest {
     public void testFindByRestaurantIdAndStatusAndNameContaining_Success() {
         Pageable pageable = PageRequest.of(0, 10);
         List<Dish> result = dishRepository.findByRestaurant_IdAndStatusAndNameContaining(
-                sampleRestaurant.getId(), true, pageable, "Piz");
+            sampleRestaurant.getId(), true, pageable, "Piz");
         assertEquals(1, result.size(), "Phải tìm thấy 1 dish với restaurantId " + sampleRestaurant.getId() + " và query 'Piz'");
         assertEquals("Pizza", result.get(0).getName(), "Tên dish phải là 'Pizza'");
     }
@@ -99,7 +101,7 @@ public class DishRepositoryTest {
     public void testFindByRestaurant_IdAndStatusAndNameContaining_NoMatch() {
         Pageable pageable = PageRequest.of(0, 10);
         List<Dish> result = dishRepository.findByRestaurant_IdAndStatusAndNameContaining(
-                sampleRestaurant.getId(), true, pageable, "Burger");
+            sampleRestaurant.getId(), true, pageable, "Burger");
         assertTrue(result.isEmpty(), "Không được tìm thấy dish nào với query 'Burger'");
     }
 
@@ -107,7 +109,7 @@ public class DishRepositoryTest {
     @Test
     public void testCountByRestaurantIdAndStatusAndNameContaining_Success() {
         int count = dishRepository.countByRestaurant_IdAndStatusAndNameContaining(
-                sampleRestaurant.getId(), true, "Piz");
+            sampleRestaurant.getId(), true, "Piz");
         assertEquals(1, count, "Phải đếm được 1 dish với restaurantId " + sampleRestaurant.getId() + " và query 'Piz'");
     }
 
@@ -115,7 +117,7 @@ public class DishRepositoryTest {
     @Test
     public void testCountByRestaurantIdAndStatusAndNameContaining_NoMatch() {
         int count = dishRepository.countByRestaurant_IdAndStatusAndNameContaining(
-                sampleRestaurant.getId(), true, "Burger");
+            sampleRestaurant.getId(), true, "Burger");
         assertEquals(0, count, "Phải đếm được 0 dish với query 'Burger'");
     }
 

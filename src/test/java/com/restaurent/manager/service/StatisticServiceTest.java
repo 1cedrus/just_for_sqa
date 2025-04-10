@@ -1,4 +1,4 @@
-package com.restaurent.manager;
+package com.restaurent.manager.service;
 
 import com.restaurent.manager.dto.response.StatisticChartValueManager;
 import com.restaurent.manager.dto.response.StatisticResponse;
@@ -7,7 +7,6 @@ import com.restaurent.manager.entity.Bill;
 import com.restaurent.manager.entity.Customer;
 import com.restaurent.manager.repository.BillRepository;
 import com.restaurent.manager.repository.CustomerRepository;
-import com.restaurent.manager.service.IBillService;
 import com.restaurent.manager.service.impl.StatisticService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
