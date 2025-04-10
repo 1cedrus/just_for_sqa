@@ -1,7 +1,6 @@
 package com.restaurent.manager.repository;
 
 
-
 import com.restaurent.manager.entity.Account;
 import com.restaurent.manager.entity.Role;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,57 +18,57 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class AccountRepositoryTest {
 
-    @Autowired
-    private AccountRepository accountRepository;
-    @Autowired
-    private RoleRepository roleRepository;
-
-    private Role adminRole,userRole;
     private static final String VALID_EMAIL = "john@example.com";
     private static final String VALID_PHONE = "123456";
     private static final String INVALID_EMAIL = "invalid@example.com";
     private static final String INVALID_PHONE = "000000";
+    @Autowired
+    private AccountRepository accountRepository;
+    @Autowired
+    private RoleRepository roleRepository;
+    private Role adminRole, userRole;
 
     void setUp() {
         adminRole = roleRepository.save(Role.builder()
-                .name("ADMIN")
-                .description("Admin role")
-                .build());
+            .name("ADMIN")
+            .description("Admin role")
+            .build());
 
         userRole = roleRepository.save(Role.builder()
-                .name("USER")
-                .description("User role")
-                .build());
+            .name("USER")
+            .description("User role")
+            .build());
 
         accountRepository.save(Account.builder()
-                .username("john_doe")
-                .email("john@example.com")
-                .phoneNumber("123456")
-                .password("pass")
-                .status(true)
-                .role(adminRole)
-                .build());
+            .username("john_doe")
+            .email("john@example.com")
+            .phoneNumber("123456")
+            .password("pass")
+            .status(true)
+            .role(adminRole)
+            .build());
 
         accountRepository.save(Account.builder()
-                .username("jane_doe")
-                .email("jane@example.com")
-                .phoneNumber("654321")
-                .password("pass")
-                .status(true)
-                .role(adminRole)
-                .build());
+            .username("jane_doe")
+            .email("jane@example.com")
+            .phoneNumber("654321")
+            .password("pass")
+            .status(true)
+            .role(adminRole)
+            .build());
 
         accountRepository.save(Account.builder()
-                .username("user_test")
-                .email("user@example.com")
-                .phoneNumber("999999")
-                .password("pass")
-                .status(true)
-                .role(userRole)
-                .build());
+            .username("user_test")
+            .email("user@example.com")
+            .phoneNumber("999999")
+            .password("pass")
+            .status(true)
+            .role(userRole)
+            .build());
     }
 
     @Test
@@ -76,12 +76,12 @@ class AccountRepositoryTest {
     void existsByEmailAndStatus_shouldReturnTrue_WhenAccountExists() {
         // Arrange
         Account account = Account.builder()
-                .email("test@example.com")
-                .username("user1")
-                .phoneNumber("1234567890")
-                .password("pass")
-                .status(true)
-                .build();
+            .email("test@example.com")
+            .username("user1")
+            .phoneNumber("1234567890")
+            .password("pass")
+            .status(true)
+            .build();
 
         accountRepository.save(account);
 
@@ -97,12 +97,12 @@ class AccountRepositoryTest {
     void existsByEmailAndStatus_shouldReturnFalse_WhenStatusMismatch() {
         // Arrange
         Account account = Account.builder()
-                .email("test@example.com")
-                .username("user2")
-                .phoneNumber("1234567891")
-                .password("pass")
-                .status(true)  // Account is saved with status=true
-                .build();
+            .email("test@example.com")
+            .username("user2")
+            .phoneNumber("1234567891")
+            .password("pass")
+            .status(true)  // Account is saved with status=true
+            .build();
 
         accountRepository.save(account);
 
@@ -128,12 +128,12 @@ class AccountRepositoryTest {
     void existsByPhoneNumberAndStatus_shouldReturnTrue_WhenAccountExists() {
         // Arrange
         Account account = Account.builder()
-                .email("phoneuser@example.com")
-                .username("phoneuser1")
-                .phoneNumber("0987654321")
-                .password("pass")
-                .status(true)
-                .build();
+            .email("phoneuser@example.com")
+            .username("phoneuser1")
+            .phoneNumber("0987654321")
+            .password("pass")
+            .status(true)
+            .build();
 
         accountRepository.save(account);
 
@@ -149,12 +149,12 @@ class AccountRepositoryTest {
     void existsByPhoneNumberAndStatus_shouldReturnFalse_WhenStatusMismatch() {
         // Arrange
         Account account = Account.builder()
-                .email("phoneuser2@example.com")
-                .username("phoneuser2")
-                .phoneNumber("0987654321")
-                .password("pass")
-                .status(false)
-                .build();
+            .email("phoneuser2@example.com")
+            .username("phoneuser2")
+            .phoneNumber("0987654321")
+            .password("pass")
+            .status(false)
+            .build();
 
         accountRepository.save(account);
 
@@ -180,12 +180,12 @@ class AccountRepositoryTest {
     void findByEmailAndStatus_shouldReturnAccount_WhenMatch() {
         // Arrange
         Account account = Account.builder()
-                .email("found@example.com")
-                .username("foundUser")
-                .phoneNumber("123456789")
-                .password("pass")
-                .status(true)
-                .build();
+            .email("found@example.com")
+            .username("foundUser")
+            .phoneNumber("123456789")
+            .password("pass")
+            .status(true)
+            .build();
         accountRepository.save(account);
 
         // Act
@@ -202,12 +202,12 @@ class AccountRepositoryTest {
     void findByEmailAndStatus_shouldReturnEmpty_WhenStatusMismatch() {
         // Arrange
         Account account = Account.builder()
-                .email("statusmismatch@example.com")
-                .username("statusUser")
-                .phoneNumber("123456788")
-                .password("pass")
-                .status(false)
-                .build();
+            .email("statusmismatch@example.com")
+            .username("statusUser")
+            .phoneNumber("123456788")
+            .password("pass")
+            .status(false)
+            .build();
         accountRepository.save(account);
 
         // Act
@@ -242,12 +242,12 @@ class AccountRepositoryTest {
     void findByEmailAndStatus_shouldReturnEmpty_WhenStatusFalseAndNoMatch() {
         // Arrange
         Account account = Account.builder()
-                .email("someuser@example.com")
-                .username("someuser")
-                .phoneNumber("1111111111")
-                .password("pass")
-                .status(true)
-                .build();
+            .email("someuser@example.com")
+            .username("someuser")
+            .phoneNumber("1111111111")
+            .password("pass")
+            .status(true)
+            .build();
         accountRepository.save(account);
 
         // Act
@@ -262,12 +262,12 @@ class AccountRepositoryTest {
     void findByEmail_shouldReturnAccount_WhenEmailExists() {
         // Arrange
         Account account = Account.builder()
-                .email("exist@example.com")
-                .username("existUser")
-                .phoneNumber("1234567890")
-                .password("password")
-                .status(true)
-                .build();
+            .email("exist@example.com")
+            .username("existUser")
+            .phoneNumber("1234567890")
+            .password("password")
+            .status(true)
+            .build();
         accountRepository.save(account);
 
         // Act
@@ -316,7 +316,7 @@ class AccountRepositoryTest {
 
         assertThat(results).hasSize(2);
         assertThat(results).extracting(Account::getUsername)
-                .containsExactlyInAnyOrder("john_doe", "jane_doe");
+            .containsExactlyInAnyOrder("john_doe", "jane_doe");
     }
 
     @Test

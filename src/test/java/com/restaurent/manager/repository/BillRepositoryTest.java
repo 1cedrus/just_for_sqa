@@ -4,13 +4,13 @@ package com.restaurent.manager.repository;
 import com.restaurent.manager.entity.Bill;
 import com.restaurent.manager.entity.Order;
 import com.restaurent.manager.entity.Restaurant;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -21,6 +21,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class BillRepositoryTest {
 
@@ -200,7 +201,6 @@ class BillRepositoryTest {
     }
 
 
-
     @Test
     @DisplayName("Should return 2 bills created today for given restaurant")
     void testFindByDateCreatedWithMatchingBills() {
@@ -239,9 +239,9 @@ class BillRepositoryTest {
     void testFindByDateCreatedBetweenWithAllBills() {
         setup2();
         List<Bill> bills = billRepository.findByDateCreatedBetween(
-                restaurantId,
-                twoDaysAgo.withHour(0),
-                tomorrow.withHour(23)
+            restaurantId,
+            twoDaysAgo.withHour(0),
+            tomorrow.withHour(23)
         );
         assertThat(bills).hasSize(3);
     }
@@ -251,9 +251,9 @@ class BillRepositoryTest {
     void testFindByDateCreatedBetweenWithOneDayRange() {
         setup2();
         List<Bill> bills = billRepository.findByDateCreatedBetween(
-                restaurantId,
-                yesterdayy.withHour(0),
-                yesterdayy.withHour(23)
+            restaurantId,
+            yesterdayy.withHour(0),
+            yesterdayy.withHour(23)
         );
         assertThat(bills).hasSize(1);
     }
@@ -263,9 +263,9 @@ class BillRepositoryTest {
     void testFindByDateCreatedBetweenInclusiveBoundaries() {
         setup2();
         List<Bill> bills = billRepository.findByDateCreatedBetween(
-                restaurantId,
-                todayMorning,
-                todayMorning
+            restaurantId,
+            todayMorning,
+            todayMorning
         );
         assertThat(bills).hasSize(1);
     }
@@ -275,9 +275,9 @@ class BillRepositoryTest {
     void testFindByDateCreatedBetweenNoResults() {
         setup2();
         List<Bill> bills = billRepository.findByDateCreatedBetween(
-                restaurantId,
-                now.plusDays(5),
-                now.plusDays(6)
+            restaurantId,
+            now.plusDays(5),
+            now.plusDays(6)
         );
         assertThat(bills).isEmpty();
     }
@@ -287,15 +287,12 @@ class BillRepositoryTest {
     void testFindByDateCreatedBetweenInvalidRestaurant() {
         setup2();
         List<Bill> bills = billRepository.findByDateCreatedBetween(
-                999L,
-                twoDaysAgo,
-                tomorrow
+            999L,
+            twoDaysAgo,
+            tomorrow
         );
         assertThat(bills).isEmpty();
     }
-
-
-
 
 
     @Test
@@ -303,9 +300,9 @@ class BillRepositoryTest {
     void testBillsWithinTimeRange() {
         setup3();
         List<Bill> bills = billRepository.findByTimeBetweenAndCurrentDate(
-                restaurantId,
-                "08:00:00",
-                "13:00:00"
+            restaurantId,
+            "08:00:00",
+            "13:00:00"
         );
         assertThat(bills).hasSize(2); // 09:00 and 12:00
     }
@@ -315,9 +312,9 @@ class BillRepositoryTest {
     void testBillAtStartTime() {
         setup3();
         List<Bill> bills = billRepository.findByTimeBetweenAndCurrentDate(
-                restaurantId,
-                "09:00:00",
-                "09:00:00"
+            restaurantId,
+            "09:00:00",
+            "09:00:00"
         );
         assertThat(bills).hasSize(1);
     }
@@ -327,9 +324,9 @@ class BillRepositoryTest {
     void testBillAtEndTime() {
         setup3();
         List<Bill> bills = billRepository.findByTimeBetweenAndCurrentDate(
-                restaurantId,
-                "18:00:00",
-                "18:00:00"
+            restaurantId,
+            "18:00:00",
+            "18:00:00"
         );
         assertThat(bills).hasSize(1);
     }
@@ -339,9 +336,9 @@ class BillRepositoryTest {
     void testNoBillsInTimeRangeToday() {
         setup3();
         List<Bill> bills = billRepository.findByTimeBetweenAndCurrentDate(
-                restaurantId,
-                "00:00:00",
-                "08:00:00"
+            restaurantId,
+            "00:00:00",
+            "08:00:00"
         );
         assertThat(bills).isEmpty();
     }
@@ -354,9 +351,9 @@ class BillRepositoryTest {
         billRepository.deleteAll();
 
         List<Bill> bills = billRepository.findByTimeBetweenAndCurrentDate(
-                restaurantId,
-                "08:00:00",
-                "20:00:00"
+            restaurantId,
+            "08:00:00",
+            "20:00:00"
         );
         assertThat(bills).isEmpty();
     }
@@ -366,9 +363,9 @@ class BillRepositoryTest {
     void testInvalidRestaurantId() {
         setup3();
         List<Bill> bills = billRepository.findByTimeBetweenAndCurrentDate(
-                999L,
-                "08:00:00",
-                "20:00:00"
+            999L,
+            "08:00:00",
+            "20:00:00"
         );
         assertThat(bills).isEmpty();
     }

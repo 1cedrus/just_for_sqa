@@ -1,34 +1,27 @@
 package com.restaurent.manager.service;
 
 
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import com.restaurent.manager.dto.PagingResult;
+import com.restaurent.manager.dto.request.AccountRequest;
+import com.restaurent.manager.dto.request.AuthenticationRequest;
+import com.restaurent.manager.dto.request.VerifyAccount;
+import com.restaurent.manager.dto.response.AccountResponse;
+import com.restaurent.manager.dto.response.AuthenticationResponse;
+import com.restaurent.manager.dto.response.VerifyResponse;
+import com.restaurent.manager.entity.*;
+import com.restaurent.manager.entity.Package;
+import com.restaurent.manager.enums.RoleSystem;
+import com.restaurent.manager.exception.AppException;
+import com.restaurent.manager.exception.ErrorCode;
+import com.restaurent.manager.mapper.AccountMapper;
+import com.restaurent.manager.repository.AccountRepository;
 import com.restaurent.manager.service.impl.AccountService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
@@ -37,32 +30,29 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.restaurent.manager.entity.*;
-import com.restaurent.manager.entity.Package;
-import com.restaurent.manager.dto.*;
-import com.restaurent.manager.dto.request.*;
-import com.restaurent.manager.dto.response.*;
-import com.restaurent.manager.enums.*;
-import com.restaurent.manager.exception.*;
-import com.restaurent.manager.mapper.*;
-import com.restaurent.manager.repository.*;
-import com.restaurent.manager.service.*;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
 
     @Mock
+    AccountMapper accountmapper;
+    @Mock
     private AccountRepository accountRepository;
-
     @Mock
     private IEmailService emailService;
-
     @Mock
     private IRoleService roleService;
-
     @Spy
     private AccountMapper accountMapper = Mappers.getMapper(AccountMapper.class);
-
     @InjectMocks
     private AccountService accountService;
 
@@ -75,11 +65,11 @@ class AccountServiceTest {
     void register_Success() {
         // Arrange
         AccountRequest request = AccountRequest.builder()
-                .username("john_doe")
-                .phoneNumber("0312345678")
-                .password("StrongPass123")
-                .email("john@example.com")
-                .build();
+            .username("john_doe")
+            .phoneNumber("0312345678")
+            .password("StrongPass123")
+            .email("john@example.com")
+            .build();
 
         when(accountRepository.existsByEmailAndStatus(request.getEmail(), true)).thenReturn(false);
         when(accountRepository.existsByPhoneNumberAndStatus(request.getPhoneNumber(), true)).thenReturn(false);
@@ -111,11 +101,11 @@ class AccountServiceTest {
     void register_existsByEmailAndStatus() {
         // accountRepository.existsByEmailAndStatus(req.getEmail(), true)
         AccountRequest request = AccountRequest.builder()
-                .username("testUser")
-                .phoneNumber("0312345678")
-                .password("Password123")
-                .email("test@example.com")
-                .build();
+            .username("testUser")
+            .phoneNumber("0312345678")
+            .password("Password123")
+            .email("test@example.com")
+            .build();
 
         when(accountRepository.existsByEmailAndStatus(request.getEmail(), true)).thenReturn(true);
 
@@ -129,11 +119,11 @@ class AccountServiceTest {
     void register_existsByPhoneNumberAndStatus() {
         // accountRepository.existsByPhoneNumberAndStatus(req.getPhoneNumber(), true)
         AccountRequest request = AccountRequest.builder()
-                .username("testUser")
-                .phoneNumber("0312345678")
-                .password("Password123")
-                .email("test@example.com")
-                .build();
+            .username("testUser")
+            .phoneNumber("0312345678")
+            .password("Password123")
+            .email("test@example.com")
+            .build();
 
         when(accountRepository.existsByEmailAndStatus(request.getEmail(), true)).thenReturn(false);
         when(accountRepository.existsByPhoneNumberAndStatus(request.getPhoneNumber(), true)).thenReturn(true);
@@ -150,9 +140,9 @@ class AccountServiceTest {
         String query = "";
 
         when(accountRepository.findByRole_IdAndUsernameContaining(5L, query, pageable))
-                .thenReturn(Collections.emptyList());
+            .thenReturn(Collections.emptyList());
         when(accountRepository.countByRole_IdAndUsernameContaining(5L, query))
-                .thenReturn((int) 0L);
+            .thenReturn((int) 0L);
 
         PagingResult<AccountResponse> result = accountService.getAccountsManager(pageable, query);
 
@@ -170,9 +160,9 @@ class AccountServiceTest {
         AccountResponse response = AccountResponse.builder().id(1L).username("john").build();
 
         when(accountRepository.findByRole_IdAndUsernameContaining(5L, query, pageable))
-                .thenReturn(List.of(account));
+            .thenReturn(List.of(account));
         when(accountRepository.countByRole_IdAndUsernameContaining(5L, query))
-                .thenReturn((int) 1L);
+            .thenReturn((int) 1L);
         when(accountMapper.toAccountResponse(account)).thenReturn(response);
 
         PagingResult<AccountResponse> result = accountService.getAccountsManager(pageable, query);
@@ -195,9 +185,9 @@ class AccountServiceTest {
         AccountResponse response2 = AccountResponse.builder().id(2L).username("manager2").build();
 
         when(accountRepository.findByRole_IdAndUsernameContaining(5L, query, pageable))
-                .thenReturn(List.of(account1, account2));
+            .thenReturn(List.of(account1, account2));
         when(accountRepository.countByRole_IdAndUsernameContaining(5L, query))
-                .thenReturn((int) 2L);
+            .thenReturn((int) 2L);
         when(accountMapper.toAccountResponse(account1)).thenReturn(response1);
         when(accountMapper.toAccountResponse(account2)).thenReturn(response2);
 
@@ -215,10 +205,10 @@ class AccountServiceTest {
         VerifyAccount request = new VerifyAccount("notfound@example.com", "123456");
 
         when(accountRepository.findByEmail(request.getEmail()))
-                .thenReturn(Optional.empty());
+            .thenReturn(Optional.empty());
 
         AppException exception = assertThrows(AppException.class,
-                () -> accountService.verifyAccount(request));
+            () -> accountService.verifyAccount(request));
 
         assertEquals(ErrorCode.USER_NOT_EXISTED, exception.getErrorCode());
     }
@@ -227,17 +217,17 @@ class AccountServiceTest {
     void verifyAccount_userAlreadyVerified() {
         VerifyAccount request = new VerifyAccount("john@example.com", "123456");
         Account existingAccount = Account.builder()
-                .email("john@example.com")
-                .otp("123456")
-                .otpGeneratedTime(LocalDateTime.now())
-                .status(true)
-                .build();
+            .email("john@example.com")
+            .otp("123456")
+            .otpGeneratedTime(LocalDateTime.now())
+            .status(true)
+            .build();
 
         when(accountRepository.findByEmail(request.getEmail()))
-                .thenReturn(Optional.of(existingAccount));
+            .thenReturn(Optional.of(existingAccount));
 
         AppException exception = assertThrows(AppException.class,
-                () -> accountService.verifyAccount(request));
+            () -> accountService.verifyAccount(request));
 
         assertEquals(ErrorCode.USER_EXISTED, exception.getErrorCode());
     }
@@ -246,23 +236,23 @@ class AccountServiceTest {
     void verifyAccount_success() {
         VerifyAccount request = new VerifyAccount("jane@example.com", "123456");
         Account account = Account.builder()
-                .email("jane@example.com")
-                .otp("123456")
-                .otpGeneratedTime(LocalDateTime.now().minusSeconds(30))
-                .status(false)
-                .build();
+            .email("jane@example.com")
+            .otp("123456")
+            .otpGeneratedTime(LocalDateTime.now().minusSeconds(30))
+            .status(false)
+            .build();
 
         Account savedAccount = Account.builder()
-                .email("jane@example.com")
-                .otp("123456")
-                .otpGeneratedTime(account.getOtpGeneratedTime())
-                .status(true)
-                .build();
+            .email("jane@example.com")
+            .otp("123456")
+            .otpGeneratedTime(account.getOtpGeneratedTime())
+            .status(true)
+            .build();
 
         when(accountRepository.findByEmail(request.getEmail()))
-                .thenReturn(Optional.of(account));
+            .thenReturn(Optional.of(account));
         when(accountRepository.save(any(Account.class)))
-                .thenReturn(savedAccount);
+            .thenReturn(savedAccount);
 
         VerifyResponse response = accountService.verifyAccount(request);
 
@@ -274,14 +264,14 @@ class AccountServiceTest {
     void verifyAccount_wrongOtpOrExpired() {
         VerifyAccount request = new VerifyAccount("alice@example.com", "wrongOtp");
         Account account = Account.builder()
-                .email("alice@example.com")
-                .otp("correctOtp")
-                .otpGeneratedTime(LocalDateTime.now().minusSeconds(70))
-                .status(false)
-                .build();
+            .email("alice@example.com")
+            .otp("correctOtp")
+            .otpGeneratedTime(LocalDateTime.now().minusSeconds(70))
+            .status(false)
+            .build();
 
         when(accountRepository.findByEmail(request.getEmail()))
-                .thenReturn(Optional.of(account));
+            .thenReturn(Optional.of(account));
 
         VerifyResponse response = accountService.verifyAccount(request);
 
@@ -294,10 +284,10 @@ class AccountServiceTest {
         AuthenticationRequest request = new AuthenticationRequest("notfound@example.com", "password123");
 
         when(accountRepository.findByEmailAndStatus(request.getEmail(), true))
-                .thenReturn(Optional.empty());
+            .thenReturn(Optional.empty());
 
         AppException exception = assertThrows(AppException.class,
-                () -> accountService.authenticated(request));
+            () -> accountService.authenticated(request));
 
         assertEquals(ErrorCode.USER_NOT_EXISTED, exception.getErrorCode());
     }
@@ -308,16 +298,16 @@ class AccountServiceTest {
         PasswordEncoder encoder = new BCryptPasswordEncoder(10);
 
         Account account = Account.builder()
-                .email("user@example.com")
-                .password(encoder.encode("correctPassword"))
-                .status(true)
-                .build();
+            .email("user@example.com")
+            .password(encoder.encode("correctPassword"))
+            .status(true)
+            .build();
 
         when(accountRepository.findByEmailAndStatus(request.getEmail(), true))
-                .thenReturn(Optional.of(account));
+            .thenReturn(Optional.of(account));
 
         AppException exception = assertThrows(AppException.class,
-                () -> accountService.authenticated(request));
+            () -> accountService.authenticated(request));
 
         assertEquals(ErrorCode.PASSWORD_INCORRECT, exception.getErrorCode());
     }
@@ -328,19 +318,19 @@ class AccountServiceTest {
         PasswordEncoder encoder = new BCryptPasswordEncoder(10);
 
         Account account = Account.builder()
-                .id(1L)
-                .email("authuser@example.com")
-                .username("authuser")
-                .password(encoder.encode("validPassword"))
-                .status(true)
-                .role(Role.builder().name("MANAGER").build())
-                .build();
+            .id(1L)
+            .email("authuser@example.com")
+            .username("authuser")
+            .password(encoder.encode("validPassword"))
+            .status(true)
+            .role(Role.builder().name("MANAGER").build())
+            .build();
 
         when(accountRepository.findByEmailAndStatus(request.getEmail(), true))
-                .thenReturn(Optional.of(account));
+            .thenReturn(Optional.of(account));
 
         when(accountRepository.save(any(Account.class)))
-                .thenReturn(account);
+            .thenReturn(account);
 
         AuthenticationResponse response = accountService.authenticated(request);
 
@@ -354,14 +344,14 @@ class AccountServiceTest {
         String email = "test@example.com";
         String otp = "123456";
         VerifyAccount request = VerifyAccount.builder()
-                .email(email)
-                .otp(otp)
-                .build();
+            .email(email)
+            .otp(otp)
+            .build();
 
         Account account = Account.builder()
-                .email(email)
-                .otp(otp)
-                .build();
+            .email(email)
+            .otp(otp)
+            .build();
 
         when(accountRepository.findByEmail(email)).thenReturn(Optional.of(account));
         ReflectionTestUtils.setField(accountService, "signerKey", "test_signer_key_that_is_32_chars!");
@@ -380,14 +370,14 @@ class AccountServiceTest {
         String email = "test@example.com";
         String otp = "123456";
         VerifyAccount request = VerifyAccount.builder()
-                .email(email)
-                .otp(otp)
-                .build();
+            .email(email)
+            .otp(otp)
+            .build();
 
         Account account = Account.builder()
-                .email(email)
-                .otp("654321") // Incorrect stored OTP
-                .build();
+            .email(email)
+            .otp("654321") // Incorrect stored OTP
+            .build();
 
         when(accountRepository.findByEmail(email)).thenReturn(Optional.of(account));
 
@@ -404,9 +394,9 @@ class AccountServiceTest {
         // Arrange
         String email = "notfound@example.com";
         VerifyAccount request = VerifyAccount.builder()
-                .email(email)
-                .otp("123456")
-                .build();
+            .email(email)
+            .otp("123456")
+            .build();
 
         when(accountRepository.findByEmail(email)).thenReturn(Optional.empty());
 
@@ -469,8 +459,8 @@ class AccountServiceTest {
         // Arrange
         String email = "user@example.com";
         Account account = Account.builder()
-                .email(email)
-                .build();
+            .email(email)
+            .build();
 
         when(accountRepository.findByEmail(email)).thenReturn(Optional.of(account));
         when(emailService.generateCode(6)).thenReturn("123456");
@@ -505,9 +495,9 @@ class AccountServiceTest {
         // Arrange
         Long accountId = 1L;
         Account expectedAccount = Account.builder()
-                .id(accountId)
-                .email("test@example.com")
-                .build();
+            .id(accountId)
+            .email("test@example.com")
+            .build();
 
         when(accountRepository.findById(accountId)).thenReturn(Optional.of(expectedAccount));
 
@@ -533,24 +523,21 @@ class AccountServiceTest {
         verify(accountRepository).findById(accountId);
     }
 
-
-    @Mock
-    AccountMapper accountmapper;
     @Test
     void getAccountById_success() {
         // Arrange
         Long accountId = 1L;
         Account account = Account.builder()
-                .id(accountId)
-                .username("john_doe")
-                .email("john@example.com")
-                .build();
+            .id(accountId)
+            .username("john_doe")
+            .email("john@example.com")
+            .build();
 
         AccountResponse expectedResponse = AccountResponse.builder()
-                .id(accountId)
-                .username("john_doe")
-                .email("john@example.com")
-                .build();
+            .id(accountId)
+            .username("john_doe")
+            .email("john@example.com")
+            .build();
 
         when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
         when(accountmapper.toAccountResponse(account)).thenReturn(expectedResponse);
@@ -584,11 +571,11 @@ class AccountServiceTest {
         // Arrange
         String phoneNumber = "0987654321";
         Account account = Account.builder()
-                .id(1L)
-                .email("test@example.com")
-                .phoneNumber(phoneNumber)
-                .username("testUser")
-                .build();
+            .id(1L)
+            .email("test@example.com")
+            .phoneNumber(phoneNumber)
+            .username("testUser")
+            .build();
 
         when(accountRepository.findByPhoneNumber(phoneNumber)).thenReturn(Optional.of(account));
 
@@ -621,11 +608,11 @@ class AccountServiceTest {
     void generateToken_success() {
         // Arrange
         Account user = Account.builder()
-                .id(1L)
-                .email("test@example.com")
-                .username("testUser")
-                .role(Role.builder().name("ADMIN").build())
-                .build();
+            .id(1L)
+            .email("test@example.com")
+            .username("testUser")
+            .role(Role.builder().name("ADMIN").build())
+            .build();
 
         ReflectionTestUtils.setField(accountService, "signerKey", "12345678901234567890123456789012"); // 256-bit key
 
@@ -656,9 +643,9 @@ class AccountServiceTest {
         role.setName("MANAGER");
 
         Account account = Account.builder()
-                .role(role)
-                .restaurant(restaurant)
-                .build();
+            .role(role)
+            .restaurant(restaurant)
+            .build();
 
         // When
         String scope = accountService.buildScope(account);
@@ -675,9 +662,9 @@ class AccountServiceTest {
         role.setName("ADMIN");
 
         Account account = Account.builder()
-                .role(role)
-                .restaurant(null)
-                .build();
+            .role(role)
+            .restaurant(null)
+            .build();
 
         String scope = accountService.buildScope(account);
 
@@ -687,9 +674,9 @@ class AccountServiceTest {
     @Test
     void buildScope_withNullRole_returnsEmptyScope() {
         Account account = Account.builder()
-                .role(null)
-                .restaurant(null)
-                .build();
+            .role(null)
+            .restaurant(null)
+            .build();
 
         String scope = accountService.buildScope(account);
 
@@ -705,9 +692,9 @@ class AccountServiceTest {
         role.setName("STAFF");
 
         Account account = Account.builder()
-                .role(role)
-                .restaurant(restaurant)
-                .build();
+            .role(role)
+            .restaurant(restaurant)
+            .build();
 
         String scope = accountService.buildScope(account);
 
@@ -726,9 +713,9 @@ class AccountServiceTest {
         role.setName("OWNER");
 
         Account account = Account.builder()
-                .role(role)
-                .restaurant(restaurant)
-                .build();
+            .role(role)
+            .restaurant(restaurant)
+            .build();
 
         String scope = accountService.buildScope(account);
 
