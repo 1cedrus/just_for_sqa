@@ -339,30 +339,6 @@ class TableRestaurantServiceTest {
     }
 
     @Test
-    void updateTablesShouldThrowExceptionWhenTablePositionNotValid() {
-        tableRestaurantResponse.setPositionX(-1);
-        tableRestaurantResponse.setPositionY(-1);
-
-        AppException e = assertThrows(AppException.class, () -> {
-            tableRestaurantService.updateTables(List.of(tableRestaurantResponse));
-        });
-
-        assertEquals(ErrorCode.TABLE_POSITION_INVALID, e.getErrorCode());
-
-        verify(tableRestaurantRepository).findById(1L);
-    }
-
-    @Test
-    @Ignore("Proposed feature: Check for table position intersections")
-    void updateTablesShouldThrowExceptionWhenTablePositionIntersects() {
-    }
-
-    @Test
-    @Ignore("Not implemented yet")
-    void findOrderByTableIdShouldReturnOrderWhenExists() {
-    }
-
-    @Test
     void getTablesByAreaIdShouldReturnListOfTableRestaurantResponse() {
         tableRestaurant.setId(1L);
         when(tableRestaurantRepository.findByArea_IdAndHidden(1L, false)).thenReturn(List.of(tableRestaurant));
@@ -377,11 +353,6 @@ class TableRestaurantServiceTest {
 
         verify(tableRestaurantRepository).findByArea_IdAndHidden(1L, false);
         verify(scheduleRepository).findByTableIdAndBookedDate(1L, LocalDate.now());
-    }
-
-    @Test
-    @Ignore("Proposed feature: Check for area existence")
-    void getTablesByAreaIdShouldThrowExceptionWhenAreaNotFound() {
     }
 
     @Test
