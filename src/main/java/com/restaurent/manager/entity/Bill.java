@@ -4,6 +4,7 @@ import com.restaurent.manager.enums.MethodPayment;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Setter
 public class Bill {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

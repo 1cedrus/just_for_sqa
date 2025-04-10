@@ -1,9 +1,7 @@
 package com.restaurent.manager.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,6 +11,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Setter
 public class Restaurant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

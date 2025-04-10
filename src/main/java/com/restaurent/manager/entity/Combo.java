@@ -2,12 +2,16 @@ package com.restaurent.manager.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Data
 @Entity
+@Setter
+@Getter
 public class Combo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
