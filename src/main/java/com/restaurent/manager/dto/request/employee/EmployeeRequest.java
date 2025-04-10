@@ -3,11 +3,13 @@ package com.restaurent.manager.dto.request.employee;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AccessLevel;
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Data
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EmployeeRequest {
     @NotNull(message = "NOT_EMPTY")
