@@ -40,6 +40,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 import java.util.StringJoiner;
 import java.util.UUID;
 
@@ -69,6 +70,7 @@ public class AccountService implements IAccountService, ITokenGenerate<Account> 
         }
         Account account = accountMapper.toAccount(req);
         String otp = emailService.generateCode(6);
+        log.info("OTP: {}", otp);
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         account.setPassword(passwordEncoder.encode(account.getPassword()));
         account.setStatus(false);
