@@ -66,6 +66,7 @@ class StatisticServiceTest {
         when(clock.getZone()).thenReturn(fixedClock.getZone());
     }
 
+    // SS-1
     @Test
     void getStatisticRestaurantByIdShouldReturnStatsForToday() {
         when(customerRepository.findCustomerByRestaurant_IdInToday(restaurantId)).thenReturn(List.of(new Customer(), new Customer()));
@@ -87,6 +88,7 @@ class StatisticServiceTest {
         verify(billService).getVatValueForRestaurantCurrent(restaurantId, mockedDateTime);
     }
 
+    // SS-2
     @Test
     void getStatisticRestaurantByIdShouldReturnStatsForYesterday() {
         LocalDate yesterday = mockedDate.minusDays(1);
@@ -111,6 +113,7 @@ class StatisticServiceTest {
         verify(billService).getVatValueForRestaurantCurrent(restaurantId, mockedDateTime.minusDays(1));
     }
 
+    // SS-3
     @Test
     void getStatisticRestaurantByIdShouldReturnNullForInvalidDay() {
         // Act
@@ -120,6 +123,7 @@ class StatisticServiceTest {
         assertNull(result);
     }
 
+    // SS-4
     @Test
     void getStatisticByRestaurantIdBetweenStartDayToEndDayShouldReturnStats() {
         LocalDateTime start = mockedDateTime.minusDays(2);
@@ -146,6 +150,7 @@ class StatisticServiceTest {
         verify(billService).getVatValueForRestaurantBetween(restaurantId, start, end);
     }
 
+    // SS-5
     @Test
     void getDetailStatisticRestaurantEachOfDayInCurrentMonthShouldReturnStats() {
         LocalDate firstDayOfMonth = mockedDate.with(TemporalAdjusters.firstDayOfMonth());
@@ -170,6 +175,7 @@ class StatisticServiceTest {
         verify(billService, times(8)).getProfitRestaurantByIdAndDate(eq(restaurantId), any(LocalDateTime.class));
     }
 
+    // SS-6
     @Test
     void getDetailStatisticRestaurantEachOfDayInLastMonthShouldReturnStats() {
         LocalDateTime lastMonth = mockedDateTime.minusMonths(1);
@@ -186,6 +192,7 @@ class StatisticServiceTest {
         verify(billService, times(8)).getProfitRestaurantByIdAndDate(eq(restaurantId), any(LocalDateTime.class));
     }
 
+    // SS-7
     @Test
     void getValueByTimeAndCurrentDateForRestaurantShouldReturnHourlyStats() {
         when(billService.getTotalValueByTimeAndCurrentForRestaurant(eq(restaurantId), anyString(), anyString())).thenReturn(0.0);
@@ -208,6 +215,7 @@ class StatisticServiceTest {
         verify(billService, times(1)).getTotalValueByTimeAndCurrentForRestaurant(eq(restaurantId), eq("00:00"), eq("01:00"));
     }
 
+    // SS-8
     @Test
     void getDetailStatisticRestaurantEachOfDayInCurrentWeekShouldReturnStats() {
         LocalDate startOfWeek = mockedDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
@@ -233,6 +241,7 @@ class StatisticServiceTest {
         verify(billService, times(7)).getProfitRestaurantByIdAndDate(eq(restaurantId), any(LocalDateTime.class));
     }
 
+    // SS-9
     @Test
     void getDetailStatisticRestaurantEachOfDayInLastWeekShouldReturnStats() {
         LocalDate startOfLastWeek = mockedDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).minusWeeks(1); // March 24, 2025

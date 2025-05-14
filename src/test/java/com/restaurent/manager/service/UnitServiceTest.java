@@ -65,6 +65,7 @@ class UnitServiceTest {
         unitResponse.setName("Test Unit");
     }
 
+    // US-1
     @Test
     void createUnitShouldReturnUnitResponse() {
         when(accountRepository.findById(unitRequest.getAccountId())).thenReturn(Optional.of(new Account()));
@@ -83,6 +84,7 @@ class UnitServiceTest {
         verify(accountRepository).findById(unitRequest.getAccountId());
     }
 
+    // US-2
     @Test
     void createUnitShouldThrowExceptionWhenAccountNotFound() {
         when(accountRepository.findById(unitRequest.getAccountId())).thenReturn(Optional.empty());
@@ -98,6 +100,7 @@ class UnitServiceTest {
         verify(accountRepository).findById(unitRequest.getAccountId());
     }
 
+    // US-3
     @Test
     void getUnitsByAccountIdShouldReturnListOfUnitResponse() {
         when(unitRepository.getUnitsByAccount_Id(1L)).thenReturn(List.of(unit));
@@ -111,6 +114,7 @@ class UnitServiceTest {
         verify(unitRepository).getUnitsByAccount_Id(1L);
     }
 
+    // US-4
     @Test
     void updateUnitShouldReturnUpdatedUnitResponse() {
         unitRequest.setName("Another Test Unit");
@@ -127,6 +131,7 @@ class UnitServiceTest {
         verify(unitRepository).save(any(Unit.class));
     }
 
+    // US-5
     @Test
     void updateUnitShouldThrowExceptionWhenUnitNotFound() {
         when(unitRepository.findById(1L)).thenReturn(Optional.empty());
@@ -140,6 +145,7 @@ class UnitServiceTest {
         verify(unitRepository).findById(1L);
     }
 
+    // US-6
     @Test
     void deleteUnitByIdShouldDeleteUnitWhenNoDishExists() {
         when(unitRepository.findById(1L)).thenReturn(Optional.of(unit));
@@ -151,6 +157,7 @@ class UnitServiceTest {
         verify(unitRepository).deleteById(1L);
     }
 
+    // US-7
     @Test
     void deleteUnitByIdShouldSetHiddenWhenDishExists() {
         when(unitRepository.findById(1L)).thenReturn(Optional.of(unit));
@@ -165,6 +172,7 @@ class UnitServiceTest {
         verify(unitRepository).save(unit);
     }
 
+    // US-8
     @Test
     void deleteUnitByIdShouldThrowExceptionWhenUnitNotFound() {
         when(unitRepository.findById(1L)).thenReturn(Optional.empty());
@@ -179,6 +187,7 @@ class UnitServiceTest {
     }
 
 
+    // US-9
     @Test
     void findByIdShouldReturnUnitWhenExists() {
         when(unitRepository.findById(1L)).thenReturn(Optional.of(unit));
@@ -191,6 +200,7 @@ class UnitServiceTest {
         verify(unitRepository).findById(1L);
     }
 
+    // US-10
     @Test
     void findByIdShouldThrowExceptionWhenNotExists() {
         when(unitRepository.findById(1L)).thenReturn(Optional.empty());
