@@ -45,6 +45,7 @@ public class EmailServiceTest {
      * Test sendEmail khi gửi email thành công.
      * Kiểm tra nhánh không có exception.
      */
+    // TestcaseID: ES-1
     @Test
     public void testSendEmail_Success() {
         // Mock tạo MimeMessage
@@ -64,6 +65,7 @@ public class EmailServiceTest {
      * Test sendEmail khi gặp MailException.
      * Kiểm tra nhánh catch MailException.
      */
+    // TestcaseID: ES-2
     @Test
     public void testSendEmail_MailException() throws MessagingException, IOException {
         // Mock tạo MimeMessage
@@ -85,6 +87,7 @@ public class EmailServiceTest {
      * Test sendEmail khi gặp MessagingException.
      * Kiểm tra nhánh catch MessagingException.
      */
+    // TestcaseID: ES-3
     @Test
     public void testSendEmail_MessagingException() throws MessagingException {
         // Mock tạo MimeMessage
@@ -102,6 +105,7 @@ public class EmailServiceTest {
         assertEquals(ErrorCode.UNCATEGORIZED_EXCEPTION, exception.getErrorCode(), "Lỗi phải là UNCATEGORIZED_EXCEPTION");
     }
 
+    // TestcaseID: ES-4
     @Test
     public void testGenerateCode() {
         // Để đảm bảo random.nextInt(999999) trả về số có độ dài 6 (ví dụ: 123456),

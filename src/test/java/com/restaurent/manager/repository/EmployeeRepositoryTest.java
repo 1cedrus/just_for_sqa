@@ -47,6 +47,7 @@ public class EmployeeRepositoryTest {
     }
 
     // Test findByRestaurant_IdAndEmployeeNameContaining - Thành công
+    // TestcaseID: EPR-1
     @Test
     public void testFindByRestaurantIdAndEmployeeNameContaining_Success() {
         Pageable pageable = PageRequest.of(0, 10);
@@ -57,6 +58,7 @@ public class EmployeeRepositoryTest {
     }
 
     // Test findByRestaurant_IdAndEmployeeNameContaining - Thất bại
+    // TestcaseID: EPR-2
     @Test
     public void testFindByRestaurantIdAndEmployeeNameContaining_NoMatch() {
         Pageable pageable = PageRequest.of(0, 10);
@@ -66,6 +68,7 @@ public class EmployeeRepositoryTest {
     }
 
     // Test countByRestaurant_IdAndEmployeeNameContaining - Thành công
+    // TestcaseID: EPR-3
     @Test
     public void testCountByRestaurantIdAndEmployeeNameContaining_Success() {
         int count = employeeRepository.countByRestaurant_IdAndEmployeeNameContaining(
@@ -74,6 +77,7 @@ public class EmployeeRepositoryTest {
     }
 
     // Test countByRestaurant_IdAndEmployeeNameContaining - Thất bại
+    // TestcaseID: EPR-4
     @Test
     public void testCountByRestaurantIdAndEmployeeNameContaining_NoMatch() {
         int count = employeeRepository.countByRestaurant_IdAndEmployeeNameContaining(
@@ -82,6 +86,7 @@ public class EmployeeRepositoryTest {
     }
 
     // Test findByUsernameAndRestaurant_Id - Thành công
+    // TestcaseID: EPR-5
     @Test
     public void testFindByUsernameAndRestaurantId_Success() {
         Optional<Employee> result = employeeRepository.findByUsernameAndRestaurant_Id("johndoe", sampleRestaurant.getId());
@@ -90,6 +95,7 @@ public class EmployeeRepositoryTest {
     }
 
     // Test findByUsernameAndRestaurant_Id - Thất bại
+    // TestcaseID: EPR-6
     @Test
     public void testFindByUsernameAndRestaurantId_NoMatch() {
         Optional<Employee> result = employeeRepository.findByUsernameAndRestaurant_Id("janedoe", sampleRestaurant.getId());
@@ -97,6 +103,7 @@ public class EmployeeRepositoryTest {
     }
 
     // Test existsByUsernameAndRestaurant_Id - Thành công
+    // TestcaseID: EPR-7
     @Test
     public void testExistsByUsernameAndRestaurantId_Success() {
         boolean exists = employeeRepository.existsByUsernameAndRestaurant_Id("johndoe", sampleRestaurant.getId());
@@ -104,6 +111,7 @@ public class EmployeeRepositoryTest {
     }
 
     // Test existsByUsernameAndRestaurant_Id - Thất bại
+    // TestcaseID: EPR-8
     @Test
     public void testExistsByUsernameAndRestaurantId_NoMatch() {
         boolean exists = employeeRepository.existsByUsernameAndRestaurant_Id("janedoe", sampleRestaurant.getId());

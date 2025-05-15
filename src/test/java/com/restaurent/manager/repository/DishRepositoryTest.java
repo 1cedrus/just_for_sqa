@@ -57,6 +57,7 @@ public class DishRepositoryTest {
     }
 
     // Test findByRestaurant_Id - Thành công
+    // TestcaseID: DR-1
     @Test
     public void testFindByRestaurantId_Success() {
         List<Dish> result = dishRepository.findByRestaurant_Id(sampleRestaurant.getId());
@@ -65,6 +66,7 @@ public class DishRepositoryTest {
     }
 
     // Test findByRestaurant_Id - Thất bại
+    // TestcaseID: DR-2
     @Test
     public void testFindByRestaurantId_NoMatch() {
         List<Dish> result = dishRepository.findByRestaurant_Id(999L);
@@ -72,6 +74,7 @@ public class DishRepositoryTest {
     }
 
     // Test findByDishCategory_IdAndStatus - Thành công
+    // TestcaseID: DR-3
     @Test
     public void testFindByDishCategoryIdAndStatus_Success() {
         List<Dish> result = dishRepository.findByDishCategory_IdAndStatus(sampleCategory.getId(), true);
@@ -80,6 +83,7 @@ public class DishRepositoryTest {
     }
 
     // Test findByDishCategory_IdAndStatus - Thất bại
+    // TestcaseID: DR-4
     @Test
     public void testFindByDishCategoryIdAndStatus_NoMatch() {
         List<Dish> result = dishRepository.findByDishCategory_IdAndStatus(sampleCategory.getId(), false);
@@ -87,6 +91,7 @@ public class DishRepositoryTest {
     }
 
     // Test findByRestaurant_IdAndStatusAndNameContaining - Thành công
+    // TestcaseID: DR-5
     @Test
     public void testFindByRestaurantIdAndStatusAndNameContaining_Success() {
         Pageable pageable = PageRequest.of(0, 10);
@@ -97,6 +102,7 @@ public class DishRepositoryTest {
     }
 
     // Test findByRestaurant_IdAndStatusAndNameContaining - Thất bại
+    // TestcaseID: DR-6
     @Test
     public void testFindByRestaurant_IdAndStatusAndNameContaining_NoMatch() {
         Pageable pageable = PageRequest.of(0, 10);
@@ -106,6 +112,7 @@ public class DishRepositoryTest {
     }
 
     // Test countByRestaurant_IdAndStatusAndNameContaining - Thành công
+    // TestcaseID: DR-7
     @Test
     public void testCountByRestaurantIdAndStatusAndNameContaining_Success() {
         int count = dishRepository.countByRestaurant_IdAndStatusAndNameContaining(
@@ -114,6 +121,7 @@ public class DishRepositoryTest {
     }
 
     // Test countByRestaurant_IdAndStatusAndNameContaining - Thất bại
+    // TestcaseID: DR-8
     @Test
     public void testCountByRestaurantIdAndStatusAndNameContaining_NoMatch() {
         int count = dishRepository.countByRestaurant_IdAndStatusAndNameContaining(
@@ -122,6 +130,7 @@ public class DishRepositoryTest {
     }
 
     // Test existsByUnit_Id - Thành công
+    // TestcaseID: DR-9
     @Test
     public void testExistsByUnitId_Success() {
         boolean exists = dishRepository.existsByUnit_Id(sampleUnit.getId());
@@ -129,6 +138,7 @@ public class DishRepositoryTest {
     }
 
     // Test existsByUnit_Id - Thất bại
+    // TestcaseID: DR-10
     @Test
     public void testExistsByUnitId_NoMatch() {
         boolean exists = dishRepository.existsByUnit_Id(999L);
@@ -136,6 +146,7 @@ public class DishRepositoryTest {
     }
 
     // Test findByRestaurant_IdAndStatus - Thành công
+    // TestcaseID: DR-11
     @Test
     public void testFindByRestaurantIdAndStatus_Success() {
         List<Dish> result = dishRepository.findByRestaurant_IdAndStatus(sampleRestaurant.getId(), true);
@@ -144,6 +155,7 @@ public class DishRepositoryTest {
     }
 
     // Test findByRestaurant_IdAndStatus - Thất bại
+    // TestcaseID: DR-12
     @Test
     public void testFindByRestaurantIdAndStatus_NoMatch() {
         List<Dish> result = dishRepository.findByRestaurant_IdAndStatus(sampleRestaurant.getId(), false);

@@ -127,6 +127,7 @@ public class OrderServiceTest {
     /**
      * Test createOrder thành công.
      */
+    // TestcaseID: OS-1
     @Test
     public void testCreateOrder_Success() {
         when(tableRestaurantService.findById(1L)).thenReturn(sampleTable);
@@ -147,6 +148,7 @@ public class OrderServiceTest {
      * Test addDishToOrder với dishId (dishOrders null).
      * Kiểm tra nhánh dishId != null và dishOrders == null.
      */
+    // TestcaseID: OS-2
     @Test
     public void testAddDishToOrder_WithDishId_DishOrdersNull() {
         DishOrder dishOrder = new DishOrder();
@@ -174,6 +176,7 @@ public class OrderServiceTest {
      * Test addDishToOrder với comboId (dishOrders null).
      * Kiểm tra nhánh dishId == null và dishOrders == null.
      */
+    // TestcaseID: OS-3
     @Test
     public void testAddDishToOrder_WithComboId_DishOrdersNull() {
         DishOrderRequest comboRequest = DishOrderRequest.builder().build();
@@ -202,6 +205,7 @@ public class OrderServiceTest {
      * Test addDishToOrder với dishId (dishOrders không null).
      * Kiểm tra nhánh dishId != null và dishOrders != null.
      */
+    // TestcaseID: OS-4
     @Test
     public void testAddDishToOrder_WithDishId_DishOrdersNotNull() {
         DishOrder dishOrder = new DishOrder();
@@ -228,6 +232,7 @@ public class OrderServiceTest {
      * Test addDishToOrder với comboId (dishOrders không null).
      * Kiểm tra nhánh dishId == null và dishOrders != null.
      */
+    // TestcaseID: OS-5
     @Test
     public void testAddDishToOrder_WithComboId_DishOrdersNotNull() {
         DishOrderRequest comboRequest = DishOrderRequest.builder().build();
@@ -257,6 +262,7 @@ public class OrderServiceTest {
     /**
      * Test findDishByOrderId (không phân trang).
      */
+    // TestcaseID: OS-6
     @Test
     public void testFindDishByOrderId() {
         DishOrder dishOrder = new DishOrder();
@@ -271,6 +277,7 @@ public class OrderServiceTest {
     /**
      * Test findDishByOrderId (có phân trang).
      */
+    // TestcaseID: OS-7
     @Test
     public void testFindDishByOrderId_WithPageable() {
         Pageable pageable = PageRequest.of(0, 10);
@@ -286,6 +293,7 @@ public class OrderServiceTest {
     /**
      * Test findOrderById khi tìm thấy.
      */
+    // TestcaseID: OS-8
     @Test
     public void testFindOrderById_Found() {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(sampleOrder));
@@ -300,6 +308,7 @@ public class OrderServiceTest {
      * Test findOrderById khi không tìm thấy.
      * Kiểm tra nhánh orElseThrow.
      */
+    // TestcaseID: OS-9
     @Test
     public void testFindOrderById_NotFound() {
         when(orderRepository.findById(1L)).thenReturn(Optional.empty());
@@ -314,6 +323,7 @@ public class OrderServiceTest {
     /**
      * Test findOrderByRestaurantId.
      */
+    // TestcaseID: OS-10
     @Test
     public void testFindOrderByRestaurantId() {
         when(orderRepository.findOrderByRestaurant_Id(1L)).thenReturn(List.of(sampleOrder));
@@ -327,6 +337,7 @@ public class OrderServiceTest {
      * Test findOrderByTableId khi có order hiện tại.
      * Kiểm tra nhánh orderCurrent != null.
      */
+    // TestcaseID: OS-11
     @Test
     public void testFindOrderByTableId_OrderExists() {
         OrderResponse sampleOrderResponse = new OrderResponse();
@@ -347,6 +358,7 @@ public class OrderServiceTest {
      * Test findOrderByTableId khi không có order hiện tại.
      * Kiểm tra nhánh orderCurrent == null.
      */
+    // TestcaseID: OS-12
     @Test
     public void testFindOrderByTableId_NoOrder() {
         sampleTable.setOrderCurrent(null);
@@ -361,6 +373,7 @@ public class OrderServiceTest {
      * Test findOrderAndConvertDTOByOrderId với dish, không VAT.
      * Kiểm tra nhánh dish != null, isVatActive = false.
      */
+    // TestcaseID: OS-13
     @Test
     public void testFindOrderAndConvertDTOByOrderId_WithDish_NoVat() {
         DishOrder dishOrder = new DishOrder();
@@ -384,6 +397,7 @@ public class OrderServiceTest {
      * Test findOrderAndConvertDTOByOrderId với combo, có VAT.
      * Kiểm tra nhánh dish == null, isVatActive = true, vat != null.
      */
+    // TestcaseID: OS-14
     @Test
     public void testFindOrderAndConvertDTOByOrderId_WithCombo_WithVat() {
         DishOrder dishOrder = new DishOrder();
@@ -411,6 +425,7 @@ public class OrderServiceTest {
      * Test findOrderAndConvertDTOByOrderId khi trạng thái DECLINE.
      * Kiểm tra nhánh status == DECLINE.
      */
+    // TestcaseID: OS-15
     @Test
     public void testFindOrderAndConvertDTOByOrderId_DeclineStatus() {
         DishOrder dishOrder = new DishOrder();
@@ -434,6 +449,7 @@ public class OrderServiceTest {
      * Test findOrderAndConvertDTOByOrderId khi VAT active nhưng vat null.
      * Kiểm tra nhánh isVatActive = true, vat == null.
      */
+    // TestcaseID: OS-16
     @Test
     public void testFindOrderAndConvertDTOByOrderId_VatActive_VatNull() {
         DishOrder dishOrder = new DishOrder();
@@ -458,6 +474,7 @@ public class OrderServiceTest {
     /**
      * Test createOrder với tham số entity thành công.
      */
+    // TestcaseID: OS-17
     @Test
     public void testCreateOrder_WithEntities() {
         when(orderRepository.save(any(Order.class))).thenReturn(sampleOrder);

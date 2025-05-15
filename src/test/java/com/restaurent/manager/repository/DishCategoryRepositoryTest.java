@@ -59,6 +59,7 @@ public class DishCategoryRepositoryTest {
      * Test trường hợp existsByNameAndRestaurant_Id trả về true (dữ liệu tồn tại).
      * Kiểm tra nhánh thành công của phương thức.
      */
+    // TestcaseID: DCR-1
     @Test
     public void testExistsByNameAndRestaurantId_Exists() {
         // Gọi phương thức để kiểm tra xem dữ liệu đã chèn có tồn tại không
@@ -71,6 +72,7 @@ public class DishCategoryRepositoryTest {
      * Test trường hợp existsByNameAndRestaurant_Id trả về false (dữ liệu không tồn tại).
      * Kiểm tra nhánh thất bại của phương thức.
      */
+    // TestcaseID: DCR-2
     @Test
     public void testExistsByNameAndRestaurantId_NotExists() {
         // Kiểm tra với một name không tồn tại trong database
@@ -83,6 +85,7 @@ public class DishCategoryRepositoryTest {
      * Test phương thức findByRestaurantIdAndNameContaining khi tìm thấy dữ liệu.
      * Kiểm tra nhánh thành công với phân trang.
      */
+    // TestcaseID: DCR-3
     @Test
     public void testFindByRestaurantIdAndNameContaining() {
         // Tạo Pageable để giới hạn kết quả (page 0, size 10)
@@ -99,6 +102,7 @@ public class DishCategoryRepositoryTest {
      * Test phương thức findByRestaurantIdAndNameContaining khi không tìm thấy dữ liệu.
      * Kiểm tra nhánh thất bại với phân trang.
      */
+    // TestcaseID: DCR-4
     @Test
     public void testFindByRestaurantIdAndNameContaining_NoMatch() {
         // Tạo Pageable để giới hạn kết quả
@@ -113,6 +117,7 @@ public class DishCategoryRepositoryTest {
      * Test phương thức countByRestaurantIdAndNameContaining khi đếm được dữ liệu.
      * Kiểm tra nhánh thành công của đếm.
      */
+    // TestcaseID: DCR-5
     @Test
     public void testCountByRestaurantIdAndNameContaining() {
         // Gọi phương thức đếm với query khớp dữ liệu
@@ -125,6 +130,7 @@ public class DishCategoryRepositoryTest {
      * Test phương thức countByRestaurantIdAndNameContaining khi không đếm được dữ liệu.
      * Kiểm tra nhánh thất bại của đếm.
      */
+    // TestcaseID: DCR-6
     @Test
     public void testCountByRestaurantIdAndNameContaining_NoMatch() {
         // Gọi phương thức đếm với query không khớp
@@ -137,6 +143,7 @@ public class DishCategoryRepositoryTest {
      * Test phương thức findByRestaurantId khi tìm thấy dữ liệu.
      * Kiểm tra nhánh thành công của tìm danh sách.
      */
+    // TestcaseID: DCR-7
     @Test
     public void testFindByRestaurantId() {
         // Gọi phương thức tìm danh sách category theo restaurantId
@@ -151,6 +158,7 @@ public class DishCategoryRepositoryTest {
      * Test phương thức findByRestaurantId khi không tìm thấy dữ liệu.
      * Kiểm tra nhánh thất bại của tìm danh sách.
      */
+    // TestcaseID: DCR-8
     @Test
     public void testFindByRestaurantId_NoMatch() {
         // Gọi phương thức với restaurantId không có dữ liệu
@@ -163,6 +171,7 @@ public class DishCategoryRepositoryTest {
      * Test phương thức findByCodeAndRestaurantId khi tìm thấy dữ liệu.
      * Kiểm tra nhánh thành công (Optional có giá trị).
      */
+    // TestcaseID: DCR-9
     @Test
     public void testFindByCodeAndRestaurantId_Found() {
         // Gọi phương thức với code và restaurantId khớp dữ liệu
@@ -177,6 +186,7 @@ public class DishCategoryRepositoryTest {
      * Test phương thức findByCodeAndRestaurantId khi không tìm thấy dữ liệu.
      * Kiểm tra nhánh thất bại (Optional rỗng).
      */
+    // TestcaseID: DCR-10
     @Test
     public void testFindByCodeAndRestaurantId_NotFound() {
         // Gọi phương thức với code không khớp

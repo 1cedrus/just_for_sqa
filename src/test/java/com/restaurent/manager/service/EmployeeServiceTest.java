@@ -105,6 +105,7 @@ public class EmployeeServiceTest {
      * Test createEmployee khi tạo thành công.
      * Kiểm tra nhánh existsByUsername = false. role tìm thấy.
      */
+    // TestcaseID: EPS-1
     @Test
     public void testCreateEmployee_Success() {
         sampleRestaurant.setEmployees(new HashSet<>());
@@ -128,6 +129,7 @@ public class EmployeeServiceTest {
      * Test createEmployee khi username đã tồn tại.
      * Kiểm tra nhánh existsByUsername = true.
      */
+    // TestcaseID: EPS-2
     @Test
     public void testCreateEmployee_UserExisted() {
         when(restaurantRepository.findByAccount_Id(1L)).thenReturn(sampleRestaurant);
@@ -144,6 +146,7 @@ public class EmployeeServiceTest {
      * Test createEmployee khi role không tồn tại.
      * Kiểm tra nhánh roleRepository.findById ném ROLE_NOT_EXISTED.
      */
+    // TestcaseID: EPS-3
     @Test
     public void testCreateEmployee_RoleNotExisted() {
         when(restaurantRepository.findByAccount_Id(1L)).thenReturn(sampleRestaurant);
@@ -162,6 +165,7 @@ public class EmployeeServiceTest {
     /**
      * Test updateEmployee khi cập nhật thành công.
      */
+    // TestcaseID: EPS-4
     @Test
     public void testUpdateEmployee_Success() {
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(sampleEmployee));
@@ -179,6 +183,7 @@ public class EmployeeServiceTest {
      * Test updateEmployee khi role không tồn tại.
      * Kiểm tra nhánh ném ROLE_NOT_EXISTED.
      */
+    // TestcaseID: EPS-5
     @Test
     public void testUpdateEmployee_RoleNotExisted() {
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(sampleEmployee));
@@ -195,6 +200,7 @@ public class EmployeeServiceTest {
      * Test findEmployeeById khi tìm thấy.
      * Kiểm tra nhánh tìm thấy.
      */
+    // TestcaseID: EPS-6
     @Test
     public void testFindEmployeeById_Found() {
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(sampleEmployee));
@@ -209,6 +215,7 @@ public class EmployeeServiceTest {
      * Test findEmployeeById khi không tìm thấy.
      * Kiểm tra nhánh không tìm thấy.
      */
+    // TestcaseID: EPS-7
     @Test
     public void testFindEmployeeById_NotFound() {
         when(employeeRepository.findById(1L)).thenReturn(Optional.empty());
@@ -223,6 +230,7 @@ public class EmployeeServiceTest {
     /**
      * Test findEmployeeByIdConvertDTO khi tìm thấy.
      */
+    // TestcaseID: EPS-8
     @Test
     public void testFindEmployeeByIdConvertDTO() {
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(sampleEmployee));
@@ -237,6 +245,7 @@ public class EmployeeServiceTest {
     /**
      * Test deleteEmployee khi xóa thành công.
      */
+    // TestcaseID: EPS-9
     @Test
     public void testDeleteEmployee() {
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(sampleEmployee));
@@ -250,6 +259,7 @@ public class EmployeeServiceTest {
      * Test findEmployeesByAccountId khi restaurant tồn tại.
      * Kiểm tra nhánh restaurant != null.
      */
+    // TestcaseID: EPS-10
     @Test
     public void testFindEmployeesByAccountId_RestaurantExists() {
         Pageable pageable = PageRequest.of(0, 10);
@@ -268,6 +278,7 @@ public class EmployeeServiceTest {
      * Test findEmployeesByAccountId khi restaurant không tồn tại.
      * Kiểm tra nhánh restaurant == null.
      */
+    // TestcaseID: EPS-11
     @Test
     public void testFindEmployeesByAccountId_RestaurantNotExists() {
         Pageable pageable = PageRequest.of(0, 10);
@@ -284,6 +295,7 @@ public class EmployeeServiceTest {
      * Test authenticated khi xác thực thành công.
      * Kiểm tra nhánh authenticated = true.
      */
+    // TestcaseID: EPS-12
     @Test
     public void testAuthenticated_Success() {
         EmployeeLoginRequest request = new EmployeeLoginRequest();
@@ -313,6 +325,7 @@ public class EmployeeServiceTest {
      * Test authenticated khi mật khẩu sai.
      * Kiểm tra nhánh authenticated = false.
      */
+    // TestcaseID: EPS-13
     @Test
     public void testAuthenticated_PasswordIncorrect() {
         EmployeeLoginRequest request = new EmployeeLoginRequest();
@@ -333,6 +346,7 @@ public class EmployeeServiceTest {
     /**
      * Test authenticated khi employee không tồn tại.
      */
+    // TestcaseID: EPS-14
     @Test
     public void testAuthenticated_EmployeeNotExist() {
         EmployeeLoginRequest request = new EmployeeLoginRequest();
@@ -353,6 +367,7 @@ public class EmployeeServiceTest {
     /**
      * Test updateEmployeePassword khi cập nhật thành công.
      */
+    // TestcaseID: EPS-15
     @Test
     public void testUpdateEmployeePassword() {
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(sampleEmployee));
@@ -367,6 +382,7 @@ public class EmployeeServiceTest {
      * Test buildScope khi role và restaurant không null.
      * Kiểm tra nhánh role != null và restaurant != null.
      */
+    // TestcaseID: EPS-16
     @Test
     public void testBuildScope_WithRoleAndRestaurant() {
         sampleEmployee.setRole(sampleRole);
@@ -386,6 +402,7 @@ public class EmployeeServiceTest {
      * Test buildScope khi role null.
      * Kiểm tra nhánh role == null.
      */
+    // TestcaseID: EPS-17
     @Test
     public void testBuildScope_RoleNull() {
         sampleEmployee.setRole(null);
@@ -400,6 +417,7 @@ public class EmployeeServiceTest {
      * Test buildScope khi restaurant null.
      * Kiểm tra nhánh restaurant == null.
      */
+    // TestcaseID: EPS-18
     @Test
     public void testBuildScope_RestaurantNull() {
         sampleEmployee.setRole(sampleRole);
@@ -413,6 +431,7 @@ public class EmployeeServiceTest {
     /**
      * Test generateToken khi tạo token thành công.
      */
+    // TestcaseID: EPS-19
     @Test
     public void testGenerateToken_Success() {
         sampleEmployee.setRole(sampleRole);

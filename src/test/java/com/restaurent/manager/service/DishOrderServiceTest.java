@@ -81,6 +81,7 @@ public class DishOrderServiceTest {
      * Test changeStatusDishOrderById khi thay đổi trạng thái thành công.
      * Kiểm tra nhánh thành công của phương thức.
      */
+    // TestcaseID: DOS-1
     @Test
     public void testChangeStatusDishOrderById_Success() {
         // Tạo DishOrder mẫu sau thay đổi trạng thái
@@ -117,6 +118,7 @@ public class DishOrderServiceTest {
      * Test changeStatusDishOrderById khi không tìm thấy DishOrder (ném exception).
      * Kiểm tra nhánh thất bại của findById trong phương thức.
      */
+    // TestcaseID: DOS-2
     @Test
     public void testChangeStatusDishOrderById_NotFound() {
         // Mock không tìm thấy DishOrder
@@ -137,6 +139,7 @@ public class DishOrderServiceTest {
      * Test khi cả WAITING và PREPARE đều có dữ liệu.
      * Nhánh: waitingOrder not empty && prepareOrder not empty.
      */
+    // TestcaseID: DOS-3
     @Test
     public void testFindDishOrderWaitingByAndRestaurantId_BothStates() {
         // Mock danh sách Order
@@ -178,6 +181,7 @@ public class DishOrderServiceTest {
      * Test khi chỉ WAITING có dữ liệu, PREPARE là empty.
      * Nhánh: waitingOrder is not empty && prepareOrder is empty.
      */
+    // TestcaseID: DOS-4
     @Test
     public void testFindDishOrderWaitingByAndRestaurantId_OnlyWaiting() {
         // Mock danh sách Order
@@ -207,6 +211,7 @@ public class DishOrderServiceTest {
      * Test khi chỉ PREPARE có dữ liệu, WAITING là empty.
      * Nhánh: waitingOrder is empty && prepareOrder is not empty.
      */
+    // TestcaseID: DOS-5
     @Test
     public void testFindDishOrderWaitingByAndRestaurantId_OnlyPrepare() {
         // Mock danh sách Order
@@ -245,6 +250,7 @@ public class DishOrderServiceTest {
      * Test khi cả WAITING và PREPARE đều empty.
      * Nhánh: waitingOrder is empty && prepareOrder is empty.
      */
+    // TestcaseID: DOS-6
     @Test
     public void testFindDishOrderWaitingByAndRestaurantId_NoOrders() {
         // Mock danh sách Order
@@ -268,6 +274,7 @@ public class DishOrderServiceTest {
      * Test findById khi tìm thấy DishOrder.
      * Kiểm tra nhánh thành công của phương thức.
      */
+    // TestcaseID: DOS-7
     @Test
     public void testFindById_Found() {
         // Mock tìm thấy DishOrder
@@ -285,6 +292,7 @@ public class DishOrderServiceTest {
      * Test findById khi không tìm thấy DishOrder (ném exception).
      * Kiểm tra nhánh thất bại của phương thức.
      */
+    // TestcaseID: DOS-8
     @Test
     public void testFindById_NotFound() {
         // Mock không tìm thấy DishOrder
@@ -303,6 +311,7 @@ public class DishOrderServiceTest {
      * Test findDishOrderByOrderId khi tìm thấy dữ liệu.
      * Kiểm tra nhánh thành công với phân trang.
      */
+    // TestcaseID: DOS-9
     @Test
     public void testFindDishOrderByOrderId() {
         // Tạo Pageable mẫu
@@ -328,6 +337,7 @@ public class DishOrderServiceTest {
      * Test findDishOrderByOrderIdAndStatus khi tìm thấy dữ liệu.
      * Kiểm tra nhánh thành công của phương thức.
      */
+    // TestcaseID: DOS-10
     @Test
     public void testFindDishOrderByOrderIdAndStatus_Found() {
         // Mock danh sách DishOrder
@@ -349,6 +359,7 @@ public class DishOrderServiceTest {
      * Test findDishOrderByOrderIdAndStatus khi không tìm thấy dữ liệu.
      * Kiểm tra nhánh thất bại của phương thức.
      */
+    // TestcaseID: DOS-11
     @Test
     public void testFindDishOrderByOrderIdAndStatus_NotFound() {
         // Mock danh sách DishOrder trống
@@ -366,6 +377,7 @@ public class DishOrderServiceTest {
      * Test findDishOrderByRestaurantIdAndState khi tìm thấy dữ liệu.
      * Kiểm tra nhánh thành công khi có order và dish order.
      */
+    // TestcaseID: DOS-12
     @Test
     public void testFindDishOrderByRestaurantIdAndState_Found() {
         // Mock danh sách Order
@@ -390,6 +402,7 @@ public class DishOrderServiceTest {
      * Test findDishOrderByRestaurantIdAndState khi không có order.
      * Kiểm tra nhánh thất bại khi danh sách order trống.
      */
+    // TestcaseID: DOS-13
     @Test
     public void testFindDishOrderByRestaurantIdAndState_NoOrders() {
         // Mock danh sách Order trống
@@ -406,6 +419,7 @@ public class DishOrderServiceTest {
      * Test findDishOrderByRestaurantIdAndState khi có order nhưng không có dish order.
      * Kiểm tra nhánh thất bại khi danh sách dish order trống.
      */
+    // TestcaseID: DOS-14
     @Test
     public void testFindDishOrderByRestaurantIdAndState_NoDishOrders() {
         // Mock danh sách Order

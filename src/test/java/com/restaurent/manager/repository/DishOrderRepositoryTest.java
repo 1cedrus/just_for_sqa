@@ -48,6 +48,7 @@ public class DishOrderRepositoryTest {
     }
 
     // Test findDishOrderByOrder_Id (không phân trang) - Thành công
+    // TestcaseID: DOR-1
     @Test
     public void testFindDishOrderByOrderId_Success() {
         List<DishOrder> result = dishOrderRepository.findDishOrderByOrder_Id(sampleOrder.getId());
@@ -56,6 +57,7 @@ public class DishOrderRepositoryTest {
     }
 
     // Test findDishOrderByOrder_Id (không phân trang) - Thất bại
+    // TestcaseID: DOR-2
     @Test
     public void testFindDishOrderByOrderId_NoMatch() {
         List<DishOrder> result = dishOrderRepository.findDishOrderByOrder_Id(999L);
@@ -63,6 +65,7 @@ public class DishOrderRepositoryTest {
     }
 
     // Test findDishOrderByOrder_Id (có phân trang) - Thành công
+    // TestcaseID: DOR-3
     @Test
     public void testFindDishOrderByOrderIdWithPageable_Success() {
         Pageable pageable = PageRequest.of(0, 10);
@@ -72,6 +75,7 @@ public class DishOrderRepositoryTest {
     }
 
     // Test findDishOrderByOrder_Id (có phân trang) - Thất bại
+    // TestcaseID: DOR-4
     @Test
     public void testFindDishOrderByOrderIdWithPageable_NoMatch() {
         Pageable pageable = PageRequest.of(0, 10);
@@ -80,6 +84,7 @@ public class DishOrderRepositoryTest {
     }
 
     // Test countByOrder_Id - Thành công
+    // TestcaseID: DOR-5
     @Test
     public void testCountByOrderId_Success() {
         int count = dishOrderRepository.countByOrder_Id(sampleOrder.getId());
@@ -87,6 +92,7 @@ public class DishOrderRepositoryTest {
     }
 
     // Test countByOrder_Id - Thất bại
+    // TestcaseID: DOR-6
     @Test
     public void testCountByOrderId_NoMatch() {
         int count = dishOrderRepository.countByOrder_Id(999L);
@@ -94,6 +100,7 @@ public class DishOrderRepositoryTest {
     }
 
     // Test findDishOrderByOrder_IdAndStatusAndOrderDateBetweenOrderByOrderDate - Thành công
+    // TestcaseID: DOR-7
     @Test
     public void testFindDishOrderByOrderIdAndStatusAndOrderDateBetween_Success() {
         LocalDateTime startTime = LocalDateTime.of(2025, 4, 9, 0, 0);
@@ -105,6 +112,7 @@ public class DishOrderRepositoryTest {
     }
 
     // Test findDishOrderByOrder_IdAndStatusAndOrderDateBetweenOrderByOrderDate - Thất bại (không khớp status)
+    // TestcaseID: DOR-8
     @Test
     public void testFindDishOrderByOrderIdAndStatusAndOrderDateBetween_NoMatchStatus() {
         LocalDateTime startTime = LocalDateTime.of(2025, 4, 9, 0, 0);
@@ -115,6 +123,7 @@ public class DishOrderRepositoryTest {
     }
 
     // Test findDishOrderByOrder_IdAndStatusAndOrderDateBetweenOrderByOrderDate - Thất bại (ngoài khoảng thời gian)
+    // TestcaseID: DOR-9
     @Test
     public void testFindDishOrderByOrderIdAndStatusAndOrderDateBetween_NoMatchDate() {
         LocalDateTime startTime = LocalDateTime.of(2025, 4, 10, 0, 0);
@@ -125,6 +134,7 @@ public class DishOrderRepositoryTest {
     }
 
     // Test findDishOrderByOrder_IdAndStatusAndOrderDateBetweenOrderByOrderDate - Thất bại (không khớp orderId)
+    // TestcaseID: DOR-10
     @Test
     public void testFindDishOrderByOrderIdAndStatusAndOrderDateBetween_NoMatchOrderId() {
         LocalDateTime startTime = LocalDateTime.of(2025, 4, 9, 0, 0);

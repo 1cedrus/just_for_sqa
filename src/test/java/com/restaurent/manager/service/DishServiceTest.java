@@ -116,6 +116,7 @@ public class DishServiceTest {
      * Test createNewDish khi tạo thành công.
      * Không có nhánh điều kiện, kiểm tra logic cơ bản.
      */
+    // TestcaseID: DS-1
     @Test
     public void testCreateNewDish_Success() {
         // Mock ánh xạ từ request sang entity
@@ -143,6 +144,7 @@ public class DishServiceTest {
      * Test findByRestaurantId khi tìm thấy dữ liệu.
      * Không có nhánh điều kiện, kiểm tra logic cơ bản.
      */
+    // TestcaseID: DS-2
     @Test
     public void testFindByRestaurantId() {
         // Mock danh sách Dish
@@ -163,6 +165,7 @@ public class DishServiceTest {
      * Test updateDish khi cập nhật thành công.
      * Không có nhánh điều kiện, kiểm tra logic cơ bản.
      */
+    // TestcaseID: DS-3
     @Test
     public void testUpdateDish_Success() {
         // Mock tìm thấy Dish
@@ -189,6 +192,7 @@ public class DishServiceTest {
      * Test findByDishId khi tìm thấy Dish.
      * Kiểm tra nhánh thành công của phương thức.
      */
+    // TestcaseID: DS-4
     @Test
     public void testFindByDishId_Found() {
         // Mock tìm thấy Dish
@@ -206,6 +210,7 @@ public class DishServiceTest {
      * Test findByDishId khi không tìm thấy Dish (ném exception).
      * Kiểm tra nhánh thất bại của phương thức.
      */
+    // TestcaseID: DS-5
     @Test
     public void testFindByDishId_NotFound() {
         // Mock không tìm thấy Dish
@@ -224,6 +229,7 @@ public class DishServiceTest {
      * Test findDishesByCategoryCode khi categoryCode là "all".
      * Kiểm tra nhánh categoryCode.equals("all") = true.
      */
+    // TestcaseID: DS-6
     @Test
     public void testFindDishesByCategoryCode_All() {
         // Mock danh sách Dish
@@ -244,6 +250,7 @@ public class DishServiceTest {
      * Test findDishesByCategoryCode khi categoryCode không phải "all".
      * Kiểm tra nhánh categoryCode.equals("all") = false.
      */
+    // TestcaseID: DS-7
     @Test
     public void testFindDishesByCategoryCode_SpecificCategory() {
         // Mock tìm DishCategory
@@ -266,6 +273,7 @@ public class DishServiceTest {
      * Test findDishesByRestaurantActive khi tìm thấy dữ liệu.
      * Không có nhánh điều kiện, kiểm tra logic cơ bản.
      */
+    // TestcaseID: DS-8
     @Test
     public void testFindDishesByRestaurantActive() {
         // Mock danh sách Dish
@@ -286,6 +294,7 @@ public class DishServiceTest {
      * Test getDishesByRestaurantIdAndStatus khi tìm thấy dữ liệu.
      * Không có nhánh điều kiện, kiểm tra logic phân trang.
      */
+    // TestcaseID: DS-9
     @Test
     public void testGetDishesByRestaurantIdAndStatus_Found() {
         // Tạo Pageable mẫu
@@ -311,6 +320,7 @@ public class DishServiceTest {
      * Test getDishesByRestaurantIdAndStatus khi không tìm thấy dữ liệu.
      * Không có nhánh điều kiện, kiểm tra trường hợp rỗng.
      */
+    // TestcaseID: DS-10
     @Test
     public void testGetDishesByRestaurantIdAndStatus_NotFound() {
         // Tạo Pageable mẫu
