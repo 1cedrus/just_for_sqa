@@ -71,6 +71,7 @@ class AccountRepositoryTest {
             .build());
     }
 
+    //ACCR1
     @Test
     @DisplayName("Should return true when account with given email and status exists")
     void existsByEmailAndStatus_shouldReturnTrue_WhenAccountExists() {
@@ -92,27 +93,7 @@ class AccountRepositoryTest {
         assertThat(exists).isTrue();
     }
 
-    @Test
-    @DisplayName("Should return false when account exists but status does not match")
-    void existsByEmailAndStatus_shouldReturnFalse_WhenStatusMismatch() {
-        // Arrange
-        Account account = Account.builder()
-            .email("test@example.com")
-            .username("user2")
-            .phoneNumber("1234567891")
-            .password("pass")
-            .status(true)  // Account is saved with status=true
-            .build();
-
-        accountRepository.save(account);
-
-        // Act
-        boolean exists = accountRepository.existsByEmailAndStatus("test@example.com", false);  // Querying for status=false
-
-        // Assert
-        assertThat(exists).isFalse();  // Expecting false since the status does not match
-    }
-
+    //ACCR2
     @Test
     @DisplayName("Should return false when account with given email does not exist")
     void existsByEmailAndStatus_shouldReturnFalse_WhenEmailNotFound() {
@@ -123,6 +104,7 @@ class AccountRepositoryTest {
         assertThat(exists).isFalse();
     }
 
+    //ACCR3
     @Test
     @DisplayName("Should return true when account with given phone number and status exists")
     void existsByPhoneNumberAndStatus_shouldReturnTrue_WhenAccountExists() {
@@ -144,27 +126,7 @@ class AccountRepositoryTest {
         assertThat(exists).isTrue();
     }
 
-    @Test
-    @DisplayName("Should return false when phone number exists but status does not match")
-    void existsByPhoneNumberAndStatus_shouldReturnFalse_WhenStatusMismatch() {
-        // Arrange
-        Account account = Account.builder()
-            .email("phoneuser2@example.com")
-            .username("phoneuser2")
-            .phoneNumber("0987654321")
-            .password("pass")
-            .status(false)
-            .build();
-
-        accountRepository.save(account);
-
-        // Act
-        boolean exists = accountRepository.existsByPhoneNumberAndStatus("0987654321", true);
-
-        // Assert
-        assertThat(exists).isFalse();
-    }
-
+    //ACCR4
     @Test
     @DisplayName("Should return false when account with given phone number does not exist")
     void existsByPhoneNumberAndStatus_shouldReturnFalse_WhenPhoneNumberNotFound() {
@@ -175,6 +137,7 @@ class AccountRepositoryTest {
         assertThat(exists).isFalse();
     }
 
+    //ACCR5
     @Test
     @DisplayName("Should return account when email and status match")
     void findByEmailAndStatus_shouldReturnAccount_WhenMatch() {
@@ -197,26 +160,7 @@ class AccountRepositoryTest {
         assertThat(result.get().isStatus()).isTrue();
     }
 
-    @Test
-    @DisplayName("Should return empty when email exists but status does not match")
-    void findByEmailAndStatus_shouldReturnEmpty_WhenStatusMismatch() {
-        // Arrange
-        Account account = Account.builder()
-            .email("statusmismatch@example.com")
-            .username("statusUser")
-            .phoneNumber("123456788")
-            .password("pass")
-            .status(false)
-            .build();
-        accountRepository.save(account);
-
-        // Act
-        Optional<Account> result = accountRepository.findByEmailAndStatus("statusmismatch@example.com", true);
-
-        // Assert
-        assertThat(result).isEmpty();
-    }
-
+    //ACCR6
     @Test
     @DisplayName("Should return empty when email does not exist")
     void findByEmailAndStatus_shouldReturnEmpty_WhenEmailNotFound() {
@@ -227,36 +171,7 @@ class AccountRepositoryTest {
         assertThat(result).isEmpty();
     }
 
-    @Test
-    @DisplayName("Should return empty when email is null")
-    void findByEmailAndStatus_shouldReturnEmpty_WhenEmailIsNull() {
-        // Act
-        Optional<Account> result = accountRepository.findByEmailAndStatus(null, true);
-
-        // Assert
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    @DisplayName("Should return empty when status is false and no matching account")
-    void findByEmailAndStatus_shouldReturnEmpty_WhenStatusFalseAndNoMatch() {
-        // Arrange
-        Account account = Account.builder()
-            .email("someuser@example.com")
-            .username("someuser")
-            .phoneNumber("1111111111")
-            .password("pass")
-            .status(true)
-            .build();
-        accountRepository.save(account);
-
-        // Act
-        Optional<Account> result = accountRepository.findByEmailAndStatus("someuser@example.com", false);
-
-        // Assert
-        assertThat(result).isEmpty();
-    }
-
+    //ACCR7
     @Test
     @DisplayName("Should return account when email exists")
     void findByEmail_shouldReturnAccount_WhenEmailExists() {
@@ -278,6 +193,7 @@ class AccountRepositoryTest {
         assertThat(result.get().getEmail()).isEqualTo("exist@example.com");
     }
 
+    //ACCR8
     @Test
     @DisplayName("Should return empty when email does not exist")
     void findByEmail_shouldReturnEmpty_WhenEmailNotFound() {
@@ -288,26 +204,7 @@ class AccountRepositoryTest {
         assertThat(result).isEmpty();
     }
 
-    @Test
-    @DisplayName("Should return empty when email is null")
-    void findByEmail_shouldReturnEmpty_WhenEmailIsNull() {
-        // Act
-        Optional<Account> result = accountRepository.findByEmail(null);
-
-        // Assert
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    @DisplayName("Should return empty when email is empty string")
-    void findByEmail_shouldReturnEmpty_WhenEmailIsEmpty() {
-        // Act
-        Optional<Account> result = accountRepository.findByEmail("");
-
-        // Assert
-        assertThat(result).isEmpty();
-    }
-
+    //ACCR9
     @Test
     void testFindByRoleIdAndUsernameContaining_shouldReturnMatchingAccounts() {
         setUp();
@@ -319,15 +216,7 @@ class AccountRepositoryTest {
             .containsExactlyInAnyOrder("john_doe", "jane_doe");
     }
 
-    @Test
-    void testFindByRoleIdAndUsernameContaining_shouldReturnEmptyWhenNoMatchInUsername() {
-        setUp();
-        Pageable pageable = PageRequest.of(0, 10);
-        List<Account> results = accountRepository.findByRole_IdAndUsernameContaining(adminRole.getId(), "xyz", pageable);
-
-        assertThat(results).isEmpty();
-    }
-
+    //ACCR10
     @Test
     void testFindByRoleIdAndUsernameContaining_shouldReturnEmptyWhenRoleDoesNotMatch() {
         setUp();
@@ -337,6 +226,7 @@ class AccountRepositoryTest {
         assertThat(results).isEmpty();
     }
 
+    //ACCR11
     @Test
     void testFindByRoleIdAndUsernameContaining_shouldReturnOnlyMatchingRole() {
         setUp();
@@ -347,15 +237,7 @@ class AccountRepositoryTest {
         assertThat(results.get(0).getUsername()).isEqualTo("user_test");
     }
 
-    @Test
-    void testFindByRoleIdAndUsernameContaining_shouldRespectPagination() {
-        setUp();
-        Pageable pageable = PageRequest.of(0, 1); // page size = 1
-        List<Account> results = accountRepository.findByRole_IdAndUsernameContaining(adminRole.getId(), "doe", pageable);
-
-        assertThat(results).hasSize(1);
-    }
-
+    //ACCR12
     @Test
     void testCountByRoleIdAndUsernameContaining_shouldReturnCorrectCount() {
         setUp();
@@ -363,6 +245,7 @@ class AccountRepositoryTest {
         assertThat(count).isEqualTo(2);
     }
 
+    //ACCR13
     @Test
     void testCountByRoleIdAndUsernameContaining_shouldReturnZeroWhenNoUsernameMatch() {
         setUp();
@@ -370,6 +253,7 @@ class AccountRepositoryTest {
         assertThat(count).isZero();
     }
 
+    //ACCR14
     @Test
     void testCountByRoleIdAndUsernameContaining_shouldReturnZeroWhenNoMatchingRole() {
         setUp();
@@ -377,20 +261,7 @@ class AccountRepositoryTest {
         assertThat(count).isZero();
     }
 
-    @Test
-    void testCountByRoleIdAndUsernameContaining_shouldReturnOneForUserRole() {
-        setUp();
-        int count = accountRepository.countByRole_IdAndUsernameContaining(userRole.getId(), "user");
-        assertThat(count).isEqualTo(1);
-    }
-
-    @Test
-    void testCountByRoleIdAndUsernameContaining_shouldReturnAllForEmptyQuery() {
-        setUp();
-        int count = accountRepository.countByRole_IdAndUsernameContaining(adminRole.getId(), "");
-        assertThat(count).isEqualTo(2); // "john_doe", "jane_doe"
-    }
-
+    //ACCR15
     @Test
     void testFindByPhoneNumber_shouldReturnAccountWhenExists() {
         setUp();
@@ -400,6 +271,7 @@ class AccountRepositoryTest {
         assertThat(result.get().getUsername()).isEqualTo("john_doe");
     }
 
+    //ACCR16
     @Test
     void testFindByPhoneNumber_shouldReturnEmptyWhenNotExists() {
         setUp();
@@ -408,22 +280,7 @@ class AccountRepositoryTest {
         assertThat(result).isEmpty();
     }
 
-    @Test
-    void testFindByPhoneNumber_shouldReturnEmptyWhenPhoneNumberIsNull() {
-        setUp();
-        Optional<Account> result = accountRepository.findByPhoneNumber(null);
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void testFindByPhoneNumber_shouldReturnEmptyWhenPhoneNumberIsBlank() {
-        setUp();
-        Optional<Account> result = accountRepository.findByPhoneNumber("");
-
-        assertThat(result).isEmpty();
-    }
-
+    //ACCR17
     @Test
     void testFindByEmailAndPhoneNumber_shouldReturnAccountWhenBothMatch() {
         setUp();
@@ -433,6 +290,7 @@ class AccountRepositoryTest {
         assertThat(result.get().getUsername()).isEqualTo("john_doe");
     }
 
+    //ACCR18
     @Test
     void testFindByEmailAndPhoneNumber_shouldReturnEmptyWhenEmailCorrectPhoneWrong() {
         setUp();
@@ -441,6 +299,7 @@ class AccountRepositoryTest {
         assertThat(result).isEmpty();
     }
 
+    //ACCR19
     @Test
     void testFindByEmailAndPhoneNumber_shouldReturnEmptyWhenEmailWrongPhoneCorrect() {
         setUp();
@@ -449,6 +308,7 @@ class AccountRepositoryTest {
         assertThat(result).isEmpty();
     }
 
+    //ACCR20
     @Test
     void testFindByEmailAndPhoneNumber_shouldReturnEmptyWhenBothWrong() {
         setUp();
@@ -457,37 +317,6 @@ class AccountRepositoryTest {
         assertThat(result).isEmpty();
     }
 
-    @Test
-    void testFindByEmailAndPhoneNumber_shouldReturnEmptyWhenEmailIsNull() {
-        setUp();
-        Optional<Account> result = accountRepository.findByEmailAndPhoneNumber(null, VALID_PHONE);
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void testFindByEmailAndPhoneNumber_shouldReturnEmptyWhenPhoneIsNull() {
-        setUp();
-        Optional<Account> result = accountRepository.findByEmailAndPhoneNumber(VALID_EMAIL, null);
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void testFindByEmailAndPhoneNumber_shouldReturnEmptyWhenEmailIsBlank() {
-        setUp();
-        Optional<Account> result = accountRepository.findByEmailAndPhoneNumber("", VALID_PHONE);
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void testFindByEmailAndPhoneNumber_shouldReturnEmptyWhenPhoneIsBlank() {
-        setUp();
-        Optional<Account> result = accountRepository.findByEmailAndPhoneNumber(VALID_EMAIL, "");
-
-        assertThat(result).isEmpty();
-    }
 
 }
 

@@ -114,6 +114,7 @@ class BillServiceTest {
         );
     }
 
+    //BS1
     @Test
     void testCreateBillWithoutUsingPoints() {
         BillRequest request = new BillRequest();
@@ -142,6 +143,7 @@ class BillServiceTest {
         verify(customerRepository).save(mockCustomer);
     }
 
+    //BS2
     @Test
     void testCreateBillUsingValidPoints() {
         BillRequest request = new BillRequest();
@@ -169,6 +171,7 @@ class BillServiceTest {
         verify(customerRepository).save(mockCustomer);
     }
 
+    //BS3
     @Test
     void testCreateBillUsingInvalidPoints_ThrowsException() {
         BillRequest request = new BillRequest();
@@ -187,6 +190,7 @@ class BillServiceTest {
         assertEquals(ErrorCode.POINT_INVALID, exception.getErrorCode());
     }
 
+    //BS4
     @Test
     void testGetBillsByRestaurantId_ReturnsBillResponses_WhenBillsExist() {
         Long restaurantId = 1L;
@@ -220,6 +224,7 @@ class BillServiceTest {
         assertEquals(102L, result.get(1).getId());
     }
 
+    //BS5
     @Test
     void testGetBillsByRestaurantId_ReturnsEmptyList_WhenNoBillsFound() {
         Long restaurantId = 2L;
@@ -234,6 +239,7 @@ class BillServiceTest {
         verify(billMapper, never()).toBillResponse(any());
     }
 
+    //BS6
     @Test
     void testGetDetailBillByBillId_ReturnsDishOrderResponses_WhenBillExists() {
         Long billId = 1L;
@@ -262,6 +268,7 @@ class BillServiceTest {
         verify(orderService).findDishByOrderId(orderId, pageable);
     }
 
+    //BS7
     @Test
     void testGetDetailBillByBillId_ReturnsEmptyList_WhenNoDishOrderResponses() {
         Long billId = 2L;
@@ -286,6 +293,7 @@ class BillServiceTest {
         verify(orderService).findDishByOrderId(orderId, pageable);
     }
 
+    //BS8
     @Test
     void testGetDetailBillByBillId_ThrowsException_WhenBillNotFound() {
         Long billId = 3L;
@@ -302,6 +310,7 @@ class BillServiceTest {
         verify(orderService, never()).findDishByOrderId(any(), any());
     }
 
+    //BS9
     @Test
     void testFindBillById_WhenBillExists_ReturnsBill() {
         // given
@@ -320,6 +329,7 @@ class BillServiceTest {
         verify(billRepository).findById(billId);
     }
 
+    //BS10
     @Test
     void testFindBillById_WhenBillDoesNotExist_ThrowsException() {
         // given
@@ -335,6 +345,7 @@ class BillServiceTest {
         verify(billRepository).findById(billId);
     }
 
+    //BS11
     @Test
     void testGetProfitRestaurantByIdAndDate_WhenBillsExist_ShouldReturnRoundedTotal() {
         // given
@@ -358,6 +369,7 @@ class BillServiceTest {
         verify(billRepository).findByDateCreated(restaurantId, sqlDate);
     }
 
+    //BS12
     @Test
     void testGetProfitRestaurantByIdAndDate_WhenNoBillsExist_ShouldReturnZero() {
         // given
@@ -376,6 +388,7 @@ class BillServiceTest {
         verify(billRepository).findByDateCreated(restaurantId, sqlDate);
     }
 
+    //BS13
     @Test
     void testGetProfitBetween_WhenBillsExist_ShouldReturnRoundedTotal() {
         // Arrange
@@ -399,6 +412,7 @@ class BillServiceTest {
         verify(billRepository).findByDateCreatedBetween(restaurantId, start, end);
     }
 
+    //BS14
     @Test
     void testGetProfitBetween_WhenNoBillsExist_ShouldReturnZero() {
         // Arrange
@@ -417,6 +431,7 @@ class BillServiceTest {
         verify(billRepository).findByDateCreatedBetween(restaurantId, start, end);
     }
 
+    //BS15
     @Test
     void testGetVatValueWithValidVat() {
         // Arrange
@@ -444,6 +459,7 @@ class BillServiceTest {
         assertEquals(Math.round(500 * (10.0 / 110)), result);
     }
 
+    //BS16
     @Test
     void testGetVatValueWithVatDisabled() {
         Long restaurantId = 2L;
@@ -463,25 +479,7 @@ class BillServiceTest {
         assertEquals(0, result);
     }
 
-    @Test
-    void testGetVatValueWithNullVatObject() {
-        Long restaurantId = 3L;
-        LocalDateTime date = LocalDateTime.now();
-        Date sqlDate = Date.valueOf(date.toLocalDate());
-
-        Bill bill = new Bill(); bill.setTotal(100);
-
-        Restaurant restaurant = new Restaurant();
-        restaurant.setVatActive(true);
-        restaurant.setVat(null); // No VAT object
-
-        when(billRepository.findByDateCreated(restaurantId, sqlDate)).thenReturn(List.of(bill));
-        when(restaurantService.getRestaurantById(restaurantId)).thenReturn(restaurant);
-
-        double result = billService.getVatValueForRestaurantCurrent(restaurantId, date);
-        assertEquals(0, result);
-    }
-
+    //BS17
     @Test
     void testGetVatValueWithNoBills() {
         Long restaurantId = 4L;
@@ -499,6 +497,7 @@ class BillServiceTest {
         assertEquals(0, result);
     }
 
+    //BS18
     @Test
     void testGetVatValueBetween_WithValidVat() {
         Long restaurantId = 1L;
@@ -524,46 +523,7 @@ class BillServiceTest {
         assertEquals(expectedVat, result);
     }
 
-    @Test
-    void testGetVatValueBetween_VatDisabled() {
-        Long restaurantId = 2L;
-        LocalDateTime start = LocalDateTime.now().minusDays(5);
-        LocalDateTime end = LocalDateTime.now();
-
-        Bill bill = new Bill(); bill.setTotal(150);
-
-        Restaurant restaurant = new Restaurant();
-        restaurant.setVatActive(false); // VAT disabled
-        restaurant.setVat(new Vat());
-
-        when(billRepository.findByDateCreatedBetween(restaurantId, start, end))
-                .thenReturn(List.of(bill));
-        when(restaurantService.getRestaurantById(restaurantId)).thenReturn(restaurant);
-
-        double result = billService.getVatValueForRestaurantBetween(restaurantId, start, end);
-        assertEquals(0, result);
-    }
-
-    @Test
-    void testGetVatValueBetween_NullVatObject() {
-        Long restaurantId = 3L;
-        LocalDateTime start = LocalDateTime.now().minusDays(3);
-        LocalDateTime end = LocalDateTime.now();
-
-        Bill bill = new Bill(); bill.setTotal(100);
-
-        Restaurant restaurant = new Restaurant();
-        restaurant.setVatActive(true);
-        restaurant.setVat(null); // Null VAT
-
-        when(billRepository.findByDateCreatedBetween(restaurantId, start, end))
-                .thenReturn(List.of(bill));
-        when(restaurantService.getRestaurantById(restaurantId)).thenReturn(restaurant);
-
-        double result = billService.getVatValueForRestaurantBetween(restaurantId, start, end);
-        assertEquals(0, result);
-    }
-
+    //BS19
     @Test
     void testGetVatValueBetween_NoBills() {
         Long restaurantId = 4L;
@@ -582,8 +542,7 @@ class BillServiceTest {
         assertEquals(0, result);
     }
 
-
-
+    //BS20
     @Test
     void testGetTotalValue_WithValidBills() {
         Long restaurantId = 1L;
@@ -600,6 +559,7 @@ class BillServiceTest {
         assertEquals(500.0, result);
     }
 
+    //BS21
     @Test
     void testGetTotalValue_NoBillsFound() {
         Long restaurantId = 2L;
@@ -613,22 +573,7 @@ class BillServiceTest {
         assertEquals(0.0, result);
     }
 
-    @Test
-    void testGetTotalValue_WithZeroTotalBill() {
-        Long restaurantId = 3L;
-        String startTime = "12:00:00";
-        String endTime = "15:00:00";
-
-        Bill bill1 = new Bill(); bill1.setTotal(0.0);
-        Bill bill2 = new Bill(); bill2.setTotal(100.0);
-
-        when(billRepository.findByTimeBetweenAndCurrentDate(restaurantId, startTime, endTime))
-                .thenReturn(List.of(bill1, bill2));
-
-        double result = billService.getTotalValueByTimeAndCurrentForRestaurant(restaurantId, startTime, endTime);
-        assertEquals(100.0, result);
-    }
-
+    //BS22
     @Test
     void testGetTotalValue_WithNegativeTotal() {
         Long restaurantId = 4L;

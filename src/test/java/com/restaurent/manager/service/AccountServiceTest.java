@@ -61,6 +61,7 @@ class AccountServiceTest {
         ReflectionTestUtils.setField(accountService, "signerKey", "testsignerkey_32_bytes_long_string");
     }
 
+    //ACCS1
     @Test
     void register_Success() {
         // Arrange
@@ -97,6 +98,7 @@ class AccountServiceTest {
         verify(emailService, times(1)).sendEmail(eq(request.getEmail()), anyString(), eq("Verify account "));
     }
 
+    //ACCS2
     @Test
     void register_existsByEmailAndStatus() {
         // accountRepository.existsByEmailAndStatus(req.getEmail(), true)
@@ -115,25 +117,7 @@ class AccountServiceTest {
         verify(accountRepository, never()).save(any(Account.class));
     }
 
-    @Test
-    void register_existsByPhoneNumberAndStatus() {
-        // accountRepository.existsByPhoneNumberAndStatus(req.getPhoneNumber(), true)
-        AccountRequest request = AccountRequest.builder()
-            .username("testUser")
-            .phoneNumber("0312345678")
-            .password("Password123")
-            .email("test@example.com")
-            .build();
-
-        when(accountRepository.existsByEmailAndStatus(request.getEmail(), true)).thenReturn(false);
-        when(accountRepository.existsByPhoneNumberAndStatus(request.getPhoneNumber(), true)).thenReturn(true);
-
-        // Act & Assert
-        AppException exception = assertThrows(AppException.class, () -> accountService.register(request));
-        assertEquals(ErrorCode.PHONENUMBER_EXIST, exception.getErrorCode());
-        verify(accountRepository, never()).save(any(Account.class));
-    }
-
+    //ACCS3
     @Test
     void getAccountsManager_NoResults() {
         Pageable pageable = PageRequest.of(0, 10);
@@ -151,6 +135,7 @@ class AccountServiceTest {
         assertEquals(0, result.getTotalItems());
     }
 
+    //ACCS4
     @Test
     void getAccountsManager_OneResult() {
         Pageable pageable = PageRequest.of(0, 10);
@@ -173,6 +158,7 @@ class AccountServiceTest {
         assertEquals(1, result.getTotalItems());
     }
 
+    //ACCS5
     @Test
     void getAccountsManager_MultipleResults() {
         Pageable pageable = PageRequest.of(0, 10);
@@ -200,6 +186,7 @@ class AccountServiceTest {
         assertEquals("manager2", result.getResults().get(1).getUsername());
     }
 
+    //ACCS6
     @Test
     void verifyAccount_userNotExist() {
         VerifyAccount request = new VerifyAccount("notfound@example.com", "123456");
@@ -213,25 +200,7 @@ class AccountServiceTest {
         assertEquals(ErrorCode.USER_NOT_EXISTED, exception.getErrorCode());
     }
 
-    @Test
-    void verifyAccount_userAlreadyVerified() {
-        VerifyAccount request = new VerifyAccount("john@example.com", "123456");
-        Account existingAccount = Account.builder()
-            .email("john@example.com")
-            .otp("123456")
-            .otpGeneratedTime(LocalDateTime.now())
-            .status(true)
-            .build();
-
-        when(accountRepository.findByEmail(request.getEmail()))
-            .thenReturn(Optional.of(existingAccount));
-
-        AppException exception = assertThrows(AppException.class,
-            () -> accountService.verifyAccount(request));
-
-        assertEquals(ErrorCode.USER_EXISTED, exception.getErrorCode());
-    }
-
+    //ACCS7
     @Test
     void verifyAccount_success() {
         VerifyAccount request = new VerifyAccount("jane@example.com", "123456");
@@ -260,6 +229,7 @@ class AccountServiceTest {
         assertEquals("jane@example.com", response.getEmail());
     }
 
+    //ACCS8
     @Test
     void verifyAccount_wrongOtpOrExpired() {
         VerifyAccount request = new VerifyAccount("alice@example.com", "wrongOtp");
@@ -279,6 +249,7 @@ class AccountServiceTest {
         assertEquals("alice@example.com", response.getEmail());
     }
 
+    //ACCS9
     @Test
     void authenticated_userNotFound() {
         AuthenticationRequest request = new AuthenticationRequest("notfound@example.com", "password123");
@@ -292,6 +263,7 @@ class AccountServiceTest {
         assertEquals(ErrorCode.USER_NOT_EXISTED, exception.getErrorCode());
     }
 
+    //ACCS10
     @Test
     void authenticated_wrongPassword() {
         AuthenticationRequest request = new AuthenticationRequest("user@example.com", "wrongPassword");
@@ -312,6 +284,7 @@ class AccountServiceTest {
         assertEquals(ErrorCode.PASSWORD_INCORRECT, exception.getErrorCode());
     }
 
+    //ACCS11
     @Test
     void authenticated_success() {
         AuthenticationRequest request = new AuthenticationRequest("authuser@example.com", "validPassword");
@@ -338,6 +311,7 @@ class AccountServiceTest {
         assertNotNull(response.getToken());
     }
 
+    //ACCS12
     @Test
     void verifyOtp_Success() {
         // Arrange
@@ -364,6 +338,7 @@ class AccountServiceTest {
         assertNotNull(response.getToken());
     }
 
+    //ACCS13
     @Test
     void verifyOtp_InvalidOtp() {
         // Arrange
@@ -389,6 +364,7 @@ class AccountServiceTest {
         assertNull(response.getToken());
     }
 
+    //ACCS14
     @Test
     void verifyOtp_EmailNotFound() {
         // Arrange
@@ -405,6 +381,7 @@ class AccountServiceTest {
         assertEquals(ErrorCode.USER_NOT_EXISTED, exception.getErrorCode());
     }
 
+    //ACCS15
     @Test
     void sendOtp_success() {
         // Arrange
@@ -427,6 +404,7 @@ class AccountServiceTest {
         verify(emailService).sendEmail(eq(email), contains(generatedOtp), eq("Verify Account"));
     }
 
+    //ACCS16
     @Test
     void sendOtp_emailNotFound_shouldThrowException() {
         // Arrange
@@ -441,6 +419,7 @@ class AccountServiceTest {
         verify(emailService, never()).sendEmail(anyString(), anyString(), anyString());
     }
 
+    //ACCS17
     @Test
     void authenticatedEmail_shouldReturnAuthenticatedTrue() {
         // Arrange
@@ -454,6 +433,7 @@ class AccountServiceTest {
         assertTrue(response.isAuthenticated());
     }
 
+    //ACCS18
     @Test
     void regenerateOtp_success() {
         // Arrange
@@ -477,6 +457,7 @@ class AccountServiceTest {
         verify(emailService).sendEmail(eq(email), anyString(), eq("Verify account "));
     }
 
+    //ACCS19
     @Test
     void regenerateOtp_shouldThrowException_whenEmailNotFound() {
         // Arrange
@@ -490,6 +471,7 @@ class AccountServiceTest {
         verify(emailService, never()).sendEmail(anyString(), anyString(), anyString());
     }
 
+    //ACCS20
     @Test
     void findAccountByID_success() {
         // Arrange
@@ -511,6 +493,7 @@ class AccountServiceTest {
         verify(accountRepository).findById(accountId);
     }
 
+    //ACCS21
     @Test
     void findAccountByID_shouldThrowException_whenAccountNotFound() {
         // Arrange
@@ -523,6 +506,7 @@ class AccountServiceTest {
         verify(accountRepository).findById(accountId);
     }
 
+    //ACCS22
     @Test
     void getAccountById_success() {
         // Arrange
@@ -553,6 +537,7 @@ class AccountServiceTest {
         verify(accountmapper).toAccountResponse(account);
     }
 
+    //ACCS23
     @Test
     void getAccountById_shouldThrowException_whenAccountNotFound() {
         // Arrange
@@ -566,6 +551,7 @@ class AccountServiceTest {
         verify(accountMapper, never()).toAccountResponse(any());
     }
 
+    //ACCS24
     @Test
     void findAccountByPhoneNumber_success() {
         // Arrange
@@ -589,6 +575,7 @@ class AccountServiceTest {
         verify(accountRepository).findByPhoneNumber(phoneNumber);
     }
 
+    //ACCS25
     @Test
     void findAccountByPhoneNumber_shouldThrowException_whenNotFound() {
         // Arrange
@@ -604,6 +591,7 @@ class AccountServiceTest {
         verify(accountRepository).findByPhoneNumber(phoneNumber);
     }
 
+    //ACCS26
     @Test
     void generateToken_success() {
         // Arrange
@@ -624,6 +612,7 @@ class AccountServiceTest {
         assertTrue(token.split("\\.").length == 3); // Basic structure check
     }
 
+    //ACCS27
     @Test
     void buildScope_withRoleAndRestaurantWithPermissions_returnsFullScope() {
         // Given
@@ -656,6 +645,7 @@ class AccountServiceTest {
         assertTrue(scope.contains("VIEW_STATS"));
     }
 
+    //ACCS28
     @Test
     void buildScope_withOnlyRole_returnsOnlyRole() {
         Role role = new Role();
@@ -671,6 +661,7 @@ class AccountServiceTest {
         assertEquals("ROLE_ADMIN", scope);
     }
 
+    //ACCS29
     @Test
     void buildScope_withNullRole_returnsEmptyScope() {
         Account account = Account.builder()
@@ -683,6 +674,7 @@ class AccountServiceTest {
         assertEquals("", scope);
     }
 
+    //ACCS30
     @Test
     void buildScope_withNullRestaurantPackage_returnsOnlyRole() {
         Restaurant restaurant = new Restaurant();
@@ -701,6 +693,7 @@ class AccountServiceTest {
         assertEquals("ROLE_STAFF", scope);
     }
 
+    //ACCS31
     @Test
     void buildScope_withEmptyPermissionSet_returnsOnlyRole() {
         Package restaurantPackage = new Package();

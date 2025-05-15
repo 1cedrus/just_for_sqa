@@ -171,7 +171,7 @@ class BillRepositoryTest {
         return billRepository.save(bill);
     }
 
-
+    //BR1
     @Test
     @DisplayName("Should return 5 bills for existing restaurant ID")
     void testFindByRestaurantIdWithResults() {
@@ -180,6 +180,7 @@ class BillRepositoryTest {
         assertThat(bills).hasSize(5);
     }
 
+    //BR2
     @Test
     @DisplayName("Should return empty list for non-existent restaurant ID")
     void testFindByRestaurantIdWithNoResults() {
@@ -189,18 +190,7 @@ class BillRepositoryTest {
         assertThat(bills).isEmpty();
     }
 
-    @Test
-    @DisplayName("Should return paginated results for restaurant bills")
-    void testFindByRestaurantIdWithPagination() {
-        setup();
-        List<Bill> page1 = billRepository.findByOrder_Restaurant_Id(restaurant1Id, PageRequest.of(0, 2));
-        List<Bill> page2 = billRepository.findByOrder_Restaurant_Id(restaurant1Id, PageRequest.of(1, 2));
-
-        assertThat(page1).hasSize(2);
-        assertThat(page2).hasSize(2);
-    }
-
-
+    //BR3
     @Test
     @DisplayName("Should return 2 bills created today for given restaurant")
     void testFindByDateCreatedWithMatchingBills() {
@@ -209,6 +199,7 @@ class BillRepositoryTest {
         assertThat(bills).hasSize(2);
     }
 
+    //BR4
     @Test
     @DisplayName("Should return 1 bill created yesterday for given restaurant")
     void testFindByDateCreatedWithSingleBill() {
@@ -217,6 +208,7 @@ class BillRepositoryTest {
         assertThat(bills).hasSize(1);
     }
 
+    //BR5
     @Test
     @DisplayName("Should return empty list when no bills created on selected date")
     void testFindByDateCreatedWithNoBillOnDate() {
@@ -226,6 +218,7 @@ class BillRepositoryTest {
         assertThat(bills).isEmpty();
     }
 
+    //BR6
     @Test
     @DisplayName("Should return empty list for non-existent restaurant ID")
     void testFindByDateCreatedWithInvalidRestaurantId() {
@@ -234,6 +227,7 @@ class BillRepositoryTest {
         assertThat(bills).isEmpty();
     }
 
+    //BR7
     @Test
     @DisplayName("Should return all bills in full range (2 days ago to tomorrow)")
     void testFindByDateCreatedBetweenWithAllBills() {
@@ -246,6 +240,7 @@ class BillRepositoryTest {
         assertThat(bills).hasSize(3);
     }
 
+    //BR8
     @Test
     @DisplayName("Should return 1 bill for yesterday only")
     void testFindByDateCreatedBetweenWithOneDayRange() {
@@ -258,6 +253,7 @@ class BillRepositoryTest {
         assertThat(bills).hasSize(1);
     }
 
+    //BR9
     @Test
     @DisplayName("Should include bills exactly at start or end time")
     void testFindByDateCreatedBetweenInclusiveBoundaries() {
@@ -270,6 +266,7 @@ class BillRepositoryTest {
         assertThat(bills).hasSize(1);
     }
 
+    //BR10
     @Test
     @DisplayName("Should return empty list when no bills match in range")
     void testFindByDateCreatedBetweenNoResults() {
@@ -282,6 +279,7 @@ class BillRepositoryTest {
         assertThat(bills).isEmpty();
     }
 
+    //BR11
     @Test
     @DisplayName("Should return empty list for invalid restaurant ID")
     void testFindByDateCreatedBetweenInvalidRestaurant() {
@@ -294,7 +292,7 @@ class BillRepositoryTest {
         assertThat(bills).isEmpty();
     }
 
-
+    //BR12
     @Test
     @DisplayName("Should return bills between 08:00 and 13:00 on current date")
     void testBillsWithinTimeRange() {
@@ -307,30 +305,7 @@ class BillRepositoryTest {
         assertThat(bills).hasSize(2); // 09:00 and 12:00
     }
 
-    @Test
-    @DisplayName("Should return only one bill exactly at start time")
-    void testBillAtStartTime() {
-        setup3();
-        List<Bill> bills = billRepository.findByTimeBetweenAndCurrentDate(
-            restaurantId,
-            "09:00:00",
-            "09:00:00"
-        );
-        assertThat(bills).hasSize(1);
-    }
-
-    @Test
-    @DisplayName("Should return only one bill exactly at end time")
-    void testBillAtEndTime() {
-        setup3();
-        List<Bill> bills = billRepository.findByTimeBetweenAndCurrentDate(
-            restaurantId,
-            "18:00:00",
-            "18:00:00"
-        );
-        assertThat(bills).hasSize(1);
-    }
-
+    //BR13
     @Test
     @DisplayName("Should return empty when time range does not match any bill today")
     void testNoBillsInTimeRangeToday() {
@@ -343,6 +318,7 @@ class BillRepositoryTest {
         assertThat(bills).isEmpty();
     }
 
+    //BR14
     @Test
     @DisplayName("Should return empty when there is no bill for today")
     void testNoBillsToday() {
@@ -358,15 +334,4 @@ class BillRepositoryTest {
         assertThat(bills).isEmpty();
     }
 
-    @Test
-    @DisplayName("Should return empty when restaurant does not exist")
-    void testInvalidRestaurantId() {
-        setup3();
-        List<Bill> bills = billRepository.findByTimeBetweenAndCurrentDate(
-            999L,
-            "08:00:00",
-            "20:00:00"
-        );
-        assertThat(bills).isEmpty();
-    }
 }

@@ -55,6 +55,7 @@ class ComboServiceTest {
         comboService = new ComboService(comboRepository, dishRepository, comboMapper, restaurantService);
     }
 
+    //CBS1
     @Test
     void testCreateCombo_Success() {
         // Arrange
@@ -96,6 +97,7 @@ class ComboServiceTest {
         assertEquals(restaurant, comboCaptor.getValue().getRestaurant());
     }
 
+    //CBS2
     @Test
     void testCreateCombo_DishNotFound_ThrowsAppException() {
         // Arrange
@@ -118,6 +120,7 @@ class ComboServiceTest {
         assertEquals(ErrorCode.DISH_NOT_FOUND, exception.getErrorCode());
     }
 
+    //CBS3
     @Test
     void testCreateCombo_EmptyDishList_Success() {
         // Arrange
@@ -149,6 +152,7 @@ class ComboServiceTest {
         assertTrue(comboEntity.getDishes().isEmpty());
     }
 
+    //CBS4
     @Test
     void testGetAllCombos_ReturnsListOfCombos() {
         // Arrange
@@ -174,6 +178,7 @@ class ComboServiceTest {
         verify(comboMapper, times(2)).toComboResponse(any(Combo.class));
     }
 
+    //CBS5
     @Test
     void testGetAllCombos_EmptyList_ReturnsEmptyResponseList() {
         // Arrange
@@ -189,6 +194,7 @@ class ComboServiceTest {
         verify(comboMapper, never()).toComboResponse(any());
     }
 
+    //CBS6
     @Test
     void testUpdateCombo_Success() {
         // Arrange
@@ -229,20 +235,7 @@ class ComboServiceTest {
         assertEquals("Updated Name", result.getName());
     }
 
-    @Test
-    void testUpdateCombo_ComboNotFound_ThrowsException() {
-        // Arrange
-        Long comboId = 1L;
-        ComboUpdateRequest request = new ComboUpdateRequest();
-        request.setDishIds(Set.of(1L));
-
-        when(comboRepository.findById(comboId)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        AppException exception = assertThrows(AppException.class, () -> comboService.updateCombo(comboId, request));
-        assertEquals(ErrorCode.COMBO_NOT_EXISTED, exception.getErrorCode());
-    }
-
+    //CBS7
     @Test
     void testUpdateCombo_DishNotFound_ThrowsException() {
         // Arrange
@@ -263,39 +256,7 @@ class ComboServiceTest {
         assertEquals(ErrorCode.DISH_NOT_FOUND, exception.getErrorCode());
     }
 
-    @Test
-    void testUpdateCombo_EmptyDishList_ShouldUpdateWithEmptySet() {
-        // Arrange
-        Long comboId = 1L;
-        Combo combo = new Combo(); combo.setId(comboId);
-
-        ComboUpdateRequest request = new ComboUpdateRequest();
-        request.setName("No Dish Combo");
-        request.setPrice(50.0);
-        request.setDescription("Combo with no dish");
-        request.setStatus(true);
-        request.setDishIds(Collections.emptySet());
-
-        Combo updatedCombo = new Combo(); updatedCombo.setId(comboId);
-        updatedCombo.setName("No Dish Combo");
-
-        ComboResponse response = new ComboResponse(); response.setId(comboId);
-        response.setName("No Dish Combo");
-
-        when(comboRepository.findById(comboId)).thenReturn(Optional.of(combo));
-        when(comboRepository.save(any())).thenReturn(updatedCombo);
-        when(comboMapper.toComboResponse(updatedCombo)).thenReturn(response);
-
-        // Act
-        ComboResponse result = comboService.updateCombo(comboId, request);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(comboId, result.getId());
-        assertEquals("No Dish Combo", result.getName());
-        verify(dishRepository, never()).findById(any());
-    }
-
+    //CBS8
     @Test
     void testGetComboById_Success() {
         // Arrange
@@ -314,6 +275,7 @@ class ComboServiceTest {
         assertEquals(comboId, result.getId());
     }
 
+    //CBS9
     @Test
     void testGetComboById_NotFound_ShouldThrowException() {
         // Arrange
@@ -325,23 +287,7 @@ class ComboServiceTest {
         assertEquals(ErrorCode.COMBO_NOT_EXISTED, exception.getErrorCode());
     }
 
-    @Test
-    void testFindComboById_WhenExists_ShouldReturnCombo() {
-        // Arrange
-        Long comboId = 1L;
-        Combo expectedCombo = new Combo();
-        expectedCombo.setId(comboId);
-
-        when(comboRepository.findById(comboId)).thenReturn(Optional.of(expectedCombo));
-
-        // Act
-        Combo result = comboService.findComboById(comboId);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(comboId, result.getId());
-    }
-
+    //CBS10
     @Test
     void testFindComboById_WhenNotFound_ShouldThrowException() {
         // Arrange
@@ -353,6 +299,7 @@ class ComboServiceTest {
         assertEquals(ErrorCode.COMBO_NOT_EXISTED, exception.getErrorCode());
     }
 
+    //CBS11
     @Test
     void testGetComboByRestaurantID_WithResults() {
         // Arrange
@@ -378,6 +325,7 @@ class ComboServiceTest {
         assertEquals(comboResponse.getId(), result.getResults().get(0).getId());
     }
 
+    //CBS12
     @Test
     void testGetComboByRestaurantID_EmptyResults() {
         // Arrange

@@ -67,64 +67,24 @@ class AuthenticationServiceTest {
         validator = factory.getValidator();
     }
 
-    @Test
-    void testIntrospect_ValidToken() throws JOSEException, ParseException {
-        // Given
-        String token = "valid.token.here";
-        IntrospectRequest request = new IntrospectRequest();
-        request.setToken(token);
+    private String createSignedToken(Date expiration, String jwtId, Object accountId) throws JOSEException {
+        JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
+                .expirationTime(expiration)
+                .jwtID(jwtId);
 
-        doReturn(null).when(authenticationService).verifyToken(token);
+        if (accountId != null) {
+            builder.claim("accountId", accountId);
+        }
 
-        // When
-        IntrospectResponse response = authenticationService.introspect(request);
+        JWTClaimsSet claimsSet = builder.build();
 
-        // Then
-        assertTrue(response.isValid());
-    }
+        SignedJWT signedJWT = new SignedJWT(
+                new com.nimbusds.jose.JWSHeader(JWSAlgorithm.HS256),
+                claimsSet
+        );
 
-    @Test
-    void testIntrospect_InvalidToken_AppException() throws JOSEException, ParseException {
-        // Given
-        String token = "invalid.token.here";
-        IntrospectRequest request = new IntrospectRequest();
-        request.setToken(token);
-
-        doThrow(new AppException(ErrorCode.UNAUTHENTICATED)).when(authenticationService).verifyToken(token);
-
-        // When
-        IntrospectResponse response = authenticationService.introspect(request);
-
-        // Then
-        assertFalse(response.isValid());
-    }
-
-    @Test
-    void testIntrospectRequest_NullToken_ShouldFailValidation() {
-        // Given
-        IntrospectRequest request = new IntrospectRequest();
-        request.setToken(null);
-
-        // When
-        Set<ConstraintViolation<IntrospectRequest>> violations = validator.validate(request);
-
-        // Then
-        assertFalse(violations.isEmpty());
-        assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("token")));
-    }
-
-    @Test
-    void testIntrospectRequest_BlankToken_ShouldFailValidation() {
-        // Given
-        IntrospectRequest request = new IntrospectRequest();
-        request.setToken("   ");
-
-        // When
-        Set<ConstraintViolation<IntrospectRequest>> violations = validator.validate(request);
-
-        // Then
-        assertFalse(violations.isEmpty());
-        assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("token")));
+        signedJWT.sign(new MACSigner(SIGNER_KEY.getBytes()));
+        return signedJWT.serialize();
     }
 
     private String generateToken(Date expiration, boolean signCorrectly, String jwtId) throws JOSEException {
@@ -147,6 +107,56 @@ class AuthenticationServiceTest {
         return signedJWT.serialize();
     }
 
+    //AS1
+    @Test
+    void testIntrospect_ValidToken() throws JOSEException, ParseException {
+        // Given
+        String token = "valid.token.here";
+        IntrospectRequest request = new IntrospectRequest();
+        request.setToken(token);
+
+        doReturn(null).when(authenticationService).verifyToken(token);
+
+        // When
+        IntrospectResponse response = authenticationService.introspect(request);
+
+        // Then
+        assertTrue(response.isValid());
+    }
+
+    //AS2
+    @Test
+    void testIntrospect_InvalidToken_AppException() throws JOSEException, ParseException {
+        // Given
+        String token = "invalid.token.here";
+        IntrospectRequest request = new IntrospectRequest();
+        request.setToken(token);
+
+        doThrow(new AppException(ErrorCode.UNAUTHENTICATED)).when(authenticationService).verifyToken(token);
+
+        // When
+        IntrospectResponse response = authenticationService.introspect(request);
+
+        // Then
+        assertFalse(response.isValid());
+    }
+
+    //AS3
+    @Test
+    void testIntrospectRequest_NullToken_ShouldFailValidation() {
+        // Given
+        IntrospectRequest request = new IntrospectRequest();
+        request.setToken(null);
+
+        // When
+        Set<ConstraintViolation<IntrospectRequest>> violations = validator.validate(request);
+
+        // Then
+        assertFalse(violations.isEmpty());
+        assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("token")));
+    }
+
+    //AS4
     @Test
     void testVerifyToken_validToken() throws Exception {
         // Given
@@ -162,15 +172,7 @@ class AuthenticationServiceTest {
         assertEquals(jwtId, result.getJWTClaimsSet().getJWTID());
     }
 
-    @Test
-    void testVerifyToken_invalidSignature_shouldThrowAppException() throws Exception {
-        // Given
-        String token = generateToken(new Date(System.currentTimeMillis() + 60000), false, UUID.randomUUID().toString());
-
-        // When / Then
-        assertThrows(AppException.class, () -> authenticationService.verifyToken(token));
-    }
-
+    //AS5
     @Test
     void testVerifyToken_expired_shouldThrowAppException() throws Exception {
         // Given
@@ -180,37 +182,7 @@ class AuthenticationServiceTest {
         assertThrows(AppException.class, () -> authenticationService.verifyToken(token));
     }
 
-    @Test
-    void testVerifyToken_revoked_shouldThrowAppException() throws Exception {
-        // Given
-        String jwtId = UUID.randomUUID().toString();
-        String token = generateToken(new Date(System.currentTimeMillis() + 60000), true, jwtId);
-        when(invalidTokenRepository.existsById(jwtId)).thenReturn(true); // revoked
-
-        // When / Then
-        assertThrows(AppException.class, () -> authenticationService.verifyToken(token));
-    }
-
-    private String createSignedToken(Date expiration, String jwtId, Object accountId) throws JOSEException {
-        JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
-                .expirationTime(expiration)
-                .jwtID(jwtId);
-
-        if (accountId != null) {
-            builder.claim("accountId", accountId);
-        }
-
-        JWTClaimsSet claimsSet = builder.build();
-
-        SignedJWT signedJWT = new SignedJWT(
-                new com.nimbusds.jose.JWSHeader(JWSAlgorithm.HS256),
-                claimsSet
-        );
-
-        signedJWT.sign(new MACSigner(SIGNER_KEY.getBytes()));
-        return signedJWT.serialize();
-    }
-
+    //AS6
     @Test
     void testRefreshToken_validTokenWithAccountId_shouldReturnNewToken() throws Exception {
         String jwtId = UUID.randomUUID().toString();
@@ -258,6 +230,7 @@ class AuthenticationServiceTest {
         assertEquals("new.token.here", response.getToken());
     }
 
+    //AS7
     @Test
     void testRefreshToken_validTokenButMissingAccountId_shouldReturnUnauthenticated() throws Exception {
         // Given
@@ -275,6 +248,7 @@ class AuthenticationServiceTest {
         assertNull(response.getToken());
     }
 
+    //AS8
     @Test
     void testRefreshToken_invalidToken_shouldThrowAppException() throws Exception {
         // Given

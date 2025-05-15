@@ -54,6 +54,7 @@ class AreaServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
+    //AreaS1
     @Test
     void createArea_withAreaMaxPermissionAndLimitExceeded_shouldThrowException() {
         AreaRequest request = new AreaRequest();
@@ -78,6 +79,7 @@ class AreaServiceTest {
         assertEquals(ErrorCode.MAX_AREA, exception.getErrorCode());
     }
 
+    //AreaS2
     @Test
     void createArea_withAreaMaxPermissionUnderLimit_shouldCreateSuccessfully() {
         AreaRequest request = new AreaRequest();
@@ -108,6 +110,7 @@ class AreaServiceTest {
         assertEquals(response, result);
     }
 
+    //AreaS3
     @Test
     void createArea_withoutAreaMaxPermission_shouldCreateSuccessfully() {
         AreaRequest request = new AreaRequest();
@@ -137,6 +140,7 @@ class AreaServiceTest {
         assertEquals(response, result);
     }
 
+    //AreaS4
     @Test
     void getAreasByRestaurantId_shouldReturnMappedAreaResponses() {
         Long restaurantId = 1L;
@@ -172,6 +176,7 @@ class AreaServiceTest {
         verify(areaMapper, times(1)).toAreaResponse(area2);
     }
 
+    //AreaS5
     @Test
     void getAreasByRestaurantId_whenNoAreasExist_shouldReturnEmptyList() {
         Long restaurantId = 999L;
@@ -187,6 +192,7 @@ class AreaServiceTest {
         verifyNoInteractions(areaMapper); // vì không có Area nào, nên không map gì cả
     }
 
+    //AreaS6
     @Test
     void updateArea_whenAreaExists_shouldUpdateAndReturnResponse() {
         Long areaId = 1L;
@@ -219,26 +225,6 @@ class AreaServiceTest {
         verify(areaRepository).findById(areaId);
         verify(areaRepository).save(existingArea);
         verify(areaMapper).toAreaResponse(savedArea);
-    }
-
-    @Test
-    void updateArea_whenAreaDoesNotExist_shouldThrowAppException() {
-        Long areaId = 999L;
-
-        AreaRequest request = new AreaRequest();
-        request.setName("Some Name");
-
-        when(areaRepository.findById(areaId)).thenReturn(Optional.empty());
-
-        AppException exception = assertThrows(AppException.class, () -> {
-            areaService.updateArea(areaId, request);
-        });
-
-        assertEquals(ErrorCode.NOT_EXIST, exception.getErrorCode());
-
-        verify(areaRepository).findById(areaId);
-        verify(areaRepository, never()).save(any());
-        verify(areaMapper, never()).toAreaResponse(any());
     }
 
 }

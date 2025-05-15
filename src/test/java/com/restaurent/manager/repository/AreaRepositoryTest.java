@@ -26,6 +26,7 @@ class AreaRepositoryTest {
     @Autowired
     private TestEntityManager entityManager;
 
+    //AreaR1
     @Test
     @DisplayName("Returns Area list by restaurantId - with data")
     void testFindByRestaurantId_WithExistingAreas() {
@@ -51,6 +52,7 @@ class AreaRepositoryTest {
         assertThat(result).extracting(Area::getName).containsExactlyInAnyOrder("Khu A", "Khu B");
     }
 
+    //AreaR2
     @Test
     @DisplayName("Returns an empty Area list when the restaurant has no Areas.")
     void testFindByRestaurantId_WithNoAreas() {
@@ -63,6 +65,7 @@ class AreaRepositoryTest {
         assertThat(result).isEmpty();
     }
 
+    //AreaR3
     @Test
     @DisplayName("Returns empty list when restaurantId does not exist")
     void testFindByRestaurantId_NonExistentRestaurantId() {
@@ -71,6 +74,7 @@ class AreaRepositoryTest {
         assertThat(result).isEmpty();
     }
 
+    //AreaR4
     @Test
     @DisplayName("Count the number of Areas when the restaurant has many Areas")
     void testCountByRestaurantId_WithMultipleAreas() {
@@ -94,6 +98,7 @@ class AreaRepositoryTest {
         assertThat(count).isEqualTo(2);
     }
 
+    //AreaR5
     @Test
     @DisplayName("Count Areas when restaurant has no Areas")
     void testCountByRestaurantId_WithNoAreas() {
@@ -105,6 +110,7 @@ class AreaRepositoryTest {
         assertThat(count).isEqualTo(0);
     }
 
+    //AreaR6
     @Test
     @DisplayName("Count Area with non-existent restaurantId")
     void testCountByRestaurantId_WithNonExistingRestaurantId() {

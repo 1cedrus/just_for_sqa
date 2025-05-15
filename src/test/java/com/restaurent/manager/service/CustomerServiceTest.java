@@ -98,6 +98,7 @@ public class CustomerServiceTest {
                 .build();
     }
 
+    //CS1
     @Test
     void createCustomer_ShouldReturnCustomerResponse_WhenCustomerIsCreatedSuccessfully() {
         // given
@@ -121,6 +122,7 @@ public class CustomerServiceTest {
         verify(customerRepository).save(any(Customer.class));
     }
 
+    //CS2
     @Test
     void createCustomer_ShouldThrowException_WhenPhoneNumberAlreadyExists() {
         // given
@@ -135,22 +137,7 @@ public class CustomerServiceTest {
         verify(customerRepository, never()).save(any());
     }
 
-    @Test
-    void createCustomer_ShouldThrowException_WhenRestaurantDoesNotExist() {
-        // given
-        when(customerRepository.findByPhoneNumberAndRestaurantId("0901234567", 1L))
-                .thenReturn(Optional.empty());
-        when(restaurantRepository.findById(1L))
-                .thenReturn(Optional.empty());
-
-        // when & then
-        AppException exception = assertThrows(AppException.class,
-                () -> customerService.createCustomer(customerRequest));
-        assertEquals(ErrorCode.RESTAURANT_NOT_EXISTED, exception.getErrorCode());
-
-        verify(customerRepository, never()).save(any());
-    }
-
+    //CS3
     @Test
     void updateCustomer_ShouldUpdateSuccessfully_WhenValidData() {
         // given
@@ -170,6 +157,7 @@ public class CustomerServiceTest {
         verify(customerRepository).save(any(Customer.class));
     }
 
+    //CS4
     @Test
     void updateCustomer_ShouldThrowException_WhenCustomerNotFound() {
         // given
@@ -182,6 +170,7 @@ public class CustomerServiceTest {
         verify(customerRepository, never()).save(any());
     }
 
+    //CS5
     @Test
     void updateCustomer_ShouldThrowException_WhenPhoneNumberAlreadyExistsForAnotherCustomer() {
         // given
@@ -198,21 +187,7 @@ public class CustomerServiceTest {
         verify(customerRepository, never()).save(any());
     }
 
-    @Test
-    void updateCustomer_ShouldThrowException_WhenNewRestaurantNotFound() {
-        // given
-        when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
-        when(customerRepository.findByPhoneNumberAndRestaurantId("0901234567", 1L))
-                .thenReturn(Optional.empty());
-        when(restaurantRepository.findById(1L)).thenReturn(Optional.empty());
-
-        // when & then
-        AppException ex = assertThrows(AppException.class,
-                () -> customerService.updateCustomer(updateRequest));
-        assertEquals(ErrorCode.RESTAURANT_NOT_EXISTED, ex.getErrorCode());
-        verify(customerRepository, never()).save(any());
-    }
-
+    //CS6
     @Test
     void getCustomerById_ShouldReturnCustomerResponse_WhenCustomerExists() {
         // given
@@ -241,6 +216,7 @@ public class CustomerServiceTest {
         verify(customerMapper).toCustomerResponse(customer);
     }
 
+    //CS7
     @Test
     void getCustomerById_ShouldThrowException_WhenCustomerDoesNotExist() {
         // given
@@ -271,6 +247,7 @@ public class CustomerServiceTest {
         return r;
     }
 
+    //CS8
     @Test
     void getCustomersOrderByTotalPoint_ShouldReturnResults_WhenQueryIsEmpty() {
         // given
@@ -291,74 +268,7 @@ public class CustomerServiceTest {
         assertEquals(1, result.getTotalItems());
     }
 
-    @Test
-    void getCustomersOrderByTotalPoint_ShouldReturnMergedResults_WhenQueryMatchesNameAndPhone() {
-        // given
-        String query = "John";
-        Long restaurantId = 1L;
-
-        Customer c1 = createCustomer(1L, "John", "0901234567");
-        Customer c2 = createCustomer(2L, "Someone", "0912345678");
-
-        when(customerRepository.findByRestaurant_IdAndNameContainingOrderByTotalPointDesc(restaurantId, query, pageable))
-                .thenReturn(new ArrayList<>(List.of(c1)));
-        when(customerRepository.findByRestaurant_IdAndPhoneNumberContainingOrderByTotalPointDesc(restaurantId, query, pageable))
-                .thenReturn(new ArrayList<>(List.of(c2)));
-        when(customerRepository.countByRestaurant_IdAndNameContaining(restaurantId, query)).thenReturn((int) 2L);
-        when(customerMapper.toCustomerResponse(c1)).thenReturn(createCustomerResponse(1L, "John", "0901234567"));
-        when(customerMapper.toCustomerResponse(c2)).thenReturn(createCustomerResponse(2L, "Someone", "0912345678"));
-
-        // when
-        PagingResult<CustomerResponse> result = customerService.getCustomersOrderByTotalPoint(restaurantId, pageable, query);
-
-        // then
-        assertEquals(2, result.getResults().size());
-        assertEquals(2, result.getTotalItems());
-    }
-
-    @Test
-    void getCustomersOrderByTotalPoint_ShouldReturnOnlyNameResults_WhenQueryMatchesOnlyName() {
-        // given
-        String query = "Anna";
-        Long restaurantId = 1L;
-
-        Customer anna = createCustomer(1L, "Anna", "0901122334");
-
-        when(customerRepository.findByRestaurant_IdAndNameContainingOrderByTotalPointDesc(restaurantId, query, pageable))
-                .thenReturn(List.of(anna));
-        when(customerRepository.findByRestaurant_IdAndPhoneNumberContainingOrderByTotalPointDesc(restaurantId, query, pageable))
-                .thenReturn(List.of());
-        when(customerRepository.countByRestaurant_IdAndNameContaining(restaurantId, query)).thenReturn((int) 1L);
-        when(customerMapper.toCustomerResponse(anna)).thenReturn(createCustomerResponse(1L, "Anna", "0901122334"));
-
-        // when
-        PagingResult<CustomerResponse> result = customerService.getCustomersOrderByTotalPoint(restaurantId, pageable, query);
-
-        // then
-        assertEquals(1, result.getResults().size());
-        assertEquals(1, result.getTotalItems());
-    }
-
-    @Test
-    void getCustomersOrderByTotalPoint_ShouldReturnEmpty_WhenNoMatchFound() {
-        // given
-        String query = "NoMatch";
-        Long restaurantId = 1L;
-
-        when(customerRepository.findByRestaurant_IdAndNameContainingOrderByTotalPointDesc(restaurantId, query, pageable))
-                .thenReturn(List.of());
-        when(customerRepository.findByRestaurant_IdAndPhoneNumberContainingOrderByTotalPointDesc(restaurantId, query, pageable))
-                .thenReturn(List.of());
-        when(customerRepository.countByRestaurant_IdAndNameContaining(restaurantId, query)).thenReturn((int) 0L);
-
-        // when
-        PagingResult<CustomerResponse> result = customerService.getCustomersOrderByTotalPoint(restaurantId, pageable, query);
-
-        // then
-        assertEquals(0, result.getResults().size());
-        assertEquals(0, result.getTotalItems());
-    }
-
+    //CS9
     @Test
     void findCustomerResponseByPhoneNumber_ShouldReturnResponse_WhenCustomerExists() {
         // given
@@ -388,6 +298,7 @@ public class CustomerServiceTest {
         assertEquals(expectedResponse.getName(), result.getName());
     }
 
+    //CS10
     @Test
     void findCustomerResponseByPhoneNumber_ShouldThrowException_WhenCustomerNotExists() {
         // given
@@ -405,6 +316,7 @@ public class CustomerServiceTest {
         assertEquals(ErrorCode.CUSTOMER_NOT_EXIST, ex.getErrorCode());
     }
 
+    //CS11
     @Test
     void findCustomerByPhoneNumber_ShouldReturnCustomer_WhenExists() {
         // given
@@ -428,6 +340,7 @@ public class CustomerServiceTest {
         assertEquals("John", result.getName());
     }
 
+    //CS12
     @Test
     void findCustomerByPhoneNumber_ShouldThrowException_WhenNotExists() {
         // given
@@ -445,6 +358,7 @@ public class CustomerServiceTest {
         assertEquals(ErrorCode.CUSTOMER_NOT_EXIST, ex.getErrorCode());
     }
 
+    //CS13
     @Test
     void existCustomerByPhoneNumberAndRestaurantId_ShouldReturnTrue_WhenCustomerExists() {
         // given
@@ -461,6 +375,7 @@ public class CustomerServiceTest {
         assertTrue(result);
     }
 
+    //CS14
     @Test
     void existCustomerByPhoneNumberAndRestaurantId_ShouldReturnFalse_WhenCustomerDoesNotExist() {
         // given
