@@ -49,6 +49,8 @@ public class RestaurantRepositoryTest {
     /**
      * Test tìm restaurant với package không null và đã hết hạn - có kết quả
      */
+
+    // ID: RR-1
     @Test
     void testChuan1_FindByRestaurantPackageIdIsNotNullAndExpiryDateBefore() {
         LocalDateTime now = LocalDateTime.now(); // Thời điểm hiện tại
@@ -79,6 +81,7 @@ public class RestaurantRepositoryTest {
     /**
      * Test tìm restaurant với package không null và đã hết hạn - không có kết quả
      */
+    // ID: RR-2
     @Test
     void testNgoaiLe1_FindByRestaurantPackageIdIsNotNullAndExpiryDateBefore() {
         LocalDateTime now = LocalDateTime.now();
@@ -96,6 +99,7 @@ public class RestaurantRepositoryTest {
     /**
      * Test tìm restaurant theo account ID - tìm thấy
      */
+    // ID: RR-3
     @Test
     void testChuan1_FindByAccount_Id() {
         // Tạo restaurant, account test
@@ -117,6 +121,7 @@ public class RestaurantRepositoryTest {
     /**
      * Test tìm restaurant theo account ID - không tìm thấy
      */
+    // ID: RR-4
     @Test
     void testFindByAccount_Id_NotFound() {
         Long accountId = 1L;
@@ -131,6 +136,7 @@ public class RestaurantRepositoryTest {
     /**
      * Test kiểm tra tồn tại restaurant theo tên - tồn tại
      */
+    // ID: RR-5
     @Test
     void testChuan1_ExistsByRestaurantName() {
         String name = "Test Restaurant";
@@ -148,6 +154,7 @@ public class RestaurantRepositoryTest {
     /**
      * Test kiểm tra tồn tại restaurant theo tên - không tồn tại
      */
+    // ID: RR-6
     @Test
     void testNgoaiLe1_ExistsByRestaurantName() {
         String name = "Test Restaurant";
@@ -161,6 +168,7 @@ public class RestaurantRepositoryTest {
     /**
      * Test kiểm tra tồn tại với tên null
      */
+    // ID: RR-7
     @Test
     void testNgoaiLe2_ExistsByRestaurantName() {
         // thực thi phương thức
@@ -173,6 +181,7 @@ public class RestaurantRepositoryTest {
     /**
      * Test kiểm tra tồn tại theo account ID - tồn tại
      */
+    // ID: RR-8
     @Test
     void testChuan1_ExistsByAccount_Id() {
         // tạo dữ liệu restaurant, account test
@@ -190,6 +199,8 @@ public class RestaurantRepositoryTest {
     /**
      * Test kiểm tra tồn tại theo account ID - không tồn tại
      */
+
+    // ID: RR-8
     @Test
     void testNgoaiLe_ExistsByAccount_Id() {
         Long accountId = 1L;
@@ -204,6 +215,7 @@ public class RestaurantRepositoryTest {
     /**
      * Test đếm restaurant theo package ID - có kết quả
      */
+    // ID: RR-9
     @Test
     void testCountByRestaurantPackage_Id_WithResults() {
         // tạo dữ liệu restaurant, package test
@@ -222,6 +234,7 @@ public class RestaurantRepositoryTest {
     /**
      * Test đếm restaurant theo package ID - không có kết quả
      */
+    // ID: RR-10
     @Test
     void testNgoaiLe1_CountByRestaurantPackage_Id() {
         // tạo dữ liệu restaurant test
@@ -239,6 +252,7 @@ public class RestaurantRepositoryTest {
     /**
      * Test đếm restaurant theo ngày tạo - có kết quả
      */
+    // ID: RR-12
     @Test
     void testChuan1_CountByDateCreated() {
         LocalDate date = LocalDate.now();
@@ -256,6 +270,7 @@ public class RestaurantRepositoryTest {
     /**
      * Test đếm restaurant theo ngày tạo - không có kết quả
      */
+    // ID: RR-13
     @Test
     void testNgoaiLe1_CountByDateCreated() {
         LocalDate date = LocalDate.now();
@@ -272,6 +287,7 @@ public class RestaurantRepositoryTest {
     /**
      * Test đếm restaurant với ngày tạo null
      */
+    // ID: RR-14
     @Test
     void testCountByDateCreated_NullDate() {
         LocalDate date = LocalDate.now();

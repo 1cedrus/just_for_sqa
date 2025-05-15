@@ -50,6 +50,7 @@ public class PermissionServiceTest {
 
     // --- Tests cho createPermission ---
     /**
+     * ID: PS-1
      * Test tạo permission thành công với request hợp lệ
      */
     @Test
@@ -77,6 +78,7 @@ public class PermissionServiceTest {
     }
 
     /**
+     * ID: PS-2
      * Test tạo permission với request null
      */
     @Test
@@ -90,6 +92,7 @@ public class PermissionServiceTest {
 
     // --- Tests cho getPermissions ---
     /**
+     * ID: PS-3
      * Test lấy danh sách permissions - có dữ liệu
      */
     @Test
@@ -119,6 +122,7 @@ public class PermissionServiceTest {
     }
 
     /**
+     * ID: PS-4
      * Test lấy danh sách permissions - không có dữ liệu
      */
     @Test
@@ -138,6 +142,7 @@ public class PermissionServiceTest {
 
     // --- Tests cho updatePermission ---
     /**
+     * ID: PS-5
      * Test cập nhật permission thành công
      */
     @Test
@@ -168,6 +173,7 @@ public class PermissionServiceTest {
     }
 
     /**
+     * ID: PS-6
      * Test cập nhật permission với ID không tồn tại
      */
     @Test
@@ -191,6 +197,7 @@ public class PermissionServiceTest {
 
     // --- Tests cho findPermissionById ---
     /**
+     * ID: PS-7
      * Test tìm permission theo ID - tìm thấy
      */
     @Test
@@ -213,6 +220,7 @@ public class PermissionServiceTest {
     }
 
     /**
+     * ID: PS-8
      * Test tìm permission theo ID - không tìm thấy
      */
     @Test

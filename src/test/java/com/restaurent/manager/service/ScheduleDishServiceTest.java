@@ -53,7 +53,7 @@ class ScheduleDishServiceTest {
     }
 
     // --- Kiểm thử cho createScheduleDish ---
-
+    // ID: SDS-1
     // Kiểm tra tạo với Dish (dishId không null)
     @Test
     void testCreateScheduleDish_WithDish() {
@@ -75,6 +75,7 @@ class ScheduleDishServiceTest {
         verify(repository, times(1)).save(any(ScheduleDish.class));
     }
 
+    // ID: SDS-2
     // Kiểm tra tạo với Combo (dishId null)
     @Test
     void testCreateScheduleDish_WithCombo() {
@@ -96,6 +97,7 @@ class ScheduleDishServiceTest {
         verify(repository, times(1)).save(any(ScheduleDish.class));
     }
 
+    // ID: SDS-3
     // Kiểm tra tạo với Combo null và dish null
     @Test
     void testCreateScheduleDish_WithNullComboAndDish() {
@@ -116,6 +118,7 @@ class ScheduleDishServiceTest {
 
     // --- Kiểm thử cho findDishOrComboBySchedule ---
 
+    // ID: SDS-4
     // Kiểm tra khi danh sách không rỗng
     @Test
     void testFindDishOrComboBySchedule_NonEmptyList() {
@@ -141,6 +144,7 @@ class ScheduleDishServiceTest {
         assertEquals(2, result.size());
     }
 
+    // ID: SDS-5
     // Kiểm tra khi danh sách rỗng
     @Test
     void testFindDishOrComboBySchedule_EmptyList() {
@@ -159,6 +163,7 @@ class ScheduleDishServiceTest {
 
     // --- Kiểm thử cho deleteScheduleDishById ---
 
+    // ID: SDS-6
     // Kiểm tra xóa ScheduleDish
     @Test
     void testDeleteScheduleDishById() {
@@ -174,6 +179,7 @@ class ScheduleDishServiceTest {
 
     // --- Kiểm thử cho findByScheduleId ---
 
+    // ID: SDS-7
     // Kiểm tra khi danh sách không rỗng
     @Test
     void testFindByScheduleId_NonEmptyList() {
@@ -195,6 +201,7 @@ class ScheduleDishServiceTest {
         assertEquals(2L, result.get(1).getId());
     }
 
+    // ID: SDS-8
     // Kiểm tra khi danh sách rỗng
     @Test
     void testFindByScheduleId_EmptyList() {

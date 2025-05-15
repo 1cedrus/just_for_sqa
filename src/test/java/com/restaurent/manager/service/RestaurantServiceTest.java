@@ -57,7 +57,7 @@ class RestaurantServiceTest {
     }
 
     // --- Kiểm thử cho initRestaurant ---
-
+    // ID: RS-2
     @Test
     void testInitRestaurant_AccountAlreadyHasRestaurant() {
         // Chuẩn bị dữ liệu
@@ -71,6 +71,7 @@ class RestaurantServiceTest {
         verifyNoMoreInteractions(restaurantRepository, accountRepository, restaurantMapper, packageService);
     }
 
+    // ID: RS-3
     @Test
     void testInitRestaurant_RestaurantNameExisted() {
         // Chuẩn bị dữ liệu
@@ -85,6 +86,7 @@ class RestaurantServiceTest {
         verify(restaurantRepository, times(1)).existsByRestaurantName("Test Restaurant");
     }
 
+    // ID: RS-4
     @Test
     void testInitRestaurant_AccountNotExisted() {
         // Chuẩn bị dữ liệu
@@ -99,6 +101,7 @@ class RestaurantServiceTest {
         verify(accountRepository, times(1)).findById(1L);
     }
 
+    // ID: RS-1
     @Test
     void testInitRestaurant_Success() {
         // Chuẩn bị dữ liệu
@@ -127,7 +130,7 @@ class RestaurantServiceTest {
     }
 
     // --- Kiểm thử cho getRestaurants ---
-
+    // RS-5
     @Test
     void testGetRestaurants_NonEmptyList() {
         // Chuẩn bị dữ liệu
@@ -146,6 +149,7 @@ class RestaurantServiceTest {
         verify(restaurantRepository, times(1)).findAll();
     }
 
+    // RS-6
     @Test
     void testGetRestaurants_EmptyList() {
         // Chuẩn bị dữ liệu
@@ -161,6 +165,7 @@ class RestaurantServiceTest {
 
     // --- Kiểm thử cho updateRestaurant (restaurantId, RestaurantUpdateRequest) ---
 
+    // RS-7
     @Test
     void testUpdateRestaurant_WithRestaurantId_Success() {
         // Chuẩn bị dữ liệu
@@ -189,6 +194,7 @@ class RestaurantServiceTest {
 
     // --- Kiểm thử cho updateRestaurant (accountId, RestaurantManagerUpdateRequest) ---
 
+    // RS-8
     @Test
     void testUpdateRestaurant_WithManagerRequest_Success() {
         // Chuẩn bị dữ liệu
@@ -219,6 +225,7 @@ class RestaurantServiceTest {
         verify(restaurantRepository, times(1)).save(restaurant);
     }
 
+    // RS-9
     @Test
     void testUpdateRestaurant_WithManagerRequest_NotExist() {
         // Chuẩn bị dữ liệu
@@ -235,6 +242,7 @@ class RestaurantServiceTest {
 
     // --- Kiểm thử cho updateRestaurant (accountId, RestaurantPaymentRequest) ---
 
+    // RS-10
     @Test
     void testUpdateRestaurant_WithPaymentRequest_Success() {
         // Chuẩn bị dữ liệu
@@ -263,6 +271,7 @@ class RestaurantServiceTest {
         verify(restaurantRepository, times(1)).save(restaurant);
     }
 
+    // RS-11
     @Test
     void testUpdateRestaurant_WithPaymentRequest_NotExist() {
         // Chuẩn bị dữ liệu
@@ -279,6 +288,7 @@ class RestaurantServiceTest {
 
     // --- Kiểm thử cho getRestaurantById ---
 
+    // RS-12
     @Test
     void testGetRestaurantById_Success() {
         // Chuẩn bị dữ liệu
@@ -294,6 +304,7 @@ class RestaurantServiceTest {
         assertEquals(id, result.getId());
     }
 
+    // RS-13
     @Test
     void testGetRestaurantById_NotExist() {
         // Chuẩn bị dữ liệu
@@ -308,6 +319,7 @@ class RestaurantServiceTest {
 
     // --- Kiểm thử cho getRestaurantByAccountId ---
 
+    // RS-14
     @Test
     void testGetRestaurantByAccountId_Success() {
         // Chuẩn bị dữ liệu
@@ -326,6 +338,7 @@ class RestaurantServiceTest {
         assertTrue(result.isVatActive());
     }
 
+    // RS-15
     @Test
     void testGetRestaurantByAccountId_NotExist() {
         // Chuẩn bị dữ liệu
@@ -341,6 +354,7 @@ class RestaurantServiceTest {
 
     // --- Kiểm thử cho getMoneyToUpdatePackForRestaurant ---
 
+    // RS-16
     @Test
     void testGetMoneyToUpdatePack_DayLeftPositive_MonthsRegisterHigh_MonthsHigh() {
         // Chuẩn bị dữ liệu
@@ -363,6 +377,7 @@ class RestaurantServiceTest {
         assertEquals(23671, result, 1);
     }
 
+    // RS-17
     @Test
     void testGetMoneyToUpdatePack_DayLeftPositive_MonthsRegisterHigh_MonthsLow() {
         // Chuẩn bị dữ liệu
@@ -385,6 +400,7 @@ class RestaurantServiceTest {
         assertEquals(11671, result, 1);
     }
 
+    // RS-18
     @Test
     void testGetMoneyToUpdatePack_DayLeftPositive_MonthsRegisterLow_MonthsHigh() {
         // Chuẩn bị dữ liệu
@@ -406,7 +422,7 @@ class RestaurantServiceTest {
         // Kiểm tra (1000 / 30 * 10 ≈ 333.33, 24000 - 333.33 ≈ 23666.67, làm tròn 23667)
         assertEquals(23667, result, 1);
     }
-
+    // RS-19
     @Test
     void testGetMoneyToUpdatePack_DayLeftPositive_MonthsRegisterLow_MonthsLow() {
         // Chuẩn bị dữ liệu
@@ -429,6 +445,7 @@ class RestaurantServiceTest {
         assertEquals(11667, result, 1);
     }
 
+    // RS-20
     @Test
     void testGetMoneyToUpdatePack_DayLeftZero_MonthsHigh() {
         // Chuẩn bị dữ liệu
@@ -448,6 +465,7 @@ class RestaurantServiceTest {
         assertEquals(24000, result, 1);
     }
 
+    // RS-21
     @Test
     void testGetMoneyToUpdatePack_DayLeftZero_MonthsLow() {
         // Chuẩn bị dữ liệu
@@ -469,6 +487,7 @@ class RestaurantServiceTest {
 
     // --- Kiểm thử cho updateRestaurantVatById ---
 
+    // RS-22
     @Test
     void testUpdateRestaurantVatById_Success() {
         // Chuẩn bị dữ liệu
@@ -488,6 +507,7 @@ class RestaurantServiceTest {
 
     // --- Kiểm thử cho updatePointForRestaurant ---
 
+    // RS-23
     @Test
     void testUpdatePointForRestaurant_Success() {
         // Chuẩn bị dữ liệu
@@ -510,6 +530,7 @@ class RestaurantServiceTest {
 
     // --- Kiểm thử cho countRestaurantByDateCreated ---
 
+    // RS-24
     @Test
     void testCountRestaurantByDateCreated() {
         // Chuẩn bị dữ liệu

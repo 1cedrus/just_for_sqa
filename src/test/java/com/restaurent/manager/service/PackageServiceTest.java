@@ -58,6 +58,7 @@ class PackageServiceTest {
     }
 
     // Test case 1: Trường hợp bình thường với yêu cầu hợp lệ và quyền tồn tại
+    // ID: PkS-1
     @Test
     void testCreate_NormalCase() {
         // Arrange (chuẩn bị dữ liệu và cấu hình mock)
@@ -121,6 +122,7 @@ class PackageServiceTest {
     }
 
     // Test case 2: Trường hợp danh sách quyền rỗng
+    // ID: PkS-2
     @Test
     void testCreate_NoPermissions() {
         // Arrange
@@ -157,6 +159,7 @@ class PackageServiceTest {
     }
 
     // Test case 3: Trường hợp một số quyền không tồn tại
+    // ID: PkS-3
     @Test
     void testCreate_InvalidPermissionIds() {
         // Arrange
@@ -191,6 +194,7 @@ class PackageServiceTest {
     }
 
     // Test case 4: Trường hợp danh sách quyền null
+    // ID: PkS-4
     @Test
     void testCreate_NullPermissions() {
         // Arrange
@@ -220,6 +224,7 @@ class PackageServiceTest {
     }
 
     // Test case 5: Trường hợp tên gói null (kiểm tra ngoại lệ)
+    // ID: PkS-5
     @Test
     void testCreate_NullPackName() {
         // Arrange
@@ -234,6 +239,7 @@ class PackageServiceTest {
     }
 
     // Test case 1: Kiểm tra khi danh sách Package không rỗng
+    // ID: PkS-6
     @Test
     void testGetPacks_NonEmptyList() {
         // Arrange (Chuẩn bị dữ liệu và cấu hình mock)
@@ -288,6 +294,7 @@ class PackageServiceTest {
     }
 
     // Test case 2: Kiểm tra khi danh sách Package rỗng
+    // ID: PkS-7
     @Test
     void testGetPacks_EmptyList() {
         // Arrange
@@ -312,6 +319,7 @@ class PackageServiceTest {
     }
 
     // Test case 1: Kiểm tra trường hợp thành công khi cả Permission và Package tồn tại
+    // ID: PkS-8
     @Test
     void testAddPermission_Success() {
         // Arrange (Chuẩn bị dữ liệu và cấu hình mock)
@@ -357,6 +365,7 @@ class PackageServiceTest {
     }
 
     // Test case 2: Kiểm tra khi Permission không tồn tại
+    // ID: PkS-9
     @Test
     void testAddPermission_PermissionNotFound() {
         // Arrange
@@ -380,6 +389,7 @@ class PackageServiceTest {
     }
 
     // Test case 3: Kiểm tra khi Package không tồn tại
+    // ID: PkS-10
     @Test
     void testAddPermission_PackageNotFound() {
         // Arrange
@@ -407,6 +417,7 @@ class PackageServiceTest {
     }
 
     // Test case 1: Thành công với danh sách quyền không rỗng
+    // ID: PkS-11
     @Test
     void testUpdatePackage_SuccessWithPermissions() {
         // Arrange (Chuẩn bị dữ liệu và cấu hình mock)
@@ -462,6 +473,7 @@ class PackageServiceTest {
     }
 
     // Test case 2: Thành công với danh sách quyền rỗng
+    // ID: PkS-12
     @Test
     void testUpdatePackage_EmptyPermissions() {
         // Arrange
@@ -495,6 +507,7 @@ class PackageServiceTest {
     }
 
     // Test case 3: Package không tồn tại
+    // ID: PkS-13
     @Test
     void testUpdatePackage_PackageNotFound() {
         // Arrange
@@ -519,6 +532,7 @@ class PackageServiceTest {
     }
 
     // Test case 1: Thành công khi Package tồn tại
+    // ID: PkS-14
     @Test
     void testFindPackById_Success() {
         // Arrange (Chuẩn bị dữ liệu và cấu hình mock)
@@ -542,6 +556,7 @@ class PackageServiceTest {
     }
 
     // Test case 2: Thất bại khi Package không tồn tại
+    // ID: PkS-15
     @Test
     void testFindPackById_PackageNotFound() {
         // Arrange
@@ -563,6 +578,7 @@ class PackageServiceTest {
     }
 
     // Test case 1: Thành công khi Package tồn tại
+    // ID: PkS-16
     @Test
     void testFindByPackName_Success() {
         // Arrange (Chuẩn bị dữ liệu và cấu hình mock)
@@ -586,6 +602,7 @@ class PackageServiceTest {
     }
 
     // Test case 2: Thất bại khi Package không tồn tại
+    // ID: PkS-17
     @Test
     void testFindByPackName_PackageNotFound() {
         // Arrange
@@ -607,6 +624,7 @@ class PackageServiceTest {
     }
 
     // Test case 3: PackageName là null, giả định repository trả về Optional.empty()
+    // ID: PkS-18
     @Test
     void testFindByPackName_NullName_ReturnsEmpty() {
         // Arrange
@@ -628,6 +646,7 @@ class PackageServiceTest {
     }
 
     // Test case 1: Thành công với daysLeft > 0
+    // ID: PkS-19
     @Test
     void testFindPacksToUpgradeForRestaurant_Success_DaysLeftPositive() {
         // Arrange
@@ -661,6 +680,7 @@ class PackageServiceTest {
     }
 
     // Test case 2: Thành công với daysLeft <= 0
+    // ID: PkS-20
     @Test
     void testFindPacksToUpgradeForRestaurant_Success_DaysLeftZeroOrNegative() {
         // Arrange
@@ -694,6 +714,7 @@ class PackageServiceTest {
     }
 
     // Test case 3: Restaurant không tồn tại
+    // ID: PkS-21
     @Test
     void testFindPacksToUpgradeForRestaurant_RestaurantNotFound() {
         // Arrange
@@ -712,6 +733,7 @@ class PackageServiceTest {
     }
 
     // Test case 1: Danh sách Package không rỗng
+    // ID: PkS-22
     @Test
     void testGetPacksView_NonEmptyList() {
         // Arrange (Chuẩn bị dữ liệu và cấu hình mock)
@@ -747,6 +769,7 @@ class PackageServiceTest {
     }
 
     // Test case 2: Danh sách Package rỗng
+    // ID: PkS-23
     @Test
     void testGetPacksView_EmptyList() {
         // Arrange

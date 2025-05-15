@@ -51,6 +51,7 @@ public class RoleRepositoryTest {
     /**
      * Test kiểm tra sự tồn tại của role theo tên - role tồn tại
      */
+    // ID: RoR-1
     @Test
     void testChuan1_ExistsByName() {
         // Kiểm tra role đã tồn tại trong database
@@ -63,8 +64,9 @@ public class RoleRepositoryTest {
     /**
      * Test kiểm tra sự tồn tại của role theo tên - role không tồn tại
      */
+    // ID: RoR-3
     @Test
-    void testNgoaiLe1_ExistsByNam() {
+    void testNgoaiLe1_ExistsByName() {
         // Kiểm tra một role không tồn tại
         boolean exists = roleRepository.existsByName("USER");
 
@@ -75,6 +77,7 @@ public class RoleRepositoryTest {
     /**
      * Test kiểm tra sự tồn tại với tên null
      */
+    // ID: RoR-3
     @Test
     void testNgoaiLe2_ExistsByName() {
         // Kiểm tra với input null
@@ -88,6 +91,7 @@ public class RoleRepositoryTest {
     /**
      * Test tìm role theo tên - tìm thấy
      */
+    // ID: RoR-4
     @Test
     void testChuan1_FindByName() {
         // Tìm role "ADMIN" đã thêm trong setUp
@@ -102,6 +106,7 @@ public class RoleRepositoryTest {
     /**
      * Test tìm role theo tên - không tìm thấy
      */
+    // ID: RoR-5
     @Test
     void testNgoaiLe1_FindByName() {
         // Tìm một role không tồn tại
@@ -114,6 +119,7 @@ public class RoleRepositoryTest {
     /**
      * Test tìm role với tên null
      */
+    // ID: RoR-6
     @Test
     void testNgoaiLe2_FindByName() {
         // Tìm với tên null
@@ -126,6 +132,7 @@ public class RoleRepositoryTest {
     /**
      * Test tìm role với tên rỗng
      */
+    // ID: RoR-7
     @Test
     void testChuan2_FindByName() {
         // Thêm một role với tên rỗng để test trường hợp đặc biệt

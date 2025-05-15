@@ -107,6 +107,7 @@ public class ScheduleDishRepositoryTest {
     /**
      * Test tìm ScheduleDish theo schedule ID - có nhiều kết quả
      */
+    // ID: SDR-1
     @Test
     void testChuan1_FindBySchedule_Id() {
         // Tìm các ScheduleDish thuộc schedule1 (có 2 bản ghi)
@@ -121,6 +122,7 @@ public class ScheduleDishRepositoryTest {
     /**
      * Test tìm ScheduleDish theo schedule ID - có một kết quả
      */
+    // ID: SDR-2
     @Test
     void testChuan2_FindBySchedule_Id() {
         // Tìm các ScheduleDish thuộc schedule2 (có 1 bản ghi)
@@ -135,6 +137,7 @@ public class ScheduleDishRepositoryTest {
     /**
      * Test tìm ScheduleDish theo schedule ID - không có kết quả
      */
+    // ID: SDR-3
     @Test
     void testNgoaiLe1_FindBySchedule_Id() {
         // Tìm với một schedule ID không tồn tại
@@ -148,6 +151,7 @@ public class ScheduleDishRepositoryTest {
     /**
      * Test tìm ScheduleDish với schedule ID là null
      */
+    // ID: SDR-4
     @Test
     void testNgoaiLe2_FindBySchedule_Id() {
         // Tìm với schedule ID là null
