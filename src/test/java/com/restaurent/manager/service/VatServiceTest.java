@@ -58,6 +58,7 @@ class VatServiceTest {
         savedVat.setTaxName("VAT");
     }
 
+    // VS-1
     @Test
     void createVatShouldCreateVatWhenDataIsValid() {
         when(restaurantService.getRestaurantById(restaurantId)).thenReturn(restaurant);
@@ -82,6 +83,7 @@ class VatServiceTest {
         verify(restaurantRepository).save(restaurant);
     }
 
+    // VS-2
     @Test
     void createVatShouldThrowErrorWhenRestaurantNotFound() {
         when(restaurantService.getRestaurantById(restaurantId)).thenThrow(new AppException(ErrorCode.NOT_EXIST));
@@ -97,6 +99,7 @@ class VatServiceTest {
         verify(restaurantService).getRestaurantById(restaurantId);
     }
 
+    // VS-3
     @Test
     void findByIdShouldReturnVatWhenExists() {
         when(vatRepository.findById(vatId)).thenReturn(java.util.Optional.of(savedVat));
@@ -111,6 +114,7 @@ class VatServiceTest {
         verify(vatRepository).findById(vatId);
     }
 
+    // VS-4
     @Test
     void findByIdShouldThrowErrorWhenNotExists() {
         when(vatRepository.findById(vatId)).thenReturn(java.util.Optional.empty());
@@ -126,6 +130,7 @@ class VatServiceTest {
         verify(vatRepository).findById(vatId);
     }
 
+    // VS-5
     @Test
     void updateVatInformationShouldUpdateVatWhenDataIsValid() {
         when(vatRepository.findById(vatId)).thenReturn(java.util.Optional.of(savedVat));
@@ -143,6 +148,7 @@ class VatServiceTest {
         verify(vatRepository).save(savedVat);
     }
 
+    // VS-6
     @Test
     void updateTaxShouldUpdateTaxWhenDataIsValid() {
         when(vatRepository.findById(vatId)).thenReturn(java.util.Optional.of(savedVat));

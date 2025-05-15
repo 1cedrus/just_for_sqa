@@ -83,6 +83,7 @@ public class DishCategoryServiceTest {
      * Test createDishCategory khi tạo thành công (category chưa tồn tại).
      * Kiểm tra nhánh thành công của phương thức.
      */
+    // TestcaseID: DCS-1
     @Test
     public void testCreateDishCategory_Success() {
         // Mock
@@ -106,6 +107,7 @@ public class DishCategoryServiceTest {
      * Test createDishCategory khi category đã tồn tại (ném exception).
      * Kiểm tra nhánh thất bại với AppException.
      */
+    // TestcaseID: DCS-2
     @Test
     public void testCreateDishCategory_DuplicateName() {
         // Mock hành vi: category đã tồn tại
@@ -126,6 +128,7 @@ public class DishCategoryServiceTest {
      * Test getAllDishCategoryByRestaurantId khi tìm thấy dữ liệu.
      * Kiểm tra nhánh thành công với phân trang.
      */
+    // TestcaseID: DCS-3
     @Test
     public void testGetAllDishCategoryByRestaurantId() {
         // Tạo Pageable mẫu
@@ -151,6 +154,7 @@ public class DishCategoryServiceTest {
      * Test getAllDishCategoryByRestaurantId khi không tìm thấy dữ liệu.
      * Kiểm tra nhánh thất bại với phân trang.
      */
+    // TestcaseID: DCS-4
     @Test
     public void testGetAllDishCategoryByRestaurantId_NotFound() {
         // Tạo Pageable mẫu
@@ -173,6 +177,7 @@ public class DishCategoryServiceTest {
      * Test findDishCategoryByRestaurantId khi tìm thấy dữ liệu.
      * Kiểm tra nhánh thành công của tìm danh sách.
      */
+    // TestcaseID: DCS-5
     @Test
     public void testFindDishCategoryByRestaurantId() {
         // Mock danh sách category trả về
@@ -193,6 +198,7 @@ public class DishCategoryServiceTest {
      * Test findDishCategoryByRestaurantId khi không tìm thấy dữ liệu.
      * Kiểm tra nhánh thất bại của tìm danh sách.
      */
+    // TestcaseID: DCS-6
     @Test
     public void testFindDishCategoryByRestaurantId_NotFound() {
         // Mock danh sách category trả về
@@ -210,6 +216,7 @@ public class DishCategoryServiceTest {
      * Test findById khi tìm thấy category.
      * Kiểm tra nhánh thành công của phương thức.
      */
+    // TestcaseID: DCS-7
     @Test
     public void testFindById_Found() {
         // Mock tìm thấy category
@@ -227,6 +234,7 @@ public class DishCategoryServiceTest {
      * Test findById khi không tìm thấy category (ném exception).
      * Kiểm tra nhánh thất bại với AppException.
      */
+    // TestcaseID: DCS-8
     @Test
     public void testFindById_NotFound() {
         // Mock không tìm thấy category
@@ -244,6 +252,7 @@ public class DishCategoryServiceTest {
      * Test findByCodeAndRestaurantId khi tìm thấy category.
      * Kiểm tra nhánh thành công của phương thức.
      */
+    // TestcaseID: DCS-9
     @Test
     public void testFindByCodeAndRestaurantId_Found() {
         // Mock tìm thấy category
@@ -261,6 +270,7 @@ public class DishCategoryServiceTest {
      * Test findByCodeAndRestaurantId khi không tìm thấy category (ném exception).
      * Kiểm tra nhánh thất bại với AppException.
      */
+    // TestcaseID: DCS-10
     @Test
     public void testFindByCodeAndRestaurantId_NotFound() {
         // Mock không tìm thấy category
@@ -279,6 +289,7 @@ public class DishCategoryServiceTest {
      * Test deleteCategoryById khi xóa thành công.
      * Kiểm tra nhánh thành công của phương thức.
      */
+    // TestcaseID: DCS-11
     @Test
     public void testDeleteCategoryById() {
         // Mock tìm thấy category để xóa
@@ -297,6 +308,7 @@ public class DishCategoryServiceTest {
      * Test updateDishCategoryById khi cập nhật thành công.
      * Kiểm tra nhánh thành công của phương thức.
      */
+    // TestcaseID: DCS-12
     @Test
     public void testUpdateDishCategoryById() {
         // Tạo DishCategoryRequest mẫu (cho update)

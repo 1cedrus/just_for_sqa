@@ -44,6 +44,7 @@ public class OrderRepositoryTest {
     }
 
     // Test findOrderByRestaurant_Id - Thành công
+    // TestcaseID: OR-1
     @Test
     public void testFindOrderByRestaurantId_Success() {
         List<Order> result = orderRepository.findOrderByRestaurant_Id(sampleRestaurant.getId());
@@ -52,6 +53,7 @@ public class OrderRepositoryTest {
     }
 
     // Test findOrderByRestaurant_Id - Thất bại
+    // TestcaseID: OR-2
     @Test
     public void testFindOrderByRestaurantId_NoMatch() {
         List<Order> result = orderRepository.findOrderByRestaurant_Id(999L);

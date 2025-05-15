@@ -21,6 +21,7 @@ class PackageRespositoryTest {
     @Autowired
     private PackageRepository packageRepository;
 
+    // ID: PR-1
     @Test
     void testChuan1_findPackageByName() {
         // Giả sử có dữ liệu mẫu như bên dưới
@@ -45,6 +46,7 @@ class PackageRespositoryTest {
         Assertions.assertThat(result.get().getRestaurants()).isEmpty();
     }
 
+    // ID: PR-2
     // Không tồn tại package nào có tên đang tìm kiếm
     @Test
     void testNgoaiLe1_findPackageByName() {
@@ -53,6 +55,7 @@ class PackageRespositoryTest {
         Assertions.assertThat(result).isEmpty();
     }
 
+    // ID: PR-3
     @Test
     void testChuan1_findByPricePerMonthGreaterThan() {
         // Tạo và lưu dữ liệu mẫu

@@ -110,6 +110,7 @@ class ScheduleServiceTest {
         when(clock.getZone()).thenReturn(fixedClock.getZone());
     }
 
+    // SS-10
     @Test
     void createScheduleShouldCreateSuccessfullyWhenDataIsValid() {
         when(tableRestaurantService.findById(1L)).thenReturn(new TableRestaurant());
@@ -130,6 +131,7 @@ class ScheduleServiceTest {
         verify(scheduleDishService).createScheduleDish(any(Schedule.class), any(DishOrderRequest.class));
     }
 
+    // SS-11
     @Test
     void createScheduleShouldThrowExceptionWhenBookedDateIsInThePast() {
         scheduleRequest.setBookedDate(LocalDate.now(clock).minusDays(1));
@@ -145,6 +147,7 @@ class ScheduleServiceTest {
         verify(scheduleRepository, never()).save(any(Schedule.class));
     }
 
+    // SS-12
     @Test
     void createScheduleShouldThrowExceptionWhenBookedDateIsTodayAndTimeIsInThePast() {
         scheduleRequest.setBookedDate(LocalDate.now(clock).minusDays(1));
@@ -160,6 +163,7 @@ class ScheduleServiceTest {
         verify(scheduleRepository, never()).save(any(Schedule.class));
     }
 
+    // SS-13
     @Test
     void createScheduleShouldThrowExceptionWhenTablesAreNotAvailable() {
         scheduleRequest.setBookedDate(LocalDate.now(clock));
@@ -182,6 +186,7 @@ class ScheduleServiceTest {
         verify(scheduleRepository, never()).save(any(Schedule.class));
     }
 
+    // SS-14
     @Test
     void checkTableIsBookedShouldReturnTrueWhenTableIsBooked() {
         scheduleRequest.setBookedDate(LocalDate.now(clock));
@@ -201,6 +206,7 @@ class ScheduleServiceTest {
         verify(scheduleRepository).findSchedulesByTableAndDateRange(1L, bookedDate, LocalTime.parse("12:00"), LocalTime.parse("14:00"));
     }
 
+    // SS-15
     @Test
     void checkTableIsBookedShouldReturnFalseWhenTableIsNotBooked() {
         scheduleRequest.setBookedDate(LocalDate.now(clock));
@@ -220,6 +226,7 @@ class ScheduleServiceTest {
         verify(scheduleRepository).findSchedulesByTableAndDateRange(1L, bookedDate, LocalTime.parse("12:00"), LocalTime.parse("14:00"));
     }
 
+    // SS-16
     @Test
     void findScheduleRestaurantByDateShouldReturnSchedules() {
         Schedule schedule = new Schedule();
@@ -240,6 +247,7 @@ class ScheduleServiceTest {
         verify(scheduleDishService).findDishOrComboBySchedule(1L);
     }
 
+    // SS-17
     @Test
     void findScheduleRestaurantLateShouldReturnSchedules() {
         Schedule schedule = new Schedule();
@@ -260,6 +268,7 @@ class ScheduleServiceTest {
         verify(scheduleDishService).findDishOrComboBySchedule(1L);
     }
 
+    // SS-18
     @Test
     void findScheduleRestaurantNearlyShouldReturnSchedules() {
         Schedule schedule = new Schedule();
@@ -280,6 +289,7 @@ class ScheduleServiceTest {
         verify(scheduleDishService).findDishOrComboBySchedule(1L);
     }
 
+    // SS-19
     @Test
     void customerReceiveBookTableShouldWorkProperlyWhenCustomerExisted() {
         Schedule schedule = new Schedule();
@@ -314,6 +324,7 @@ class ScheduleServiceTest {
         ));
     }
 
+    // SS-20
     @Test
     void customerReceiveBookTableShouldWorkProperlyWhenCustomerNotExisted() {
         Schedule schedule = new Schedule();
@@ -358,6 +369,7 @@ class ScheduleServiceTest {
         ));
     }
 
+    // SS-21
     @Test
     void customerReceiveBookTableShouldThrowErrorIfTableNotAvailable() {
         Schedule schedule = new Schedule();
@@ -378,6 +390,7 @@ class ScheduleServiceTest {
         verify(customerService).existCustomerByPhoneNumberAndRestaurantId(schedule.getCustomerPhone(), schedule.getRestaurant().getId());
     }
 
+    // SS-22
     @Test
     void updateStatusScheduleByIdShouldUpdateStatusSuccessfully() {
         Schedule schedule = new Schedule();
@@ -397,6 +410,7 @@ class ScheduleServiceTest {
         verify(scheduleRepository).save(schedule);
     }
 
+    // SS-23
     @Test
     void updateStatusScheduleByIdShouldThrowErrorWhenScheduleNotFound() {
         when(scheduleRepository.findById(1L)).thenReturn(java.util.Optional.empty());
@@ -408,6 +422,7 @@ class ScheduleServiceTest {
         verify(scheduleRepository).findById(1L);
     }
 
+    // SS-24
     @Test
     void updateStatusScheduleByIdShouldThrowErrorWhenScheduleIsNotPending() {
         Schedule schedule = new Schedule();
@@ -427,6 +442,7 @@ class ScheduleServiceTest {
         verify(scheduleRepository).findById(1L);
     }
 
+    // SS-25
     @Test
     void updateScheduleRestaurantShouldUpdateSuccessfullyWhenDataValid() {
         Schedule schedule = new Schedule();
@@ -453,6 +469,7 @@ class ScheduleServiceTest {
         verify(scheduleRepository).save(any(Schedule.class));
     }
 
+    // SS-26
     @Test
     void updateScheduleRestaurantShouldThrowErrorWhenScheduleNotFound() {
         Schedule schedule = new Schedule();
@@ -478,6 +495,7 @@ class ScheduleServiceTest {
         verify(scheduleRepository).findById(1L);
     }
 
+    // SS-27
     @Test
     void updateScheduleRestaurantShouldThrowErrorWhenDateIsInThePast() {
         Schedule schedule = new Schedule();
@@ -499,6 +517,7 @@ class ScheduleServiceTest {
         assertEquals(ErrorCode.TIME_INVALID, e.getErrorCode());
     }
 
+    // SS-28
     @Test
     void updateScheduleRestaurantShouldThrowErrorWhenDateIsTodayAndTimeIsInThePast() {
         Schedule schedule = new Schedule();
@@ -520,6 +539,7 @@ class ScheduleServiceTest {
         assertEquals(ErrorCode.TIME_INVALID, e.getErrorCode());
     }
 
+    // SS-29
     @Test
     void updateScheduleRestaurantShouldThrowErrorWhenTablesAreNotAvailable() {
         tableRestaurant.setName("Table 1");
@@ -554,6 +574,7 @@ class ScheduleServiceTest {
     }
 
 
+    // SS-30
     @Test
     void findByIdAndRestaurantIdShouldReturnSchedule() {
         Schedule schedule = new Schedule();
@@ -573,6 +594,7 @@ class ScheduleServiceTest {
         verify(scheduleRepository).findById(1L);
     }
 
+    // SS-31
     @Test
     void findByIdAndRestaurantIdShouldThrowErrorWhenScheduleNotFound() {
         when(scheduleRepository.findById(1L)).thenReturn(java.util.Optional.empty());
@@ -584,6 +606,7 @@ class ScheduleServiceTest {
         verify(scheduleRepository).findById(1L);
     }
 
+    // SS-32
     @Test
     void findSchedulesByTableIdShouldReturnPagingResult() {
         Schedule schedule = new Schedule();
@@ -610,6 +633,7 @@ class ScheduleServiceTest {
         verify(scheduleMapper).toScheduleResponse(schedule);
     }
 
+    // SS-33
     @Test
     void getNumberScheduleRestaurantWithTimeShouldReturnScheduleCountsFor7Days() {
         when(scheduleRepository.countByRestaurant_IdAndBookedDateAndStatus(eq(restaurantId), any(LocalDate.class), eq(SCHEDULE_STATUS.PENDING))).thenReturn(2);
@@ -629,6 +653,7 @@ class ScheduleServiceTest {
             .countByRestaurant_IdAndBookedDateAndStatus(eq(restaurantId), any(LocalDate.class), eq(SCHEDULE_STATUS.PENDING));
     }
 
+    // SS-34
     @Test
     void findAllScheduleRestaurantShouldReturnCombinedPendingAndCancelSchedules() {
         Schedule schedule = new Schedule();

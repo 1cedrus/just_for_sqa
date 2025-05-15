@@ -95,6 +95,7 @@ class TableRestaurantServiceTest {
         tableRestaurantResponse = tableRestaurantMapper.toTableRestaurantResponse(tableRestaurant);
     }
 
+    // TRS-1
     @Test
     void createTableRestaurantShouldCreateTableRestaurantWhenDataIsValid() {
         when(tableRestaurantRepository.save(any(TableRestaurant.class))).thenReturn(tableRestaurant);
@@ -112,6 +113,7 @@ class TableRestaurantServiceTest {
         verify(areaRepository).findById(1L); // Verify area repository was called
     }
 
+    // TRS-2
     @Test
     void createTableRestaurantShouldThrowExceptionWhenAreaNotFound() {
         when(tableTypeRepository.findById(1L)).thenReturn(Optional.of(tableType));
@@ -127,6 +129,7 @@ class TableRestaurantServiceTest {
         verify(areaRepository).findById(1L); // Verify area repository was called
     }
 
+    // TRS-3
     @Test
     void createTableRestaurantShouldThrowExceptionWhenTableTypeNotFound() {
         when(tableTypeRepository.findById(1L)).thenReturn(Optional.empty());
@@ -141,6 +144,7 @@ class TableRestaurantServiceTest {
         verify(tableTypeRepository).findById(1L); // Verify table type repository was called
     }
 
+    // TRS-4
     @Test
     void createTableRestaurantShouldThrowExceptionWhenTableNameExisted() {
         when(tableTypeRepository.findById(1L)).thenReturn(Optional.of(tableType));
@@ -158,7 +162,7 @@ class TableRestaurantServiceTest {
         verify(tableRestaurantRepository).existsByNameAndArea_Id(tableRestaurantRequest.getName(), tableRestaurantRequest.getAreaId()); // Verify table restaurant repository was called
     }
 
-
+    // TRS-5
     @Test
     void updateTableRestaurantShouldUpdateTableRestaurantWhenDataIsValid() {
         tableRestaurantRequest.setName("Another Test Table Restaurant");
@@ -182,6 +186,7 @@ class TableRestaurantServiceTest {
         verify(tableRestaurantRepository).save(any(TableRestaurant.class)); // Verify save method was called
     }
 
+    // TRS-6
     @Test
     void updateTableRestaurantShouldThrowExceptionWhenTableNotFound() {
         when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.empty());
@@ -195,6 +200,7 @@ class TableRestaurantServiceTest {
         verify(tableRestaurantRepository).findById(1L); // Verify findById method was called
     }
 
+    // TRS-7
     @Test
     void updateTableRestaurantShouldThrowExceptionWhenTableNameExisted() {
         tableRestaurantRequest.setName("Another Table Name");
@@ -212,6 +218,7 @@ class TableRestaurantServiceTest {
         verify(tableRestaurantRepository).existsByNameAndArea_Id(tableRestaurantRequest.getName(), tableRestaurantRequest.getAreaId());
     }
 
+    // TRS-8
     @Test
     void updateTableRestaurantShouldThrowExceptionWhenTableTypeNotFound() {
         when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.of(tableRestaurant));
@@ -227,6 +234,7 @@ class TableRestaurantServiceTest {
         verify(tableTypeRepository).findById(1L); // Verify table type repository was called
     }
 
+    // TRS-9
     @Test
     void deleteTableRestaurantShouldDeleteTableRestaurantWhenDataIsValid() {
         when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.of(tableRestaurant));
@@ -240,6 +248,7 @@ class TableRestaurantServiceTest {
         verify(tableRestaurantRepository).findById(1L); // Verify findById method was called
     }
 
+    // TRS-10
     @Test
     void deleteTableRestaurantShouldThrowExceptionWhenTableNotFound() {
         when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.empty());
@@ -253,6 +262,7 @@ class TableRestaurantServiceTest {
         verify(tableRestaurantRepository).findById(1L); // Verify findById method was called
     }
 
+    // TRS-11
     @Test
     void findTableRestaurantByIdShouldReturnTableRestaurantWhenExists() {
         when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.of(tableRestaurant));
@@ -266,6 +276,7 @@ class TableRestaurantServiceTest {
         verify(tableRestaurantRepository).findById(1L); // Verify findById method was called
     }
 
+    // TRS-12
     @Test
     void findTableRestaurantByIdShouldThrowExceptionWhenNotExists() {
         when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.empty());
@@ -279,6 +290,7 @@ class TableRestaurantServiceTest {
         verify(tableRestaurantRepository).findById(1L); // Verify findById method was called
     }
 
+    // TRS-13
     @Test
     void findTableRestaurantByIdToResponseShouldReturnTableRestaurantResponseWhenExists() {
         when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.of(tableRestaurant));
@@ -292,6 +304,7 @@ class TableRestaurantServiceTest {
         verify(tableRestaurantRepository).findById(1L); // Verify findById method was called
     }
 
+    // TRS-14
     @Test
     void findTableRestaurantByIdToResponseShouldThrowExceptionWhenNotExists() {
         when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.empty());
@@ -305,6 +318,7 @@ class TableRestaurantServiceTest {
         verify(tableRestaurantRepository).findById(1L);
     }
 
+    // TRS-15
     @Test
     void updateTablesShouldUpdateTablePositionsWhenDataIsValid() {
         tableRestaurantResponse.setId(1L);
@@ -323,6 +337,7 @@ class TableRestaurantServiceTest {
         verify(tableRestaurantRepository).save(tableRestaurant);
     }
 
+    // TRS-16
     @Test
     void updateTablesShouldThrowExceptionWhenTableNotFound() {
         when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.empty());
@@ -336,6 +351,7 @@ class TableRestaurantServiceTest {
         verify(tableRestaurantRepository).findById(1L);
     }
 
+    // TRS-17
     @Test
     void getTablesByAreaIdShouldReturnListOfTableRestaurantResponse() {
         tableRestaurant.setId(1L);
@@ -353,6 +369,7 @@ class TableRestaurantServiceTest {
         verify(scheduleRepository).findByTableIdAndBookedDate(1L, LocalDate.now());
     }
 
+    // TRS-18
     @Test
     void getTableByAreaIdHaveOrderShouldReturnListOfTableRestaurantResponse() {
         tableRestaurant.setId(1L);
@@ -369,6 +386,7 @@ class TableRestaurantServiceTest {
         verify(tableRestaurantRepository).findByArea_IdAndHidden(1L, false);
     }
 
+    // TRS-19
     @Test
     void createManyTableShouldCreateMultipleTables() {
         when(tableTypeRepository.findById(1L)).thenReturn(Optional.of(tableType));
@@ -387,6 +405,7 @@ class TableRestaurantServiceTest {
         verify(areaRepository, times(3)).findById(1L); // Verify area repository was called
     }
 
+    // TRS-20
     @Test
     void createManyTableShouldThrowExceptionWhenAreaNotFound() {
         when(tableTypeRepository.findById(1L)).thenReturn(Optional.of(tableType));
@@ -402,6 +421,7 @@ class TableRestaurantServiceTest {
         verify(areaRepository).findById(1L); // Verify area repository was called
     }
 
+    // TRS-21
     @Test
     void createManyTableShouldThrowExceptionWhenTableTypeNotFound() {
         when(tableTypeRepository.findById(1L)).thenReturn(Optional.empty());
@@ -415,6 +435,7 @@ class TableRestaurantServiceTest {
         verify(tableTypeRepository).findById(1L); // Verify table type repository was called
     }
 
+    // TRS-22
     @Test
     void createManyTableShouldThrowExceptionWhenMaxTableExceeded() {
         when(areaRepository.findByRestaurant_Id(1L)).thenReturn(List.of(area));
@@ -432,6 +453,7 @@ class TableRestaurantServiceTest {
         verify(tableRestaurantRepository).findByArea_IdAndHidden(1L, false); // Verify table restaurant repository was called
     }
 
+    // TRS-23
     @Test
     void createManyTableShouldContinueCreatingTablesWhenSomeAlreadyExist() {
         int numbers = 2;

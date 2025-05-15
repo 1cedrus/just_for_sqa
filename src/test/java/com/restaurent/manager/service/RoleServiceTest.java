@@ -48,6 +48,7 @@ class RoleServiceTest {
     // --- Kiểm thử cho createRole ---
 
     // Kiểm tra trường hợp vai trò đã tồn tại
+    // ID: RoS-2
     @Test
     void testCreateRole_RoleExists() {
         // Chuẩn bị dữ liệu
@@ -64,6 +65,7 @@ class RoleServiceTest {
         verify(roleRepository, never()).save(any());
     }
 
+    // ID: RoS-1
     // Kiểm tra trường hợp vai trò chưa tồn tại
     @Test
     void testCreateRole_RoleNotExists() {
@@ -90,6 +92,7 @@ class RoleServiceTest {
 
     // --- Kiểm thử cho getRoles ---
 
+    // ID: RoS-3
     // Kiểm tra khi danh sách vai trò không rỗng
     @Test
     void testGetRoles_NonEmptyList() {
@@ -116,6 +119,7 @@ class RoleServiceTest {
         assertEquals("USER", result.get(1).getName());
     }
 
+    // ID: RoS-4
     // Kiểm tra khi danh sách vai trò rỗng
     @Test
     void testGetRoles_EmptyList() {
@@ -133,6 +137,7 @@ class RoleServiceTest {
 
     // --- Kiểm thử cho getRolesInRestaurant ---
 
+    // ID: RoS-5
     // Kiểm tra khi tất cả vai trò trong nhà hàng tồn tại
     @Test
     void testGetRolesInRestaurant_AllRolesExist() {
@@ -160,6 +165,7 @@ class RoleServiceTest {
         assertEquals("HOSTESS", result.get(2).getName());
     }
 
+    // ID: RoS-6
     // Kiểm tra khi một vai trò không tồn tại
     @Test
     void testGetRolesInRestaurant_RoleNotExist() {
@@ -174,6 +180,7 @@ class RoleServiceTest {
         verify(roleRepository, times(1)).findByName("CHEF");
     }
 
+    // ID: RoS-7
     // Kiểm tra khi vai trò tồn tại
     @Test
     void testFindByRoleName_RoleExists() {
@@ -191,7 +198,7 @@ class RoleServiceTest {
         verify(roleRepository, times(1)).findByName(name);
         assertEquals("ADMIN", result.getName());
     }
-
+    // ID: RoS-8
     // Kiểm tra khi vai trò không tồn tại
     @Test
     void testFindByRoleName_RoleNotExists() {

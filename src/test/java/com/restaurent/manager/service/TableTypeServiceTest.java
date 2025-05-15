@@ -61,6 +61,7 @@ class TableTypeServiceTest {
         tableTypeResponse.setName("Test TableType");
     }
 
+    // TTS-1
     @Test
     void createTableTypeShouldReturnTableTypeResponse() {
         when(tableTypeRepository.save(any(TableType.class))).thenAnswer(invocation -> {
@@ -75,6 +76,7 @@ class TableTypeServiceTest {
         assertEquals("Test TableType", actualResponse.getName());
     }
 
+    // TTS-2
     @Test
     void getTableTypesShouldReturnListOfTableTypeResponse() {
         when(tableTypeRepository.findAll()).thenReturn(List.of(tableType));
@@ -88,6 +90,7 @@ class TableTypeServiceTest {
         verify(tableTypeRepository).findAll();
     }
 
+    // TTS-3
     @Test
     void deleteTableTypeShouldDeleteTableTypeWhenExists() {
         when(tableTypeRepository.findById(1L)).thenReturn(Optional.of(tableType));
@@ -97,6 +100,7 @@ class TableTypeServiceTest {
         verify(tableTypeRepository).delete(tableType);
     }
 
+    // TTS-4
     @Test
     void deleteTableTypeShouldThrowExceptionWhenNotFound() {
         when(tableTypeRepository.findById(1L)).thenReturn(Optional.empty());
@@ -110,6 +114,7 @@ class TableTypeServiceTest {
         verify(tableTypeRepository).findById(1L);
     }
 
+    // TTS-5
     @Test
     void updateTableTypeShouldReturnUpdatedTableTypeResponse() {
         tableTypeUpdateRequest.setName("Another Test TableType");
@@ -125,6 +130,7 @@ class TableTypeServiceTest {
         verify(tableTypeRepository).save(any(TableType.class));
     }
 
+    // TTS-6
     @Test
     void updateTableTypeShouldThrowExceptionWhenNotFound() {
         when(tableTypeRepository.findById(1L)).thenReturn(Optional.empty());
@@ -138,6 +144,7 @@ class TableTypeServiceTest {
         verify(tableTypeRepository).findById(1L);
     }
 
+    // TTS-7
     @Test
     void findTableTypeByIdShouldReturnTableTypeWhenExists() {
         when(tableTypeRepository.findById(1L)).thenReturn(Optional.of(tableType));
@@ -150,6 +157,7 @@ class TableTypeServiceTest {
         verify(tableTypeRepository).findById(1L);
     }
 
+    // TTS-8
     @Test
     void findTableTypeByIdShouldThrowExceptionWhenNotExists() {
         when(tableTypeRepository.findById(1L)).thenReturn(Optional.empty());

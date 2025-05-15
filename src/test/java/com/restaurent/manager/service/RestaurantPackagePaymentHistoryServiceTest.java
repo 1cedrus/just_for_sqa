@@ -68,6 +68,7 @@ class RestaurantPackagePaymentHistoryServiceTest {
 
     // --- Tests cho createRestaurantPackagePaymentHistory ---
     /**
+     * ID: RPPHS-2
      * Test tạo một RestaurantPackagePaymentHistory thành công
      * Kiểm tra xem phương thức có tạo và lưu lịch sử thanh toán đúng với request không
      */
@@ -89,7 +90,7 @@ class RestaurantPackagePaymentHistoryServiceTest {
         Long result = service.createRestaurantPackagePaymentHistory(request);
 
         // Kiểm tra kết quả
-        assertEquals(3L, result); // ID trả về phải là 1
+        assertEquals(3L, result); // ID trả về phải là 3
         verify(mapper, times(1)).toRestaurantPackagePaymentHistory(request); // Xác minh mapper được gọi 1 lần
         verify(packageService, times(1)).findPackById(1L); // Xác minh tìm package 1 lần
         verify(restaurantService, times(1)).getRestaurantById(1L); // Xác minh tìm restaurant 1 lần
@@ -97,6 +98,7 @@ class RestaurantPackagePaymentHistoryServiceTest {
     }
 
     /**
+     * ID: RPPHS-1
      * Test tạo một RestaurantPackagePaymentHistory thành công
      * Kiểm tra xem phương thức có tạo và lưu lịch sử thanh toán đúng với request không
      */
@@ -125,6 +127,7 @@ class RestaurantPackagePaymentHistoryServiceTest {
     }
     // --- Tests cho getNewId ---
     /**
+     * ID: RPPHS-3
      * Test lấy ID mới khi danh sách lịch sử rỗng
      * Kiểm tra xem ID trả về có phải là 1 khi không có bản ghi nào không
      */
@@ -142,6 +145,7 @@ class RestaurantPackagePaymentHistoryServiceTest {
     }
 
     /**
+     * ID: RPPHS-4
      * Test lấy ID mới khi đã có dữ liệu
      * Kiểm tra xem ID mới có được tăng lên từ ID cuối cùng không
      */
@@ -163,6 +167,7 @@ class RestaurantPackagePaymentHistoryServiceTest {
 
     // --- Tests cho updateRestaurantPackagePaymentHistory ---
     /**
+     * ID: RPPHS-5
      * Test cập nhật lịch sử thanh toán thành công
      * Kiểm tra xem trạng thái paid được cập nhật và email được gửi không
      */
@@ -195,6 +200,7 @@ class RestaurantPackagePaymentHistoryServiceTest {
     }
 
     /**
+     * ID: RPPHS-6
      * Test cập nhật với ID không tồn tại
      * Kiểm tra xem exception có được ném ra khi không tìm thấy history không
      */
@@ -216,6 +222,7 @@ class RestaurantPackagePaymentHistoryServiceTest {
 
     // --- Tests cho getTotalValueByDate ---
     /**
+     * ID: RPPHS-7
      * Test lấy tổng giá trị với code hợp lệ
      * Kiểm tra xem phương thức có trả về danh sách khi code đúng không
      */
@@ -235,6 +242,7 @@ class RestaurantPackagePaymentHistoryServiceTest {
     }
 
     /**
+     * ID: RPPHS-8
      * Test lấy tổng giá trị với code không hợp lệ
      * Kiểm tra xem phương thức trả về null khi code không khớp
      */
@@ -252,6 +260,7 @@ class RestaurantPackagePaymentHistoryServiceTest {
 
     // --- Tests cho getProfitInCurrentMonth ---
     /**
+     * ID: RPPHS-9
      * Test lấy lợi nhuận tháng hiện tại
      * Kiểm tra xem danh sách trả về có đúng số ngày từ đầu tháng đến hiện tại không
      */
@@ -273,6 +282,7 @@ class RestaurantPackagePaymentHistoryServiceTest {
 
     // --- Tests cho getProfitInLastMonth ---
     /**
+     * ID: RPPHS-10
      * Test lấy lợi nhuận tháng trước
      * Kiểm tra xem danh sách trả về có đúng số ngày của tháng trước không
      */
@@ -294,6 +304,7 @@ class RestaurantPackagePaymentHistoryServiceTest {
 
     // --- Tests cho getProfitInCurrentWeek ---
     /**
+     * ID: RPPHS-11
      * Test lấy lợi nhuận tuần hiện tại
      * Kiểm tra xem danh sách trả về có đúng 7 ngày của tuần hiện tại không
      */
@@ -314,6 +325,7 @@ class RestaurantPackagePaymentHistoryServiceTest {
 
     // --- Tests cho getProfitInLastWeek ---
     /**
+     * ID: RPPHS-12
      * Test lấy lợi nhuận tuần trước
      * Kiểm tra xem danh sách trả về có đúng 7 ngày của tuần trước không
      */
@@ -334,6 +346,7 @@ class RestaurantPackagePaymentHistoryServiceTest {
 
     // --- Tests cho totalValueInDate ---
     /**
+     * ID: RPPHS-13
      * Test tính tổng giá trị trong ngày - có dữ liệu
      * Kiểm tra xem tổng chỉ tính các history đã paid không
      */
@@ -357,6 +370,7 @@ class RestaurantPackagePaymentHistoryServiceTest {
     }
 
     /**
+     * ID: RPPHS-14
      * Test tính tổng giá trị trong ngày - không có dữ liệu
      * Kiểm tra xem trả về 0 khi không có history nào
      */
