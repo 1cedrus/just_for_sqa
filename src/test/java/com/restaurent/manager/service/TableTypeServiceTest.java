@@ -6,168 +6,156 @@ import com.restaurent.manager.dto.response.TableTypeResponse;
 import com.restaurent.manager.entity.TableType;
 import com.restaurent.manager.exception.AppException;
 import com.restaurent.manager.exception.ErrorCode;
-import com.restaurent.manager.mapper.TableTypeMapper;
-import com.restaurent.manager.mapper.TableTypeMapperImpl;
 import com.restaurent.manager.repository.TableTypeRepository;
 import com.restaurent.manager.service.impl.TableTypeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@SpringBootTest
+@Transactional
 class TableTypeServiceTest {
-    @Mock
-    TableTypeRepository tableTypeRepository;
 
-    @Spy
-    TableTypeMapper tableTypeMapper = new TableTypeMapperImpl();
+    @Autowired
+    private TableTypeService tableTypeService;
 
-    @InjectMocks
-    TableTypeService tableTypeService;
+    @Autowired
+    private TableTypeRepository tableTypeRepository;
 
-    TableTypeRequest tableTypeRequest;
-    TableTypeUpdateRequest tableTypeUpdateRequest;
-    TableType tableType;
-    TableTypeResponse tableTypeResponse;
+    @MockBean
+    private Clock clock;
+
+    private TableType tableType;
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
+        // Set up a fixed Clock for 2025-04-08 12:00
+        LocalDateTime fixedDateTime = LocalDateTime.of(2025, 4, 8, 12, 0);
+        Clock fixedClock = Clock.fixed(
+                fixedDateTime.atZone(ZoneId.systemDefault()).toInstant(),
+                ZoneId.systemDefault());
+        when(clock.instant()).thenReturn(fixedClock.instant());
+        when(clock.getZone()).thenReturn(fixedClock.getZone());
 
-        tableTypeRequest = new TableTypeRequest();
-        tableTypeUpdateRequest = new TableTypeUpdateRequest();
+        // Create a table type for testing
         tableType = new TableType();
-        tableTypeResponse = new TableTypeResponse();
-
-        tableTypeRequest.setName("Test TableType");
-
-        tableTypeUpdateRequest.setId(1L);
-
-        tableType.setId(1);
         tableType.setName("Test TableType");
-
-        tableTypeResponse.setId(1L);
-        tableTypeResponse.setName("Test TableType");
+        tableType = tableTypeRepository.saveAndFlush(tableType);
     }
 
     // TTS-1
     @Test
     void createTableTypeShouldReturnTableTypeResponse() {
-        when(tableTypeRepository.save(any(TableType.class))).thenAnswer(invocation -> {
-            TableType saved = invocation.getArgument(0);
-            saved.setId(1); // Simulate the ID being set by the repository
-            return saved;
-        });
+        TableTypeRequest request = new TableTypeRequest();
+        request.setName("New TableType");
 
-        TableTypeResponse actualResponse = tableTypeService.createTableType(tableTypeRequest);
+        TableTypeResponse result = tableTypeService.createTableType(request);
 
-        assertEquals(1L, actualResponse.getId());
-        assertEquals("Test TableType", actualResponse.getName());
+        assertNotNull(result);
+        assertEquals("New TableType", result.getName());
+        assertNotNull(result.getId());
+
+        // Verify in database
+        List<TableType> tableTypes = tableTypeRepository.findAll();
+        assertTrue(tableTypes.stream().anyMatch(tt -> "New TableType".equals(tt.getName())));
     }
 
     // TTS-2
     @Test
     void getTableTypesShouldReturnListOfTableTypeResponse() {
-        when(tableTypeRepository.findAll()).thenReturn(List.of(tableType));
+        List<TableTypeResponse> result = tableTypeService.getTableTypes();
 
-        List<TableTypeResponse> actualResponse = tableTypeService.getTableTypes();
-
-        assertEquals(1, actualResponse.size());
-        assertEquals(1L, actualResponse.getFirst().getId());
-        assertEquals("Test TableType", actualResponse.getFirst().getName());
-
-        verify(tableTypeRepository).findAll();
+        assertNotNull(result);
+        assertTrue(result.size() >= 1);
+        assertTrue(result.stream().anyMatch(tt -> "Test TableType".equals(tt.getName())));
     }
 
     // TTS-3
     @Test
     void deleteTableTypeShouldDeleteTableTypeWhenExists() {
-        when(tableTypeRepository.findById(1L)).thenReturn(Optional.of(tableType));
+        Long tableTypeId = Long.valueOf(tableType.getId());
+        tableTypeService.deleteTableType(tableTypeId);
 
-        tableTypeService.deleteTableType(1L);
-
-        verify(tableTypeRepository).delete(tableType);
+        // Verify in database
+        assertFalse(tableTypeRepository.findById(tableTypeId).isPresent());
     }
 
     // TTS-4
     @Test
     void deleteTableTypeShouldThrowExceptionWhenNotFound() {
-        when(tableTypeRepository.findById(1L)).thenReturn(Optional.empty());
-
         AppException e = assertThrows(AppException.class, () -> {
-            tableTypeService.deleteTableType(1L);
+            tableTypeService.deleteTableType(999L);
         });
 
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(tableTypeRepository).findById(1L);
     }
 
     // TTS-5
     @Test
     void updateTableTypeShouldReturnUpdatedTableTypeResponse() {
-        tableTypeUpdateRequest.setName("Another Test TableType");
+        TableTypeUpdateRequest request = new TableTypeUpdateRequest();
+        request.setId(Long.valueOf(tableType.getId()));
+        request.setName("Updated TableType");
 
-        when(tableTypeRepository.findById(1L)).thenReturn(Optional.of(tableType));
+        TableTypeResponse result = tableTypeService.updateTableType(request);
 
-        TableTypeResponse actualResponse = tableTypeService.updateTableType(tableTypeUpdateRequest);
+        assertNotNull(result);
+        assertEquals(Long.valueOf(tableType.getId()), result.getId());
+        assertEquals("Updated TableType", result.getName());
 
-        assertEquals(1L, actualResponse.getId());
-        assertEquals("Another Test TableType", actualResponse.getName());
-
-        verify(tableTypeRepository).findById(1L);
-        verify(tableTypeRepository).save(any(TableType.class));
+        // Verify in database
+        TableType updatedTableType = tableTypeRepository.findById(Long.valueOf(tableType.getId())).orElse(null);
+        assertNotNull(updatedTableType);
+        assertEquals("Updated TableType", updatedTableType.getName());
     }
 
     // TTS-6
     @Test
     void updateTableTypeShouldThrowExceptionWhenNotFound() {
-        when(tableTypeRepository.findById(1L)).thenReturn(Optional.empty());
+        TableTypeUpdateRequest request = new TableTypeUpdateRequest();
+        request.setId(999L);
+        request.setName("Updated TableType");
 
         AppException e = assertThrows(AppException.class, () -> {
-            tableTypeService.updateTableType(tableTypeUpdateRequest);
+            tableTypeService.updateTableType(request);
         });
 
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(tableTypeRepository).findById(1L);
     }
 
     // TTS-7
     @Test
     void findTableTypeByIdShouldReturnTableTypeWhenExists() {
-        when(tableTypeRepository.findById(1L)).thenReturn(Optional.of(tableType));
+        TableType result = tableTypeService.findTableTypeById(Long.valueOf(tableType.getId()));
 
-        TableType actualTableType = tableTypeService.findTableTypeById(1L);
-
-        assertEquals(1L, actualTableType.getId());
-        assertEquals("Test TableType", actualTableType.getName());
-
-        verify(tableTypeRepository).findById(1L);
+        assertNotNull(result);
+        assertEquals(tableType.getId(), result.getId());
+        assertEquals("Test TableType", result.getName());
     }
 
     // TTS-8
     @Test
     void findTableTypeByIdShouldThrowExceptionWhenNotExists() {
-        when(tableTypeRepository.findById(1L)).thenReturn(Optional.empty());
-
         AppException e = assertThrows(AppException.class, () -> {
-            tableTypeService.findTableTypeById(1L);
+            tableTypeService.findTableTypeById(999L);
         });
 
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(tableTypeRepository).findById(1L);
     }
 }

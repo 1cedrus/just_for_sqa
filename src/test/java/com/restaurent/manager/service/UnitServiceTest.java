@@ -3,214 +3,247 @@ package com.restaurent.manager.service;
 import com.restaurent.manager.dto.request.UnitRequest;
 import com.restaurent.manager.dto.response.UnitResponse;
 import com.restaurent.manager.entity.Account;
+import com.restaurent.manager.entity.Dish;
+import com.restaurent.manager.entity.DishCategory;
+import com.restaurent.manager.entity.Restaurant;
 import com.restaurent.manager.entity.Unit;
 import com.restaurent.manager.exception.AppException;
 import com.restaurent.manager.exception.ErrorCode;
-import com.restaurent.manager.mapper.UnitMapper;
-import com.restaurent.manager.mapper.UnitMapperImpl;
 import com.restaurent.manager.repository.AccountRepository;
+import com.restaurent.manager.repository.DishCategoryRepository;
 import com.restaurent.manager.repository.DishRepository;
+import com.restaurent.manager.repository.RestaurantRepository;
 import com.restaurent.manager.repository.UnitRepository;
 import com.restaurent.manager.service.impl.UnitService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@SpringBootTest
+@Transactional
 class UnitServiceTest {
 
-    @Spy
-    UnitMapper unitMapper = new UnitMapperImpl();
+    @Autowired
+    private UnitService unitService;
 
-    @Mock
-    UnitRepository unitRepository;
+    @Autowired
+    private UnitRepository unitRepository;
 
-    @Mock
-    AccountRepository accountRepository;
+    @Autowired
+    private AccountRepository accountRepository;
 
-    @Mock
-    DishRepository dishRepository;
+    @Autowired
+    private DishRepository dishRepository;
 
-    @InjectMocks
-    UnitService unitService;
+    @Autowired
+    private RestaurantRepository restaurantRepository;
 
-    UnitRequest unitRequest;
-    Unit unit;
-    UnitResponse unitResponse;
+    @Autowired
+    private DishCategoryRepository dishCategoryRepository;
+
+    @MockBean
+    private Clock clock;
+
+    private Unit unit;
+    private Account account;
+    private Restaurant restaurant;
+    private DishCategory dishCategory;
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
+        // Set up a fixed Clock for 2025-04-08 12:00
+        LocalDateTime fixedDateTime = LocalDateTime.of(2025, 4, 8, 12, 0);
+        Clock fixedClock = Clock.fixed(
+                fixedDateTime.atZone(ZoneId.systemDefault()).toInstant(),
+                ZoneId.systemDefault());
+        when(clock.instant()).thenReturn(fixedClock.instant());
+        when(clock.getZone()).thenReturn(fixedClock.getZone());
 
-        unitRequest = new UnitRequest();
-        unitResponse = new UnitResponse();
+        // Create account
+        account = new Account();
+        account.setUsername("test_account");
+        account.setPassword("password");
+        account.setEmail("test@example.com");
+        account = accountRepository.saveAndFlush(account);
+
+        // Create restaurant
+        restaurant = new Restaurant();
+        restaurant.setRestaurantName("Test Restaurant");
+        restaurant.setAddress("Test Address");
+        restaurant.setProvince("Test Province");
+        restaurant.setDistrict("Test District");
+        restaurant.setMoneyToPoint(1.0);
+        restaurant.setPointToMoney(1.0);
+        restaurant.setMonthsRegister(12);
+        restaurant.setVatActive(false);
+        restaurant.setDateCreated(LocalDate.now(clock));
+        restaurant = restaurantRepository.saveAndFlush(restaurant);
+
+        // Create dish category
+        dishCategory = new DishCategory();
+        dishCategory.setName("Test Category");
+        dishCategory.setRestaurant(restaurant);
+        dishCategory = dishCategoryRepository.saveAndFlush(dishCategory);
+
+        // Create unit
         unit = new Unit();
-
-        unit.setId(1L);
         unit.setName("Test Unit");
-
-        unitRequest.setName("Test Unit");
-
-        unitResponse.setId(1L);
-        unitResponse.setName("Test Unit");
+        unit.setAccount(account);
+        unit.setHidden(false);
+        unit = unitRepository.saveAndFlush(unit);
     }
 
     // US-1
     @Test
     void createUnitShouldReturnUnitResponse() {
-        when(accountRepository.findById(unitRequest.getAccountId())).thenReturn(Optional.of(new Account()));
-        when(unitRepository.save(any(Unit.class))).thenAnswer(invocation -> {
-            Unit savedUnit = invocation.getArgument(0);
-            savedUnit.setId(1L); // Simulate the ID being set by the database
-            return savedUnit;
-        });
+        UnitRequest request = new UnitRequest();
+        request.setName("New Unit");
+        request.setAccountId(account.getId());
 
-        UnitResponse actualResponse = unitService.createUnit(unitRequest);
+        UnitResponse result = unitService.createUnit(request);
 
-        // Verify that the unit was saved
-        assertEquals(1L, actualResponse.getId()); // Verify restaurant's VAT is set
-        assertEquals("Test Unit", actualResponse.getName()); // Verify restaurant's VAT is set
+        assertNotNull(result);
+        assertEquals("New Unit", result.getName());
+        assertNotNull(result.getId());
 
-        verify(accountRepository).findById(unitRequest.getAccountId());
+        // Verify in database
+        List<Unit> units = unitRepository.getUnitsByAccount_Id(account.getId());
+        assertTrue(units.stream().anyMatch(u -> "New Unit".equals(u.getName())));
     }
 
     // US-2
     @Test
     void createUnitShouldThrowExceptionWhenAccountNotFound() {
-        when(accountRepository.findById(unitRequest.getAccountId())).thenReturn(Optional.empty());
+        UnitRequest request = new UnitRequest();
+        request.setName("New Unit");
+        request.setAccountId(999L);
 
         AppException e = assertThrows(AppException.class, () -> {
-            unitService.createUnit(unitRequest);
+            unitService.createUnit(request);
         });
 
-        // Verify the error code
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        // Verify that the account was looked up
-        verify(accountRepository).findById(unitRequest.getAccountId());
     }
 
     // US-3
     @Test
     void getUnitsByAccountIdShouldReturnListOfUnitResponse() {
-        when(unitRepository.getUnitsByAccount_Id(1L)).thenReturn(List.of(unit));
+        List<UnitResponse> result = unitService.getUnitsByAccountId(account.getId());
 
-        List<UnitResponse> actualResponse = unitService.getUnitsByAccountId(1L);
-
-        assertEquals(1, actualResponse.size());
-        assertEquals(1L, actualResponse.getFirst().getId());
-        assertEquals("Test Unit", actualResponse.getFirst().getName());
-
-        verify(unitRepository).getUnitsByAccount_Id(1L);
+        assertNotNull(result);
+        assertTrue(result.size() >= 1);
+        assertTrue(result.stream().anyMatch(u -> "Test Unit".equals(u.getName())));
     }
 
     // US-4
     @Test
     void updateUnitShouldReturnUpdatedUnitResponse() {
-        unitRequest.setName("Another Test Unit");
+        UnitRequest request = new UnitRequest();
+        request.setName("Updated Unit");
+        request.setAccountId(account.getId());
 
-        when(unitRepository.findById(1L)).thenReturn(Optional.of(unit));
-        when(unitRepository.save(any(Unit.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        UnitResponse result = unitService.updateUnit(unit.getId(), request);
 
-        UnitResponse actualResponse = unitService.updateUnit(1L, unitRequest);
+        assertNotNull(result);
+        assertEquals(unit.getId(), result.getId());
+        assertEquals("Updated Unit", result.getName());
 
-        assertEquals(1L, actualResponse.getId());
-        assertEquals("Another Test Unit", actualResponse.getName());
-
-        verify(unitRepository).findById(1L);
-        verify(unitRepository).save(any(Unit.class));
+        // Verify in database
+        Unit updatedUnit = unitRepository.findById(unit.getId()).orElse(null);
+        assertNotNull(updatedUnit);
+        assertEquals("Updated Unit", updatedUnit.getName());
     }
 
     // US-5
     @Test
     void updateUnitShouldThrowExceptionWhenUnitNotFound() {
-        when(unitRepository.findById(1L)).thenReturn(Optional.empty());
+        UnitRequest request = new UnitRequest();
+        request.setName("Updated Unit");
+        request.setAccountId(account.getId());
 
         AppException e = assertThrows(AppException.class, () -> {
-            unitService.updateUnit(1L, unitRequest);
+            unitService.updateUnit(999L, request);
         });
 
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(unitRepository).findById(1L);
     }
 
     // US-6
     @Test
     void deleteUnitByIdShouldDeleteUnitWhenNoDishExists() {
-        when(unitRepository.findById(1L)).thenReturn(Optional.of(unit));
-        when(dishRepository.existsByUnit_Id(1L)).thenReturn(false);
+        unitService.deleteUnitById(unit.getId());
 
-        unitService.deleteUnitById(1L);
-
-        // Verify that the unit was deleted
-        verify(unitRepository).deleteById(1L);
+        // Verify in database - unit should be deleted
+        assertFalse(unitRepository.findById(unit.getId()).isPresent());
     }
 
     // US-7
     @Test
     void deleteUnitByIdShouldSetHiddenWhenDishExists() {
-        when(unitRepository.findById(1L)).thenReturn(Optional.of(unit));
-        when(dishRepository.existsByUnit_Id(1L)).thenReturn(true);
+        // Create a dish that uses this unit
+        Dish dish = new Dish();
+        dish.setName("Test Dish");
+        dish.setPrice(100.0);
+        dish.setDescription("Test dish description");
+        dish.setDishCategory(dishCategory);
+        dish.setRestaurant(restaurant);
+        dish.setUnit(unit);
+        dish.setImageUrl("test_image.jpg");
+        dish.setStatus(true);
+        dishRepository.saveAndFlush(dish);
 
-        unitService.deleteUnitById(1L);
+        unitService.deleteUnitById(unit.getId());
 
-        // Verify that the unit was set to hidden
-        assertTrue(unit.isHidden());
-
-        // Verify that the unit was saved
-        verify(unitRepository).save(unit);
+        // Verify in database - unit should be hidden, not deleted
+        Unit updatedUnit = unitRepository.findById(unit.getId()).orElse(null);
+        assertNotNull(updatedUnit);
+        assertTrue(updatedUnit.isHidden());
     }
 
     // US-8
     @Test
     void deleteUnitByIdShouldThrowExceptionWhenUnitNotFound() {
-        when(unitRepository.findById(1L)).thenReturn(Optional.empty());
-
         AppException e = assertThrows(AppException.class, () -> {
-            unitService.deleteUnitById(1L);
+            unitService.deleteUnitById(999L);
         });
 
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(unitRepository).findById(1L);
     }
-
 
     // US-9
     @Test
     void findByIdShouldReturnUnitWhenExists() {
-        when(unitRepository.findById(1L)).thenReturn(Optional.of(unit));
+        Unit result = unitService.findById(unit.getId());
 
-        Unit actualUnit = unitService.findById(1L);
-
-        assertEquals(1L, actualUnit.getId());
-        assertEquals("Test Unit", actualUnit.getName());
-
-        verify(unitRepository).findById(1L);
+        assertNotNull(result);
+        assertEquals(unit.getId(), result.getId());
+        assertEquals("Test Unit", result.getName());
     }
 
     // US-10
     @Test
     void findByIdShouldThrowExceptionWhenNotExists() {
-        when(unitRepository.findById(1L)).thenReturn(Optional.empty());
-
         AppException e = assertThrows(AppException.class, () -> {
-            unitService.findById(1L);
+            unitService.findById(999L);
         });
 
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(unitRepository).findById(1L);
     }
 }

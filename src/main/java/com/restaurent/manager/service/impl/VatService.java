@@ -38,6 +38,7 @@ public class VatService implements IVatService {
         Vat vat = vatMapper.toVat(request);
         vat.setTaxValue(taxValue);
         vat.setTaxName(taxName);
+        vat.setRestaurantId(restaurantId);
         Vat saved = vatRepository.save(vat);
         restaurant.setVatActive(true);
         restaurant.setVat(saved);

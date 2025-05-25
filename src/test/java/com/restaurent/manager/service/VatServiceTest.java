@@ -6,162 +6,190 @@ import com.restaurent.manager.entity.Restaurant;
 import com.restaurent.manager.entity.Vat;
 import com.restaurent.manager.exception.AppException;
 import com.restaurent.manager.exception.ErrorCode;
-import com.restaurent.manager.mapper.VatMapper;
 import com.restaurent.manager.repository.RestaurantRepository;
 import com.restaurent.manager.repository.VatRepository;
+import com.restaurent.manager.service.impl.RestaurantService;
 import com.restaurent.manager.service.impl.VatService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@SpringBootTest
+@Transactional
 class VatServiceTest {
-    @Mock
-    VatRepository vatRepository;
 
-    @Mock
-    RestaurantRepository restaurantRepository;
+    @Autowired
+    private VatService vatService;
 
-    @Mock
-    VatMapper vatMapper;
+    @Autowired
+    private VatRepository vatRepository;
 
-    @Mock
-    IRestaurantService restaurantService;
+    @Autowired
+    private RestaurantRepository restaurantRepository;
 
-    @InjectMocks
-    VatService vatService;
+    @Autowired
+    private RestaurantService restaurantService;
 
-    Long restaurantId = 1L;
-    Long vatId = 1L;
-    VatRequest vatRequest;
-    Restaurant restaurant;
-    TaxRequest taxRequest;
-    Vat vat;
-    Vat savedVat;
+    @MockBean
+    private Clock clock;
+
+    private Restaurant restaurant;
+    private Vat vat;
+    private Long restaurantId;
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
+        // Set up a fixed Clock for 2025-04-08 12:00
+        LocalDateTime fixedDateTime = LocalDateTime.of(2025, 4, 8, 12, 0);
+        Clock fixedClock = Clock.fixed(
+                fixedDateTime.atZone(ZoneId.systemDefault()).toInstant(),
+                ZoneId.systemDefault());
+        when(clock.instant()).thenReturn(fixedClock.instant());
+        when(clock.getZone()).thenReturn(fixedClock.getZone());
 
-        vatRequest = new VatRequest();
+        // Create restaurant
         restaurant = new Restaurant();
-        taxRequest = new TaxRequest();
+        restaurant.setRestaurantName("Test Restaurant");
+        restaurant.setAddress("Test Address");
+        restaurant.setProvince("Test Province");
+        restaurant.setDistrict("Test District");
+        restaurant.setMoneyToPoint(1.0);
+        restaurant.setPointToMoney(1.0);
+        restaurant.setMonthsRegister(12);
+        restaurant.setVatActive(false);
+        restaurant.setDateCreated(LocalDate.now(clock));
+        restaurant = restaurantRepository.saveAndFlush(restaurant);
+        restaurantId = restaurant.getId();
+
+        // Create VAT
         vat = new Vat();
-        savedVat = new Vat();
-        savedVat.setId(1L);
-        savedVat.setTaxValue(0.20f);
-        savedVat.setTaxName("VAT");
+        vat.setName("Test VAT");
+        vat.setTaxCode("TAX123");
+        vat.setAddress("VAT Address");
+        vat.setBranch("Main Branch");
+        vat.setRegistrationNumber("REG123");
+        vat.setTaxValue(0.20f);
+        vat.setTaxName("VAT");
+        vat.setRestaurantId(restaurantId);
+        vat = vatRepository.saveAndFlush(vat);
     }
 
     // VS-1
     @Test
     void createVatShouldCreateVatWhenDataIsValid() {
-        when(restaurantService.getRestaurantById(restaurantId)).thenReturn(restaurant);
-        when(vatMapper.toVat(vatRequest)).thenReturn(vat);
-        when(vatRepository.save(vat)).thenReturn(savedVat);
-        when(restaurantRepository.save(restaurant)).thenReturn(restaurant);
+        VatRequest request = new VatRequest();
+        request.setName("New VAT");
+        request.setTaxCode("NEWTAX123");
+        request.setAddress("New VAT Address");
+        request.setBranch("New Branch");
+        request.setRegistrationNumber("NEWREG123");
 
-        // Act: Call the method under test
-        Vat result = vatService.createVat(restaurantId, vatRequest);
+        Vat result = vatService.createVat(restaurantId, request);
 
-        // Assert: Verify the result and interactions
-        assertEquals(savedVat, result); // Check the returned VAT
-        assertEquals(0.20f, result.getTaxValue()); // Verify taxValue is set
-        assertEquals("VAT", result.getTaxName());  // Verify taxName is set
-        assertTrue(restaurant.isVatActive());      // Verify restaurant's vatActive is true
-        assertEquals(savedVat, restaurant.getVat()); // Verify restaurant's VAT is set
+        assertNotNull(result);
+        assertEquals("New VAT", result.getName());
+        assertEquals("NEWTAX123", result.getTaxCode());
+        assertEquals(restaurantId, result.getRestaurantId());
 
-        // Verify these function get called
-        verify(restaurantService).getRestaurantById(restaurantId);
-        verify(vatMapper).toVat(vatRequest);
-        verify(vatRepository).save(vat);
-        verify(restaurantRepository).save(restaurant);
+        // Verify restaurant is updated
+        Restaurant updatedRestaurant = restaurantRepository.findById(restaurantId).orElse(null);
+        assertNotNull(updatedRestaurant);
+        assertTrue(updatedRestaurant.isVatActive());
+        assertEquals(result, updatedRestaurant.getVat());
     }
 
     // VS-2
     @Test
     void createVatShouldThrowErrorWhenRestaurantNotFound() {
-        when(restaurantService.getRestaurantById(restaurantId)).thenThrow(new AppException(ErrorCode.NOT_EXIST));
+        VatRequest request = new VatRequest();
+        request.setName("New VAT");
 
         AppException e = assertThrows(AppException.class, () -> {
-            vatService.createVat(restaurantId, vatRequest);
+            vatService.createVat(999L, request);
         });
 
-        // Assert: Verify the exception
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        // Verify that the restaurantService method was called
-        verify(restaurantService).getRestaurantById(restaurantId);
     }
 
     // VS-3
     @Test
     void findByIdShouldReturnVatWhenExists() {
-        when(vatRepository.findById(vatId)).thenReturn(java.util.Optional.of(savedVat));
+        Vat result = vatService.findById(vat.getId());
 
-        // Act: Call the method under test
-        Vat result = vatService.findById(vatId);
-
-        // Assert: Verify the result and interactions
-        assertEquals(savedVat, result); // Check the returned VAT
-
-        // Verify interactions with mocks
-        verify(vatRepository).findById(vatId);
+        assertNotNull(result);
+        assertEquals(vat.getId(), result.getId());
+        assertEquals("Test VAT", result.getName());
+        assertEquals("TAX123", result.getTaxCode());
     }
 
     // VS-4
     @Test
     void findByIdShouldThrowErrorWhenNotExists() {
-        when(vatRepository.findById(vatId)).thenReturn(java.util.Optional.empty());
-
         AppException e = assertThrows(AppException.class, () -> {
-            vatService.findById(vatId);
+            vatService.findById(999L);
         });
 
-        // Assert: Verify the exception
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        // Verify that the vatRepository method was called
-        verify(vatRepository).findById(vatId);
     }
 
     // VS-5
     @Test
     void updateVatInformationShouldUpdateVatWhenDataIsValid() {
-        when(vatRepository.findById(vatId)).thenReturn(java.util.Optional.of(savedVat));
-        when(vatRepository.save(savedVat)).thenReturn(savedVat);
+        VatRequest request = new VatRequest();
+        request.setName("Updated VAT");
+        request.setTaxCode("UPDATEDTAX123");
+        request.setAddress("Updated VAT Address");
+        request.setBranch("Updated Branch");
+        request.setRegistrationNumber("UPDATEDREG123");
 
-        // Act: Call the method under test
-        Vat result = vatService.updateVatInformation(vatId, vatRequest);
+        Vat result = vatService.updateVatInformation(vat.getId(), request);
 
-        // Assert: Verify the result and interactions
-        assertEquals(savedVat, result); // Check the returned VAT
+        assertNotNull(result);
+        assertEquals(vat.getId(), result.getId());
+        assertEquals("Updated VAT", result.getName());
+        assertEquals("UPDATEDTAX123", result.getTaxCode());
 
-        // Verify interactions with mocks
-        verify(vatRepository).findById(vatId);
-        verify(vatMapper).updateVat(savedVat, vatRequest);
-        verify(vatRepository).save(savedVat);
+        // Verify in database
+        Vat updatedVat = vatRepository.findById(vat.getId()).orElse(null);
+        assertNotNull(updatedVat);
+        assertEquals("Updated VAT", updatedVat.getName());
+        assertEquals("UPDATEDTAX123", updatedVat.getTaxCode());
     }
 
     // VS-6
     @Test
     void updateTaxShouldUpdateTaxWhenDataIsValid() {
-        when(vatRepository.findById(vatId)).thenReturn(java.util.Optional.of(savedVat));
-        when(vatRepository.save(savedVat)).thenReturn(savedVat);
+        TaxRequest request = new TaxRequest();
+        request.setTaxValue(0.15f);
+        request.setTaxName("Updated Tax");
 
-        // Act: Call the method under test
-        Vat result = vatService.updateTax(vatId, taxRequest);
+        Vat result = vatService.updateTax(vat.getId(), request);
 
-        // Assert: Verify the result and interactions
-        assertEquals(savedVat, result); // Check the returned VAT
+        assertNotNull(result);
+        assertEquals(vat.getId(), result.getId());
+        assertEquals(0.15f, result.getTaxValue());
+        assertEquals("Updated Tax", result.getTaxName());
 
-        // Verify interactions with mocks
-        verify(vatRepository).findById(vatId);
-        verify(vatRepository).save(savedVat);
+        // Verify in database
+        Vat updatedVat = vatRepository.findById(vat.getId()).orElse(null);
+        assertNotNull(updatedVat);
+        assertEquals(0.15f, updatedVat.getTaxValue());
+        assertEquals("Updated Tax", updatedVat.getTaxName());
     }
 }

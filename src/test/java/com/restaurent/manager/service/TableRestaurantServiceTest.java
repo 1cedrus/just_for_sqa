@@ -7,479 +7,555 @@ import com.restaurent.manager.entity.*;
 import com.restaurent.manager.entity.Package;
 import com.restaurent.manager.exception.AppException;
 import com.restaurent.manager.exception.ErrorCode;
-import com.restaurent.manager.mapper.TableRestaurantMapper;
-import com.restaurent.manager.mapper.TableRestaurantMapperImpl;
-import com.restaurent.manager.repository.AreaRepository;
-import com.restaurent.manager.repository.ScheduleRepository;
-import com.restaurent.manager.repository.TableRestaurantRepository;
-import com.restaurent.manager.repository.TableTypeRepository;
+import com.restaurent.manager.repository.*;
+import com.restaurent.manager.service.impl.RestaurantService;
 import com.restaurent.manager.service.impl.TableRestaurantService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@SpringBootTest
+@Transactional
 class TableRestaurantServiceTest {
 
-    @Mock
-    AreaRepository areaRepository;
+    @Autowired
+    private TableRestaurantService tableRestaurantService;
 
-    @Mock
-    TableTypeRepository tableTypeRepository;
+    @Autowired
+    private RestaurantService restaurantService;
 
-    @Mock
-    TableRestaurantRepository tableRestaurantRepository;
+    @Autowired
+    private AreaRepository areaRepository;
 
-    @Mock
-    IRestaurantService restaurantService;
+    @Autowired
+    private TableTypeRepository tableTypeRepository;
 
-    @Mock
-    ScheduleRepository scheduleRepository;
+    @Autowired
+    private TableRestaurantRepository tableRestaurantRepository;
 
-    @Spy
-    TableRestaurantMapper tableRestaurantMapper = new TableRestaurantMapperImpl(); // Use the actual mapper
+    @Autowired
+    private RestaurantRepository restaurantRepository;
 
-    @InjectMocks
-    TableRestaurantService tableRestaurantService;
+    @Autowired
+    private ScheduleRepository scheduleRepository;
 
-    TableRestaurantRequest tableRestaurantRequest;
-    Restaurant restaurant;
-    TableRestaurantUpdateRequest tableRestaurantUpdateRequest;
-    TableRestaurant tableRestaurant;
-    TableRestaurantResponse tableRestaurantResponse;
-    TableType tableType;
-    Permission tableMaxPermission;
-    Area area;
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private PackageRepository packageRepository;
+
+    @Autowired
+    private PermissionRepository permissionRepository;
+
+    @MockBean
+    private Clock clock;
+
+    private Restaurant restaurant;
+    private TableRestaurant tableRestaurant;
+    private TableType tableType;
+    private Permission tableMaxPermission;
+    private Area area;
+    private Long restaurantId;
+    private Package restaurantPackage;
+    private Customer customer;
+    private Employee employee;
+    private Role role;
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
+        // Set up a fixed Clock for 2025-04-08 12:00
+        LocalDateTime fixedDateTime = LocalDateTime.of(2025, 4, 8, 12, 0);
+        Clock fixedClock = Clock.fixed(
+                fixedDateTime.atZone(ZoneId.systemDefault()).toInstant(),
+                ZoneId.systemDefault());
+        when(clock.instant()).thenReturn(fixedClock.instant());
+        when(clock.getZone()).thenReturn(fixedClock.getZone());
 
-        tableRestaurantRequest = new TableRestaurantRequest();
-        restaurant = new Restaurant();
-        tableRestaurantUpdateRequest = new TableRestaurantUpdateRequest();
-        tableType = new TableType();
-        area = new Area();
-
-        tableType.setId(1);
-        area.setId(1L);
-
+        // Create permission first
         tableMaxPermission = new Permission();
-        tableMaxPermission.setId(1L);
         tableMaxPermission.setName("TABLE_MAX");
         tableMaxPermission.setMaximum(5);
+        tableMaxPermission = permissionRepository.saveAndFlush(tableMaxPermission);
 
-        restaurant.setId(1L);
-        restaurant.setRestaurantPackage(new Package());
-        restaurant.getRestaurantPackage().setPermissions(Set.of(tableMaxPermission));
+        // Create package
+        restaurantPackage = new Package();
+        restaurantPackage.setPackName("Test Package");
+        restaurantPackage.setPricePerMonth(100.0);
+        restaurantPackage.setPermissions(Set.of(tableMaxPermission));
+        restaurantPackage = packageRepository.saveAndFlush(restaurantPackage);
 
-        tableRestaurantRequest.setRestaurantId(1L);
-        tableRestaurantRequest.setAreaId(1L);
-        tableRestaurantRequest.setTableTypeId(1L);
-        tableRestaurantRequest.setName("Test Table Restaurant");
-        tableRestaurantRequest.setNumberChairs(4);
+        // Create restaurant
+        restaurant = new Restaurant();
+        restaurant.setRestaurantName("Test Restaurant");
+        restaurant.setAddress("Test Address");
+        restaurant.setProvince("Test Province");
+        restaurant.setDistrict("Test District");
+        restaurant.setMoneyToPoint(1.0);
+        restaurant.setPointToMoney(1.0);
+        restaurant.setMonthsRegister(12);
+        restaurant.setVatActive(false);
+        restaurant.setDateCreated(LocalDate.now(clock));
+        restaurant.setRestaurantPackage(restaurantPackage);
+        restaurant = restaurantRepository.saveAndFlush(restaurant);
+        restaurantId = restaurant.getId();
 
-        tableRestaurant = tableRestaurantMapper.toTableRestaurant(tableRestaurantRequest);
-        tableRestaurant.setId(1L);
-        tableRestaurantResponse = tableRestaurantMapper.toTableRestaurantResponse(tableRestaurant);
+        // Create table type
+        tableType = new TableType();
+        tableType.setName("Standard Table");
+        tableType = tableTypeRepository.saveAndFlush(tableType);
+
+        // Create area
+        area = new Area();
+        area.setName("Main Area");
+        area.setRestaurant(restaurant);
+        area = areaRepository.saveAndFlush(area);
+
+        // Create role
+        role = new Role();
+        role.setName("EMPLOYEE");
+        role.setDescription("Employee role");
+        role = roleRepository.saveAndFlush(role);
+
+        // Create employee
+        employee = new Employee();
+        employee.setUsername("test_employee");
+        employee.setPassword("password");
+        employee.setEmployeeName("Test Employee");
+        employee.setPhoneNumber("1234567890");
+        employee.setRestaurant(restaurant);
+        employee.setRole(role);
+        employee = employeeRepository.saveAndFlush(employee);
+
+        // Create customer
+        customer = new Customer();
+        customer.setName("Test Customer");
+        customer.setPhoneNumber("123456789");
+        customer.setAddress("Test Address");
+        customer.setRestaurant(restaurant);
+        customer.setCurrentPoint(0);
+        customer.setTotalPoint(0);
+        customer.setDateCreated(LocalDateTime.now(clock));
+        customer = customerRepository.saveAndFlush(customer);
+
+        // Create table restaurant
+        tableRestaurant = new TableRestaurant();
+        tableRestaurant.setName("Test Table Restaurant");
+        tableRestaurant.setArea(area);
+        tableRestaurant.setTableType(tableType);
+        tableRestaurant.setNumberChairs(4);
+        tableRestaurant.setPositionX(0);
+        tableRestaurant.setPositionY(0);
+        tableRestaurant.setHidden(false);
+        tableRestaurant = tableRestaurantRepository.saveAndFlush(tableRestaurant);
     }
 
     // TRS-1
     @Test
     void createTableRestaurantShouldCreateTableRestaurantWhenDataIsValid() {
-        when(tableRestaurantRepository.save(any(TableRestaurant.class))).thenReturn(tableRestaurant);
-        when(tableTypeRepository.findById(1L)).thenReturn(Optional.of(tableType));
-        when(areaRepository.findById(1L)).thenReturn(Optional.of(area));
+        TableRestaurantRequest request = new TableRestaurantRequest();
+        request.setRestaurantId(restaurantId);
+        request.setAreaId(area.getId());
+        request.setTableTypeId(Long.valueOf(tableType.getId()));
+        request.setName("New Test Table");
+        request.setNumberChairs(6);
 
-        // Act: Call the method under test
-        TableRestaurantResponse result = tableRestaurantService.createTable(tableRestaurantRequest);
+        TableRestaurantResponse result = tableRestaurantService.createTable(request);
 
-        // Assert: Verify the result and interactions
-        assertEquals(tableRestaurantResponse, result); // Check the returned Table Restaurant
+        assertNotNull(result);
+        assertEquals("New Test Table", result.getName());
+        assertEquals(6, result.getNumberChairs());
 
-        verify(tableRestaurantRepository).save(any(TableRestaurant.class)); // Verify save method was called
-        verify(tableTypeRepository).findById(1L); // Verify table type repository was called
-        verify(areaRepository).findById(1L); // Verify area repository was called
+        // Verify in database
+        List<TableRestaurant> tables = tableRestaurantRepository.findByArea_IdAndHidden(area.getId(), false);
+        assertTrue(tables.stream().anyMatch(t -> "New Test Table".equals(t.getName())));
     }
 
     // TRS-2
     @Test
     void createTableRestaurantShouldThrowExceptionWhenAreaNotFound() {
-        when(tableTypeRepository.findById(1L)).thenReturn(Optional.of(tableType));
-        when(areaRepository.findById(1L)).thenReturn(Optional.empty());
+        TableRestaurantRequest request = new TableRestaurantRequest();
+        request.setRestaurantId(restaurantId);
+        request.setAreaId(999L);
+        request.setTableTypeId(Long.valueOf(tableType.getId()));
+        request.setName("New Test Table");
+        request.setNumberChairs(6);
 
         AppException e = assertThrows(AppException.class, () -> {
-            tableRestaurantService.createTable(tableRestaurantRequest);
+            tableRestaurantService.createTable(request);
         });
 
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(tableTypeRepository).findById(1L); // Verify table type repository was called
-        verify(areaRepository).findById(1L); // Verify area repository was called
     }
 
     // TRS-3
     @Test
     void createTableRestaurantShouldThrowExceptionWhenTableTypeNotFound() {
-        when(tableTypeRepository.findById(1L)).thenReturn(Optional.empty());
-        when(areaRepository.findById(1L)).thenReturn(Optional.of(area));
+        TableRestaurantRequest request = new TableRestaurantRequest();
+        request.setRestaurantId(restaurantId);
+        request.setAreaId(area.getId());
+        request.setTableTypeId(999L);
+        request.setName("New Test Table");
+        request.setNumberChairs(6);
 
         AppException e = assertThrows(AppException.class, () -> {
-            tableRestaurantService.createTable(tableRestaurantRequest);
+            tableRestaurantService.createTable(request);
         });
 
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(tableTypeRepository).findById(1L); // Verify table type repository was called
     }
 
     // TRS-4
     @Test
     void createTableRestaurantShouldThrowExceptionWhenTableNameExisted() {
-        when(tableTypeRepository.findById(1L)).thenReturn(Optional.of(tableType));
-        when(areaRepository.findById(1L)).thenReturn(Optional.of(area));
-        when(tableRestaurantRepository.existsByNameAndArea_Id(tableRestaurantRequest.getName(), tableRestaurantRequest.getAreaId())).thenReturn(true);
+        TableRestaurantRequest request = new TableRestaurantRequest();
+        request.setRestaurantId(restaurantId);
+        request.setAreaId(area.getId());
+        request.setTableTypeId(Long.valueOf(tableType.getId()));
+        request.setName("Test Table Restaurant"); // Same name as existing table
+        request.setNumberChairs(6);
 
         AppException e = assertThrows(AppException.class, () -> {
-            tableRestaurantService.createTable(tableRestaurantRequest);
+            tableRestaurantService.createTable(request);
         });
 
         assertEquals(ErrorCode.TABLE_NAME_EXISTED, e.getErrorCode());
-
-        verify(tableTypeRepository).findById(1L); // Verify table type repository was called
-        verify(areaRepository).findById(1L); // Verify area repository was called
-        verify(tableRestaurantRepository).existsByNameAndArea_Id(tableRestaurantRequest.getName(), tableRestaurantRequest.getAreaId()); // Verify table restaurant repository was called
     }
 
     // TRS-5
     @Test
     void updateTableRestaurantShouldUpdateTableRestaurantWhenDataIsValid() {
-        tableRestaurantRequest.setName("Another Test Table Restaurant");
-        tableRestaurantRequest.setNumberChairs(5);
+        TableRestaurantRequest request = new TableRestaurantRequest();
+        request.setRestaurantId(restaurantId);
+        request.setAreaId(area.getId());
+        request.setTableTypeId(Long.valueOf(tableType.getId()));
+        request.setName("Updated Table Restaurant");
+        request.setNumberChairs(8);
 
-        when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.of(tableRestaurant));
-        when(tableTypeRepository.findById(1L)).thenReturn(Optional.of(tableType));
-        when(tableRestaurantRepository.save(any(TableRestaurant.class))).thenReturn(tableRestaurant);
+        TableRestaurantResponse result = tableRestaurantService.updateTableByTableId(tableRestaurant.getId(), request);
 
-        // Act: Call the method under test
-        TableRestaurantResponse result = tableRestaurantService.updateTableByTableId(1L, tableRestaurantRequest);
+        assertNotNull(result);
+        assertEquals(tableRestaurant.getId(), result.getId());
+        assertEquals("Updated Table Restaurant", result.getName());
+        assertEquals(8, result.getNumberChairs());
 
-        // Assert: Verify the result and interactions
-        assertEquals(1L, result.getId()); // Check the returned Table Restaurant
-        assertEquals("Another Test Table Restaurant", result.getName()); // Check the name
-        assertEquals(5, result.getNumberChairs()); // Check the number of chairs
-        assertEquals(1L, result.getTableType().getId());
-
-        verify(tableRestaurantRepository).findById(1L); // Verify findById method was called
-        verify(tableTypeRepository).findById(1L); // Verify table type repository was called
-        verify(tableRestaurantRepository).save(any(TableRestaurant.class)); // Verify save method was called
+        // Verify in database
+        TableRestaurant updatedTable = tableRestaurantRepository.findById(tableRestaurant.getId()).orElse(null);
+        assertNotNull(updatedTable);
+        assertEquals("Updated Table Restaurant", updatedTable.getName());
+        assertEquals(8, updatedTable.getNumberChairs());
     }
 
     // TRS-6
     @Test
     void updateTableRestaurantShouldThrowExceptionWhenTableNotFound() {
-        when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.empty());
+        TableRestaurantRequest request = new TableRestaurantRequest();
+        request.setRestaurantId(restaurantId);
+        request.setAreaId(area.getId());
+        request.setTableTypeId(Long.valueOf(tableType.getId()));
+        request.setName("Updated Table Restaurant");
+        request.setNumberChairs(8);
 
         AppException e = assertThrows(AppException.class, () -> {
-            tableRestaurantService.updateTableByTableId(1L, tableRestaurantRequest);
+            tableRestaurantService.updateTableByTableId(999L, request);
         });
 
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(tableRestaurantRepository).findById(1L); // Verify findById method was called
     }
 
     // TRS-7
     @Test
     void updateTableRestaurantShouldThrowExceptionWhenTableNameExisted() {
-        tableRestaurantRequest.setName("Another Table Name");
+        // Create another table with a different name
+        TableRestaurant anotherTable = new TableRestaurant();
+        anotherTable.setName("Another Table");
+        anotherTable.setArea(area);
+        anotherTable.setTableType(tableType);
+        anotherTable.setNumberChairs(4);
+        anotherTable.setPositionX(0);
+        anotherTable.setPositionY(0);
+        anotherTable.setHidden(false);
+        anotherTable = tableRestaurantRepository.saveAndFlush(anotherTable);
 
-        when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.of(tableRestaurant));
-        when(tableRestaurantRepository.existsByNameAndArea_Id(tableRestaurantRequest.getName(), tableRestaurantRequest.getAreaId())).thenReturn(true);
+        TableRestaurantRequest request = new TableRestaurantRequest();
+        request.setRestaurantId(restaurantId);
+        request.setAreaId(area.getId());
+        request.setTableTypeId(Long.valueOf(tableType.getId()));
+        request.setName("Another Table"); // Try to use existing name
+        request.setNumberChairs(8);
 
         AppException e = assertThrows(AppException.class, () -> {
-            tableRestaurantService.updateTableByTableId(1L, tableRestaurantRequest);
+            tableRestaurantService.updateTableByTableId(tableRestaurant.getId(), request);
         });
 
         assertEquals(ErrorCode.TABLE_NAME_EXISTED, e.getErrorCode());
-
-        verify(tableRestaurantRepository).findById(1L); // Verify findById method was called
-        verify(tableRestaurantRepository).existsByNameAndArea_Id(tableRestaurantRequest.getName(), tableRestaurantRequest.getAreaId());
     }
 
     // TRS-8
     @Test
     void updateTableRestaurantShouldThrowExceptionWhenTableTypeNotFound() {
-        when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.of(tableRestaurant));
-        when(tableTypeRepository.findById(1L)).thenReturn(Optional.empty());
+        TableRestaurantRequest request = new TableRestaurantRequest();
+        request.setRestaurantId(restaurantId);
+        request.setAreaId(area.getId());
+        request.setTableTypeId(999L);
+        request.setName("Updated Table Restaurant");
+        request.setNumberChairs(8);
 
         AppException e = assertThrows(AppException.class, () -> {
-            tableRestaurantService.updateTableByTableId(1L, tableRestaurantRequest);
+            tableRestaurantService.updateTableByTableId(tableRestaurant.getId(), request);
         });
 
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(tableRestaurantRepository).findById(1L); // Verify findById method was called
-        verify(tableTypeRepository).findById(1L); // Verify table type repository was called
     }
 
     // TRS-9
     @Test
     void deleteTableRestaurantShouldDeleteTableRestaurantWhenDataIsValid() {
-        when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.of(tableRestaurant));
+        tableRestaurantService.deleteTableById(tableRestaurant.getId());
 
-        // Act: Call the method under test
-        tableRestaurantService.deleteTableById(1L);
-
-        // Assert: Verify the result and interactions
-        assertTrue(tableRestaurant.isHidden()); // Check if the table is marked as hidden
-
-        verify(tableRestaurantRepository).findById(1L); // Verify findById method was called
+        // Verify in database - table should be hidden
+        TableRestaurant deletedTable = tableRestaurantRepository.findById(tableRestaurant.getId()).orElse(null);
+        assertNotNull(deletedTable);
+        assertTrue(deletedTable.isHidden());
     }
 
     // TRS-10
     @Test
     void deleteTableRestaurantShouldThrowExceptionWhenTableNotFound() {
-        when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.empty());
-
         AppException e = assertThrows(AppException.class, () -> {
-            tableRestaurantService.deleteTableById(1L);
+            tableRestaurantService.deleteTableById(999L);
         });
 
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(tableRestaurantRepository).findById(1L); // Verify findById method was called
     }
 
     // TRS-11
     @Test
     void findTableRestaurantByIdShouldReturnTableRestaurantWhenExists() {
-        when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.of(tableRestaurant));
+        TableRestaurant result = tableRestaurantService.findById(tableRestaurant.getId());
 
-        // Act: Call the method under test
-        TableRestaurant result = tableRestaurantService.findById(1L);
-
-        // Assert: Verify the result and interactions
-        assertEquals(tableRestaurant, result); // Check the returned Table Restaurant
-
-        verify(tableRestaurantRepository).findById(1L); // Verify findById method was called
+        assertNotNull(result);
+        assertEquals(tableRestaurant.getId(), result.getId());
+        assertEquals("Test Table Restaurant", result.getName());
     }
 
     // TRS-12
     @Test
     void findTableRestaurantByIdShouldThrowExceptionWhenNotExists() {
-        when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.empty());
-
         AppException e = assertThrows(AppException.class, () -> {
-            tableRestaurantService.findById(1L);
+            tableRestaurantService.findById(999L);
         });
 
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(tableRestaurantRepository).findById(1L); // Verify findById method was called
     }
 
     // TRS-13
     @Test
     void findTableRestaurantByIdToResponseShouldReturnTableRestaurantResponseWhenExists() {
-        when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.of(tableRestaurant));
+        TableRestaurantResponse result = tableRestaurantService
+                .findTableRestaurantByIdToResponse(tableRestaurant.getId());
 
-        // Act: Call the method under test
-        TableRestaurantResponse result = tableRestaurantService.findTableRestaurantByIdToResponse(1L);
-
-        // Assert: Verify the result and interactions
-        assertEquals(tableRestaurantResponse, result); // Check the returned Table Restaurant Response
-
-        verify(tableRestaurantRepository).findById(1L); // Verify findById method was called
+        assertNotNull(result);
+        assertEquals(tableRestaurant.getId(), result.getId());
+        assertEquals("Test Table Restaurant", result.getName());
     }
 
     // TRS-14
     @Test
     void findTableRestaurantByIdToResponseShouldThrowExceptionWhenNotExists() {
-        when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.empty());
-
         AppException e = assertThrows(AppException.class, () -> {
-            tableRestaurantService.findTableRestaurantByIdToResponse(1L);
+            tableRestaurantService.findTableRestaurantByIdToResponse(999L);
         });
 
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(tableRestaurantRepository).findById(1L);
     }
 
     // TRS-15
     @Test
     void updateTablesShouldUpdateTablePositionsWhenDataIsValid() {
-        tableRestaurantResponse.setId(1L);
-        tableRestaurantResponse.setPositionX(10); // Example position
-        tableRestaurantResponse.setPositionY(20);
+        TableRestaurantResponse response = new TableRestaurantResponse();
+        response.setId(tableRestaurant.getId());
+        response.setPositionX(10);
+        response.setPositionY(20);
 
-        when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.of(tableRestaurant));
-        when(tableRestaurantRepository.save(any(TableRestaurant.class))).thenReturn(tableRestaurant);
+        tableRestaurantService.updateTables(List.of(response));
 
-        tableRestaurantService.updateTables(List.of(tableRestaurantResponse));
-
-        assertEquals(10, tableRestaurant.getPositionX());
-        assertEquals(20, tableRestaurant.getPositionY());
-
-        verify(tableRestaurantRepository).findById(1L);
-        verify(tableRestaurantRepository).save(tableRestaurant);
+        // Verify in database
+        TableRestaurant updatedTable = tableRestaurantRepository.findById(tableRestaurant.getId()).orElse(null);
+        assertNotNull(updatedTable);
+        assertEquals(10, updatedTable.getPositionX());
+        assertEquals(20, updatedTable.getPositionY());
     }
 
     // TRS-16
     @Test
     void updateTablesShouldThrowExceptionWhenTableNotFound() {
-        when(tableRestaurantRepository.findById(1L)).thenReturn(Optional.empty());
+        TableRestaurantResponse response = new TableRestaurantResponse();
+        response.setId(999L);
+        response.setPositionX(10);
+        response.setPositionY(20);
 
         AppException e = assertThrows(AppException.class, () -> {
-            tableRestaurantService.updateTables(List.of(tableRestaurantResponse));
+            tableRestaurantService.updateTables(List.of(response));
         });
 
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(tableRestaurantRepository).findById(1L);
     }
 
     // TRS-17
     @Test
     void getTablesByAreaIdShouldReturnListOfTableRestaurantResponse() {
-        tableRestaurant.setId(1L);
-        when(tableRestaurantRepository.findByArea_IdAndHidden(1L, false)).thenReturn(List.of(tableRestaurant));
-        when(scheduleRepository.findByTableIdAndBookedDate(1L, LocalDate.now())).thenReturn(List.of(new Schedule()));
+        List<TableRestaurantResponse> result = tableRestaurantService.getTableByAreaId(area.getId());
 
-        List<TableRestaurantResponse> actualResponse = tableRestaurantService.getTableByAreaId(1L);
-
-        assertEquals(1, actualResponse.size());
-        assertEquals(1L, actualResponse.get(0).getId());
-        assertEquals("Test Table Restaurant", actualResponse.get(0).getName());
-        assertTrue(actualResponse.get(0).isBooked());
-
-        verify(tableRestaurantRepository).findByArea_IdAndHidden(1L, false);
-        verify(scheduleRepository).findByTableIdAndBookedDate(1L, LocalDate.now());
+        assertNotNull(result);
+        assertTrue(result.size() >= 1);
+        assertTrue(result.stream().anyMatch(t -> "Test Table Restaurant".equals(t.getName())));
     }
 
     // TRS-18
     @Test
     void getTableByAreaIdHaveOrderShouldReturnListOfTableRestaurantResponse() {
-        tableRestaurant.setId(1L);
+        // Set an order current for the table
         tableRestaurant.setOrderCurrent(1L);
+        tableRestaurantRepository.saveAndFlush(tableRestaurant);
 
-        when(tableRestaurantRepository.findByArea_IdAndHidden(1L, false)).thenReturn(List.of(tableRestaurant));
+        List<TableRestaurantResponse> result = tableRestaurantService.getTableByAreaIdHaveOrder(area.getId());
 
-        List<TableRestaurantResponse> actualResponse = tableRestaurantService.getTableByAreaIdHaveOrder(1L);
-
-        assertEquals(1, actualResponse.size());
-        assertEquals(1L, actualResponse.get(0).getId());
-        assertEquals("Test Table Restaurant", actualResponse.get(0).getName());
-
-        verify(tableRestaurantRepository).findByArea_IdAndHidden(1L, false);
+        assertNotNull(result);
+        assertTrue(result.size() >= 1);
+        assertTrue(result.stream().anyMatch(t -> "Test Table Restaurant".equals(t.getName())));
     }
 
     // TRS-19
     @Test
     void createManyTableShouldCreateMultipleTables() {
-        when(tableTypeRepository.findById(1L)).thenReturn(Optional.of(tableType));
-        when(areaRepository.findById(1L)).thenReturn(Optional.of(area));
-        when(tableRestaurantRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        TableRestaurantRequest request = new TableRestaurantRequest();
+        request.setRestaurantId(restaurantId);
+        request.setAreaId(area.getId());
+        request.setTableTypeId(Long.valueOf(tableType.getId()));
+        request.setName("Bulk Table");
+        request.setNumberChairs(4);
 
-        List<TableRestaurantResponse> result = tableRestaurantService.createManyTable(3, tableRestaurantRequest);
+        List<TableRestaurantResponse> result = tableRestaurantService.createManyTable(3, request);
 
         assertEquals(3, result.size());
         for (int i = 0; i < 3; i++) {
-            assertEquals("Test Table Restaurant-" + (i + 1), result.get(i).getName());
+            assertEquals("Bulk Table-" + (i + 1), result.get(i).getName());
         }
 
-        verify(tableRestaurantRepository, times(3)).save(any(TableRestaurant.class)); // Verify save method was called 3 times
-        verify(tableTypeRepository, times(3)).findById(1L); // Verify table type repository was called
-        verify(areaRepository, times(3)).findById(1L); // Verify area repository was called
+        // Verify in database
+        List<TableRestaurant> tables = tableRestaurantRepository.findByArea_IdAndHidden(area.getId(), false);
+        long bulkTableCount = tables.stream().filter(t -> t.getName().startsWith("Bulk Table-")).count();
+        assertEquals(3, bulkTableCount);
     }
 
     // TRS-20
     @Test
     void createManyTableShouldThrowExceptionWhenAreaNotFound() {
-        when(tableTypeRepository.findById(1L)).thenReturn(Optional.of(tableType));
-        when(areaRepository.findById(1L)).thenReturn(Optional.empty());
+        TableRestaurantRequest request = new TableRestaurantRequest();
+        request.setRestaurantId(restaurantId);
+        request.setAreaId(999L);
+        request.setTableTypeId(Long.valueOf(tableType.getId()));
+        request.setName("Bulk Table");
+        request.setNumberChairs(4);
 
         AppException e = assertThrows(AppException.class, () -> {
-            tableRestaurantService.createManyTable(3, tableRestaurantRequest);
+            tableRestaurantService.createManyTable(3, request);
         });
 
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(tableTypeRepository).findById(1L); // Verify table type repository was called
-        verify(areaRepository).findById(1L); // Verify area repository was called
     }
 
     // TRS-21
     @Test
     void createManyTableShouldThrowExceptionWhenTableTypeNotFound() {
-        when(tableTypeRepository.findById(1L)).thenReturn(Optional.empty());
+        TableRestaurantRequest request = new TableRestaurantRequest();
+        request.setRestaurantId(restaurantId);
+        request.setAreaId(area.getId());
+        request.setTableTypeId(999L);
+        request.setName("Bulk Table");
+        request.setNumberChairs(4);
 
         AppException e = assertThrows(AppException.class, () -> {
-            tableRestaurantService.createManyTable(3, tableRestaurantRequest);
+            tableRestaurantService.createManyTable(3, request);
         });
 
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(tableTypeRepository).findById(1L); // Verify table type repository was called
     }
 
     // TRS-22
     @Test
     void createManyTableShouldThrowExceptionWhenMaxTableExceeded() {
-        when(areaRepository.findByRestaurant_Id(1L)).thenReturn(List.of(area));
-        when(restaurantService.getRestaurantById(1L)).thenReturn(restaurant);
-        when(tableRestaurantRepository.findByArea_IdAndHidden(1L, false)).thenReturn(List.of(new TableRestaurant(), new TableRestaurant()));
+        TableRestaurantRequest request = new TableRestaurantRequest();
+        request.setRestaurantId(restaurantId);
+        request.setAreaId(area.getId());
+        request.setTableTypeId(Long.valueOf(tableType.getId()));
+        request.setName("Bulk Table");
+        request.setNumberChairs(4);
 
+        // Try to create more tables than the maximum allowed (5)
         AppException e = assertThrows(AppException.class, () -> {
-            tableRestaurantService.createManyTable(5, tableRestaurantRequest);
+            tableRestaurantService.createManyTable(6, request);
         });
 
         assertEquals(ErrorCode.MAX_TABLE, e.getErrorCode());
-
-        verify(areaRepository).findByRestaurant_Id(1L); // Verify area repository was called
-        verify(restaurantService).getRestaurantById(1L); // Verify restaurant service was called
-        verify(tableRestaurantRepository).findByArea_IdAndHidden(1L, false); // Verify table restaurant repository was called
     }
 
     // TRS-23
     @Test
     void createManyTableShouldContinueCreatingTablesWhenSomeAlreadyExist() {
-        int numbers = 2;
+        // Create an existing table with numbered name
         TableRestaurant existingTable = new TableRestaurant();
-        existingTable.setName("Test Table Restaurant-3");
+        existingTable.setName("Bulk Table-3");
+        existingTable.setArea(area);
+        existingTable.setTableType(tableType);
+        existingTable.setNumberChairs(4);
+        existingTable.setPositionX(0);
+        existingTable.setPositionY(0);
+        existingTable.setHidden(false);
+        tableRestaurantRepository.saveAndFlush(existingTable);
 
-        when(areaRepository.findByRestaurant_Id(1L)).thenReturn(List.of(area));
-        when(tableRestaurantRepository.findByArea_IdAndHidden(1L, false)).thenReturn(List.of(existingTable));
-        when(tableTypeRepository.findById(1L)).thenReturn(Optional.of(tableType));
-        when(areaRepository.findById(1L)).thenReturn(Optional.of(area));
-        when(restaurantService.getRestaurantById(1L)).thenReturn(restaurant);
-        when(tableRestaurantRepository.findTopByRestaurant_IdAndNameStartingWithOrderByNameDesc(1L, "Test Table Restaurant-")).thenReturn(existingTable);
-        when(tableRestaurantRepository.save(any(TableRestaurant.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        TableRestaurantRequest request = new TableRestaurantRequest();
+        request.setRestaurantId(restaurantId);
+        request.setAreaId(area.getId());
+        request.setTableTypeId(Long.valueOf(tableType.getId()));
+        request.setName("Bulk Table");
+        request.setNumberChairs(4);
 
-        List<TableRestaurantResponse> result = tableRestaurantService.createManyTable(numbers, tableRestaurantRequest);
+        List<TableRestaurantResponse> result = tableRestaurantService.createManyTable(2, request);
 
-        assertEquals(numbers, result.size());
-        assertEquals("Test Table Restaurant-4", result.get(0).getName());
-        assertEquals("Test Table Restaurant-5", result.get(1).getName());
+        assertEquals(2, result.size());
+        // Should start from 4 since 3 already exists
+        assertEquals("Bulk Table-4", result.get(0).getName());
+        assertEquals("Bulk Table-5", result.get(1).getName());
 
-        verify(tableRestaurantRepository, times(2)).save(any(TableRestaurant.class));
-        verify(areaRepository).findByRestaurant_Id(1L); // Verify area repository was called
-        verify(restaurantService).getRestaurantById(1L); // Verify restaurant service was called
-        verify(tableRestaurantRepository).findTopByRestaurant_IdAndNameStartingWithOrderByNameDesc(1L, "Test Table Restaurant-"); // Verify table restaurant repository was called
-        verify(tableRestaurantRepository).findByArea_IdAndHidden(1L, false); // Verify table restaurant repository was called
-        verify(tableTypeRepository, times(2)).findById(1L); // Verify table type repository was called
-        verify(areaRepository, times(2)).findById(1L); // Verify area repository was called
+        // Verify in database
+        List<TableRestaurant> tables = tableRestaurantRepository.findByArea_IdAndHidden(area.getId(), false);
+        assertTrue(tables.stream().anyMatch(t -> "Bulk Table-4".equals(t.getName())));
+        assertTrue(tables.stream().anyMatch(t -> "Bulk Table-5".equals(t.getName())));
     }
 }

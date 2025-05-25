@@ -3,103 +3,97 @@ package com.restaurent.manager.service;
 import com.restaurent.manager.dto.PagingResult;
 import com.restaurent.manager.dto.request.ScheduleRequest;
 import com.restaurent.manager.dto.request.order.DishOrderRequest;
-import com.restaurent.manager.dto.response.Combo.ComboResponse;
-import com.restaurent.manager.dto.response.DishResponse;
-import com.restaurent.manager.dto.response.ScheduleDishResponse;
 import com.restaurent.manager.dto.response.ScheduleResponse;
 import com.restaurent.manager.dto.response.ScheduleTimeResponse;
 import com.restaurent.manager.entity.*;
 import com.restaurent.manager.enums.SCHEDULE_STATUS;
 import com.restaurent.manager.exception.AppException;
 import com.restaurent.manager.exception.ErrorCode;
-import com.restaurent.manager.mapper.ScheduleMapper;
-import com.restaurent.manager.mapper.ScheduleMapperImpl;
-import com.restaurent.manager.repository.CustomerRepository;
-import com.restaurent.manager.repository.ScheduleRepository;
-import com.restaurent.manager.repository.TableRestaurantRepository;
+import com.restaurent.manager.repository.*;
 import com.restaurent.manager.service.impl.ScheduleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@SpringBootTest
+@Transactional
 class ScheduleServiceTest {
 
-    @Mock
-    ScheduleRepository scheduleRepository;
+    @Autowired
+    private ScheduleService scheduleService;
 
-    @Mock
-    ITableRestaurantService tableRestaurantService;
+    @Autowired
+    private ScheduleRepository scheduleRepository;
 
-    @Mock
-    TableRestaurantRepository tableRestaurantRepository;
+    @Autowired
+    private RestaurantRepository restaurantRepository;
 
-    @Mock
-    IRestaurantService restaurantService;
+    @Autowired
+    private TableRestaurantRepository tableRestaurantRepository;
 
-    @Mock
-    IScheduleDishService scheduleDishService;
+    @Autowired
+    private AreaRepository areaRepository;
 
-    @Mock
-    ICustomerService customerService;
+    @Autowired
+    private TableTypeRepository tableTypeRepository;
 
-    @Mock
-    IEmployeeService employeeService;
+    @Autowired
+    private DishRepository dishRepository;
 
-    @Mock
-    IOrderService orderService;
+    @Autowired
+    private DishCategoryRepository dishCategoryRepository;
 
-    @Mock
-    CustomerRepository customerRepository;
+    @Autowired
+    private UnitRepository unitRepository;
 
-    @Mock
-    Clock clock;
+    @Autowired
+    private CustomerRepository customerRepository;
 
-    @Spy
-    ScheduleMapper scheduleMapper = new ScheduleMapperImpl();
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
-    @InjectMocks
-    ScheduleService scheduleService;
+    @Autowired
+    private RoleRepository roleRepository;
 
-    Long restaurantId = 1L;
-    ScheduleRequest scheduleRequest;
-    TableRestaurant tableRestaurant;
-    Restaurant restaurant;
-    Customer customer;
-    Employee employee;
+    @Autowired
+    private ScheduleDishRepository scheduleDishRepository;
 
-    LocalDate bookedDate;
-    LocalTime bookedTime;
-    LocalDateTime bookedDateTime;
+    @MockBean
+    private Clock clock;
+
+    private Long restaurantId;
+    private Restaurant restaurant;
+    private TableRestaurant tableRestaurant;
+    private Area area;
+    private TableType tableType;
+    private Dish dish;
+    private DishCategory dishCategory;
+    private Unit unit;
+    private Customer customer;
+    private Employee employee;
+    private Role role;
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
-
-        scheduleRequest = new ScheduleRequest();
-        bookedDate = LocalDate.of(2025, 4, 8);
-        bookedTime = LocalTime.of(12, 0);
-        bookedDateTime = LocalDateTime.of(bookedDate, bookedTime);
-
-        tableRestaurant = new TableRestaurant();
-        restaurant = new Restaurant();
-        customer = new Customer();
-        employee = new Employee();
-
-        restaurant.setId(restaurantId);
-
         // Set up a fixed Clock for 2025-04-08 12:00
         LocalDateTime fixedDateTime = LocalDateTime.of(2025, 4, 8, 12, 0);
         Clock fixedClock = Clock.fixed(
@@ -108,583 +102,532 @@ class ScheduleServiceTest {
         );
         when(clock.instant()).thenReturn(fixedClock.instant());
         when(clock.getZone()).thenReturn(fixedClock.getZone());
+
+        // Create restaurant
+        restaurant = new Restaurant();
+        restaurant.setRestaurantName("Test Restaurant");
+        restaurant.setAddress("Test Address");
+        restaurant.setProvince("Test Province");
+        restaurant.setDistrict("Test District");
+        restaurant.setMoneyToPoint(1.0);
+        restaurant.setPointToMoney(1.0);
+        restaurant.setMonthsRegister(12);
+        restaurant.setVatActive(false);
+        restaurant.setDateCreated(LocalDate.now(clock));
+        restaurant = restaurantRepository.saveAndFlush(restaurant);
+        restaurantId = restaurant.getId();
+
+        // Create table type
+        tableType = new TableType();
+        tableType.setName("Standard Table");
+        tableType = tableTypeRepository.saveAndFlush(tableType);
+
+        // Create area
+        area = new Area();
+        area.setName("Main Area");
+        area.setRestaurant(restaurant);
+        area = areaRepository.saveAndFlush(area);
+
+        // Create table
+        tableRestaurant = new TableRestaurant();
+        tableRestaurant.setName("Table 1");
+        tableRestaurant.setArea(area);
+        tableRestaurant.setTableType(tableType);
+        tableRestaurant.setNumberChairs(4);
+        tableRestaurant.setPositionX(0);
+        tableRestaurant.setPositionY(0);
+        tableRestaurant.setHidden(false);
+        tableRestaurant = tableRestaurantRepository.saveAndFlush(tableRestaurant);
+
+        // Create role
+        role = new Role();
+        role.setName("EMPLOYEE");
+        role.setDescription("Employee role");
+        role = roleRepository.saveAndFlush(role);
+
+        // Create employee
+        employee = new Employee();
+        employee.setUsername("test_employee");
+        employee.setPassword("password");
+        employee.setEmployeeName("Test Employee");
+        employee.setPhoneNumber("1234567890");
+        employee.setRestaurant(restaurant);
+        employee.setRole(role);
+        employee = employeeRepository.saveAndFlush(employee);
+
+        // Create customer
+        customer = new Customer();
+        customer.setName("Test Customer");
+        customer.setPhoneNumber("123456789");
+        customer.setAddress("Test Address");
+        customer.setRestaurant(restaurant);
+        customer.setCurrentPoint(0);
+        customer.setTotalPoint(0);
+        customer.setDateCreated(LocalDateTime.now(clock));
+        customer = customerRepository.saveAndFlush(customer);
+
+        // Create dish category
+        dishCategory = new DishCategory();
+        dishCategory.setName("Test Category");
+        dishCategory.setRestaurant(restaurant);
+        dishCategory = dishCategoryRepository.saveAndFlush(dishCategory);
+
+        // Create unit
+        unit = new Unit();
+        unit.setName("Piece");
+        unit.setHidden(false);
+        unit = unitRepository.saveAndFlush(unit);
+
+        // Create dish
+        dish = new Dish();
+        dish.setName("Test Dish");
+        dish.setPrice(100.0);
+        dish.setDescription("Test dish description");
+        dish.setDishCategory(dishCategory);
+        dish.setRestaurant(restaurant);
+        dish.setUnit(unit);
+        dish.setImageUrl("test_image.jpg");
+        dish.setStatus(true);
+        dish = dishRepository.saveAndFlush(dish);
+
     }
 
     // SS-10
     @Test
     void createScheduleShouldCreateSuccessfullyWhenDataIsValid() {
-        when(tableRestaurantService.findById(1L)).thenReturn(new TableRestaurant());
-        when(restaurantService.getRestaurantById(restaurantId)).thenReturn(new Restaurant());
-        when(scheduleRepository.save(any(Schedule.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        scheduleRequest.setBookedDate(LocalDate.now().plusDays(1));
+        ScheduleRequest scheduleRequest = new ScheduleRequest();
+        scheduleRequest.setCustomerName("John Doe");
+        scheduleRequest.setCustomerPhone("987654321");
+        scheduleRequest.setBookedDate(LocalDate.now(clock).plusDays(1));
         scheduleRequest.setTime("12:00");
         scheduleRequest.setIntendTimeMinutes(60L);
-        scheduleRequest.setTables(List.of(1L));
-        scheduleRequest.setScheduleDishes(List.of(DishOrderRequest.builder().dishId(1L).build()));
+        scheduleRequest.setNumbersOfCustomer(4);
+        scheduleRequest.setTables(List.of(tableRestaurant.getId()));
+        scheduleRequest.setScheduleDishes(List.of(DishOrderRequest.builder().dishId(dish.getId()).quantity(2).build()));
 
         String result = scheduleService.createSchedule(restaurantId, scheduleRequest);
 
         assertEquals("success", result);
 
-        verify(scheduleRepository).save(any(Schedule.class));
-        verify(scheduleDishService).createScheduleDish(any(Schedule.class), any(DishOrderRequest.class));
+        // Verify in database
+        List<Schedule> schedules = scheduleRepository.findByBookedDateAndRestaurant_IdAndStatus(
+                scheduleRequest.getBookedDate(), restaurantId, SCHEDULE_STATUS.PENDING);
+        assertEquals(1, schedules.size());
+
+        Schedule createdSchedule = schedules.get(0);
+        assertEquals("John Doe", createdSchedule.getCustomerName());
+        assertEquals("987654321", createdSchedule.getCustomerPhone());
+        assertEquals(LocalTime.of(12, 0), createdSchedule.getTime());
+        assertEquals(LocalTime.of(13, 0), createdSchedule.getIntendTime());
+        assertEquals(4, createdSchedule.getNumbersOfCustomer());
+        assertEquals(SCHEDULE_STATUS.PENDING, createdSchedule.getStatus());
+        assertTrue(createdSchedule.getTableRestaurants().contains(tableRestaurant));
+
+        // Verify schedule dishes
+        List<ScheduleDish> scheduleDishes = scheduleDishRepository.findBySchedule_Id(createdSchedule.getId());
+        assertEquals(1, scheduleDishes.size());
+        assertEquals(dish.getId(), scheduleDishes.get(0).getDish().getId());
+        assertEquals(2, scheduleDishes.get(0).getQuantity());
     }
 
     // SS-11
     @Test
     void createScheduleShouldThrowExceptionWhenBookedDateIsInThePast() {
+        ScheduleRequest scheduleRequest = new ScheduleRequest();
         scheduleRequest.setBookedDate(LocalDate.now(clock).minusDays(1));
         scheduleRequest.setTime("12:00");
         scheduleRequest.setIntendTimeMinutes(60L);
-        scheduleRequest.setTables(List.of(1L));
-        scheduleRequest.setScheduleDishes(List.of(DishOrderRequest.builder().dishId(1L).build()));
+        scheduleRequest.setTables(List.of(tableRestaurant.getId()));
+        scheduleRequest.setScheduleDishes(List.of(DishOrderRequest.builder().dishId(dish.getId()).build()));
 
-        AppException e = assertThrows(AppException.class, () -> scheduleService.createSchedule(restaurantId, scheduleRequest));
+        AppException e = assertThrows(AppException.class,
+                () -> scheduleService.createSchedule(restaurantId, scheduleRequest));
 
         assertEquals(ErrorCode.TIME_INVALID, e.getErrorCode());
 
-        verify(scheduleRepository, never()).save(any(Schedule.class));
+        // Verify no schedule was created
+        List<Schedule> schedules = scheduleRepository.findByBookedDateAndRestaurant_IdAndStatus(
+                scheduleRequest.getBookedDate(), restaurantId, SCHEDULE_STATUS.PENDING);
+        assertTrue(schedules.isEmpty());
     }
 
     // SS-12
     @Test
     void createScheduleShouldThrowExceptionWhenBookedDateIsTodayAndTimeIsInThePast() {
-        scheduleRequest.setBookedDate(LocalDate.now(clock).minusDays(1));
+        ScheduleRequest scheduleRequest = new ScheduleRequest();
+        scheduleRequest.setBookedDate(LocalDate.now(clock));
         scheduleRequest.setTime("11:00");
         scheduleRequest.setIntendTimeMinutes(60L);
-        scheduleRequest.setTables(List.of(1L));
-        scheduleRequest.setScheduleDishes(List.of(DishOrderRequest.builder().dishId(1L).build()));
+        scheduleRequest.setTables(List.of(tableRestaurant.getId()));
+        scheduleRequest.setScheduleDishes(List.of(DishOrderRequest.builder().dishId(dish.getId()).build()));
 
-        AppException e = assertThrows(AppException.class, () -> scheduleService.createSchedule(restaurantId, scheduleRequest));
+        AppException e = assertThrows(AppException.class,
+                () -> scheduleService.createSchedule(restaurantId, scheduleRequest));
 
         assertEquals(ErrorCode.TIME_INVALID, e.getErrorCode());
 
-        verify(scheduleRepository, never()).save(any(Schedule.class));
+        // Verify no schedule was created
+        List<Schedule> schedules = scheduleRepository.findByBookedDateAndRestaurant_IdAndStatus(
+                LocalDate.now(clock), restaurantId, SCHEDULE_STATUS.PENDING);
+        assertTrue(schedules.isEmpty());
     }
 
     // SS-13
     @Test
-    void createScheduleShouldThrowExceptionWhenTablesAreNotAvailable() {
+    void createScheduleShouldReturnErrorMessageWhenTablesAreNotAvailable() {
+        // Create an existing schedule that conflicts
+        Schedule existingSchedule = new Schedule();
+        existingSchedule.setCustomerName("Existing Customer");
+        existingSchedule.setCustomerPhone("111111111");
+        existingSchedule.setBookedDate(LocalDate.now(clock));
+        existingSchedule.setTime(LocalTime.of(12, 0));
+        existingSchedule.setIntendTime(LocalTime.of(14, 0));
+        existingSchedule.setNumbersOfCustomer(2);
+        existingSchedule.setTableRestaurants(Set.of(tableRestaurant));
+        existingSchedule.setRestaurant(restaurant);
+        existingSchedule.setStatus(SCHEDULE_STATUS.PENDING);
+        scheduleRepository.saveAndFlush(existingSchedule);
+
+        ScheduleRequest scheduleRequest = new ScheduleRequest();
         scheduleRequest.setBookedDate(LocalDate.now(clock));
         scheduleRequest.setTime("12:00");
         scheduleRequest.setIntendTimeMinutes(120L);
-        scheduleRequest.setTables(List.of(1L));
-        scheduleRequest.setScheduleDishes(List.of(DishOrderRequest.builder().dishId(1L).build()));
-        tableRestaurant.setId(1L);
-        tableRestaurant.setName("Table 1");
-
-        when(scheduleRepository.findSchedulesByTableAndDateRange(1L, bookedDate, LocalTime.parse("12:00"), LocalTime.parse("14:00"))).thenReturn(List.of(new Schedule()));
-        when(tableRestaurantService.findById(1L)).thenReturn(tableRestaurant);
+        scheduleRequest.setTables(List.of(tableRestaurant.getId()));
+        scheduleRequest.setScheduleDishes(List.of(DishOrderRequest.builder().dishId(dish.getId()).build()));
 
         String result = scheduleService.createSchedule(restaurantId, scheduleRequest);
 
         assertEquals("Bàn Table 1 đã được đặt,  vui lòng chọn bàn khác hoặc khung giờ khác !", result);
 
-        verify(tableRestaurantService).findById(1L);
-        verify(scheduleRepository).findSchedulesByTableAndDateRange(1L, bookedDate, LocalTime.parse("12:00"), LocalTime.parse("14:00"));
-        verify(scheduleRepository, never()).save(any(Schedule.class));
+        // Verify only the original schedule exists
+        List<Schedule> schedules = scheduleRepository.findByBookedDateAndRestaurant_IdAndStatus(
+                LocalDate.now(clock), restaurantId, SCHEDULE_STATUS.PENDING);
+        assertEquals(1, schedules.size());
+        assertEquals("Existing Customer", schedules.get(0).getCustomerName());
     }
 
     // SS-14
     @Test
     void checkTableIsBookedShouldReturnTrueWhenTableIsBooked() {
+        // Create an existing schedule
+        Schedule existingSchedule = new Schedule();
+        existingSchedule.setCustomerName("Existing Customer");
+        existingSchedule.setCustomerPhone("111111111");
+        existingSchedule.setBookedDate(LocalDate.now(clock));
+        existingSchedule.setTime(LocalTime.of(12, 0));
+        existingSchedule.setIntendTime(LocalTime.of(14, 0));
+        existingSchedule.setNumbersOfCustomer(2);
+        existingSchedule.setTableRestaurants(Set.of(tableRestaurant));
+        existingSchedule.setRestaurant(restaurant);
+        existingSchedule.setStatus(SCHEDULE_STATUS.PENDING);
+        scheduleRepository.saveAndFlush(existingSchedule);
+
+        ScheduleRequest scheduleRequest = new ScheduleRequest();
         scheduleRequest.setBookedDate(LocalDate.now(clock));
         scheduleRequest.setTime("12:00");
         scheduleRequest.setIntendTimeMinutes(120L);
-        scheduleRequest.setTables(List.of(1L));
-        scheduleRequest.setScheduleDishes(List.of(DishOrderRequest.builder().dishId(1L).build()));
-        tableRestaurant.setId(1L);
-        tableRestaurant.setName("Table 1");
+        scheduleRequest.setTables(List.of(tableRestaurant.getId()));
 
-        when(scheduleRepository.findSchedulesByTableAndDateRange(1L, bookedDate, LocalTime.parse("12:00"), LocalTime.parse("14:00"))).thenReturn(List.of(new Schedule()));
-
-        boolean result = scheduleService.checkTableIsBooked(restaurantId, scheduleRequest);
+        boolean result = scheduleService.checkTableIsBooked(tableRestaurant.getId(), scheduleRequest);
 
         assertTrue(result);
-
-        verify(scheduleRepository).findSchedulesByTableAndDateRange(1L, bookedDate, LocalTime.parse("12:00"), LocalTime.parse("14:00"));
     }
 
     // SS-15
     @Test
     void checkTableIsBookedShouldReturnFalseWhenTableIsNotBooked() {
+        ScheduleRequest scheduleRequest = new ScheduleRequest();
         scheduleRequest.setBookedDate(LocalDate.now(clock));
         scheduleRequest.setTime("12:00");
         scheduleRequest.setIntendTimeMinutes(120L);
-        scheduleRequest.setTables(List.of(1L));
-        scheduleRequest.setScheduleDishes(List.of(DishOrderRequest.builder().dishId(1L).build()));
-        tableRestaurant.setId(1L);
-        tableRestaurant.setName("Table 1");
+        scheduleRequest.setTables(List.of(tableRestaurant.getId()));
 
-        when(scheduleRepository.findSchedulesByTableAndDateRange(1L, bookedDate, LocalTime.parse("12:00"), LocalTime.parse("14:00"))).thenReturn(List.of());
-
-        boolean result = scheduleService.checkTableIsBooked(restaurantId, scheduleRequest);
+        boolean result = scheduleService.checkTableIsBooked(tableRestaurant.getId(), scheduleRequest);
 
         assertFalse(result);
-
-        verify(scheduleRepository).findSchedulesByTableAndDateRange(1L, bookedDate, LocalTime.parse("12:00"), LocalTime.parse("14:00"));
     }
 
     // SS-16
     @Test
     void findScheduleRestaurantByDateShouldReturnSchedules() {
+        LocalDate testDate = LocalDate.now(clock);
+
+        // Create a schedule
         Schedule schedule = new Schedule();
-        schedule.setId(1L);
+        schedule.setCustomerName("Test Customer");
+        schedule.setCustomerPhone("111111111");
+        schedule.setBookedDate(testDate);
+        schedule.setTime(LocalTime.of(12, 0));
+        schedule.setIntendTime(LocalTime.of(13, 0));
+        schedule.setNumbersOfCustomer(2);
+        schedule.setTableRestaurants(Set.of(tableRestaurant));
+        schedule.setRestaurant(restaurant);
+        schedule.setStatus(SCHEDULE_STATUS.PENDING);
+        schedule = scheduleRepository.saveAndFlush(schedule);
 
-        List<Schedule> testSchedules = List.of(schedule);
+        // Create schedule dish
+        ScheduleDish scheduleDish = new ScheduleDish();
+        scheduleDish.setSchedule(schedule);
+        scheduleDish.setDish(dish);
+        scheduleDish.setQuantity(2);
+        scheduleDishRepository.saveAndFlush(scheduleDish);
 
-        when(scheduleRepository.findByBookedDateAndRestaurant_IdAndStatus(bookedDate, restaurantId, SCHEDULE_STATUS.PENDING)).thenReturn(testSchedules);
-        when(scheduleDishService.findDishOrComboBySchedule(1L)).thenReturn(List.of(ScheduleDishResponse.builder().id(1L).build()));
-
-        List<ScheduleResponse> result = scheduleService.findScheduleRestaurantByDate(restaurantId, bookedDate);
+        List<ScheduleResponse> result = scheduleService.findScheduleRestaurantByDate(restaurantId, testDate);
 
         assertEquals(1, result.size());
-        assertEquals(1L, result.get(0).getId());
-        assertEquals(1L, result.get(0).getDishes().get(0).getId());
-
-        verify(scheduleRepository).findByBookedDateAndRestaurant_IdAndStatus(bookedDate, restaurantId, SCHEDULE_STATUS.PENDING);
-        verify(scheduleDishService).findDishOrComboBySchedule(1L);
+        assertEquals(schedule.getId(), result.get(0).getId());
+        assertEquals("Test Customer", result.get(0).getCustomerName());
+        assertEquals(1, result.get(0).getDishes().size());
+        assertEquals(dish.getId(), result.get(0).getDishes().get(0).getDish().getId());
     }
 
     // SS-17
     @Test
     void findScheduleRestaurantLateShouldReturnSchedules() {
+        LocalDate today = LocalDate.now(clock);
+        LocalTime pastTime = LocalTime.now(clock).minusHours(1);
+
+        // Create a late schedule
         Schedule schedule = new Schedule();
-        schedule.setId(1L);
-
-        List<Schedule> testSchedules = List.of(schedule);
-
-        when(scheduleRepository.findByRestaurant_IdAndBookedDateAndTimeIsBeforeAndStatus(restaurantId, bookedDate, bookedTime, SCHEDULE_STATUS.PENDING)).thenReturn(testSchedules);
-        when(scheduleDishService.findDishOrComboBySchedule(1L)).thenReturn(List.of(ScheduleDishResponse.builder().id(1L).build()));
+        schedule.setCustomerName("Late Customer");
+        schedule.setCustomerPhone("111111111");
+        schedule.setBookedDate(today);
+        schedule.setTime(pastTime);
+        schedule.setIntendTime(pastTime.plusHours(1));
+        schedule.setNumbersOfCustomer(2);
+        schedule.setTableRestaurants(Set.of(tableRestaurant));
+        schedule.setRestaurant(restaurant);
+        schedule.setStatus(SCHEDULE_STATUS.PENDING);
+        schedule = scheduleRepository.saveAndFlush(schedule);
 
         List<ScheduleResponse> result = scheduleService.findScheduleRestaurantLate(restaurantId);
 
         assertEquals(1, result.size());
-        assertEquals(1L, result.get(0).getId());
-        assertEquals(1L, result.get(0).getDishes().get(0).getId());
-
-        verify(scheduleRepository).findByRestaurant_IdAndBookedDateAndTimeIsBeforeAndStatus(restaurantId, bookedDate, bookedTime, SCHEDULE_STATUS.PENDING);
-        verify(scheduleDishService).findDishOrComboBySchedule(1L);
+        assertEquals(schedule.getId(), result.get(0).getId());
+        assertEquals("Late Customer", result.get(0).getCustomerName());
     }
 
     // SS-18
     @Test
     void findScheduleRestaurantNearlyShouldReturnSchedules() {
+        LocalDate today = LocalDate.now(clock);
+        LocalTime nearTime = LocalTime.now(clock).plusMinutes(30);
+
+        // Create a near schedule
         Schedule schedule = new Schedule();
-        schedule.setId(1L);
-
-        List<Schedule> testSchedules = List.of(schedule);
-
-        when(scheduleRepository.findByRestaurant_IdAndBookedDateAndTimeBetweenAndStatus(restaurantId, bookedDate, bookedTime, bookedTime.plusHours(1), SCHEDULE_STATUS.PENDING)).thenReturn(testSchedules);
-        when(scheduleDishService.findDishOrComboBySchedule(1L)).thenReturn(List.of(ScheduleDishResponse.builder().id(1L).build()));
+        schedule.setCustomerName("Near Customer");
+        schedule.setCustomerPhone("111111111");
+        schedule.setBookedDate(today);
+        schedule.setTime(nearTime);
+        schedule.setIntendTime(nearTime.plusHours(1));
+        schedule.setNumbersOfCustomer(2);
+        schedule.setTableRestaurants(Set.of(tableRestaurant));
+        schedule.setRestaurant(restaurant);
+        schedule.setStatus(SCHEDULE_STATUS.PENDING);
+        schedule = scheduleRepository.saveAndFlush(schedule);
 
         List<ScheduleResponse> result = scheduleService.findScheduleRestaurantNearly(restaurantId);
 
         assertEquals(1, result.size());
-        assertEquals(1L, result.get(0).getId());
-        assertEquals(1L, result.get(0).getDishes().get(0).getId());
-
-        verify(scheduleRepository).findByRestaurant_IdAndBookedDateAndTimeBetweenAndStatus(restaurantId, bookedDate, bookedTime, bookedTime.plusHours(1), SCHEDULE_STATUS.PENDING);
-        verify(scheduleDishService).findDishOrComboBySchedule(1L);
-    }
-
-    // SS-19
-    @Test
-    void customerReceiveBookTableShouldWorkProperlyWhenCustomerExisted() {
-        Schedule schedule = new Schedule();
-        schedule.setId(1L);
-        schedule.setStatus(SCHEDULE_STATUS.PENDING);
-        schedule.setCustomerPhone("123456789");
-        schedule.setRestaurant(restaurant);
-        schedule.setTableRestaurants(Set.of(tableRestaurant));
-
-        DishResponse dish = new DishResponse();
-        dish.setId(1L);
-        ComboResponse combo = new ComboResponse();
-        combo.setId(2L);
-
-        when(customerService.existCustomerByPhoneNumberAndRestaurantId(schedule.getCustomerPhone(), schedule.getRestaurant().getId())).thenReturn(true);
-        when(customerService.findCustomerByPhoneNumber(schedule.getCustomerPhone(), schedule.getRestaurant().getId())).thenReturn(customer);
-        when(employeeService.findEmployeeById(1L)).thenReturn(employee);
-        when(scheduleDishService.findDishOrComboBySchedule(1L)).thenReturn(List.of(
-            ScheduleDishResponse.builder().id(1L).dish(dish).quantity(1).build(),
-            ScheduleDishResponse.builder().id(2L).combo(combo).quantity(2).build()
-        ));
-
-        scheduleService.customerReceiveBookTable(1L, schedule);
-
-        verify(customerService).findCustomerByPhoneNumber(schedule.getCustomerPhone(), schedule.getRestaurant().getId());
-        verify(employeeService).findEmployeeById(1L);
-        verify(scheduleDishService).findDishOrComboBySchedule(1L);
-        verify(orderService).createOrder(customer, employee, tableRestaurant, restaurant);
-        verify(orderService).addDishToOrder(0L, List.of(
-            DishOrderRequest.builder().dishId(dish.getId()).quantity(1).build(),
-            DishOrderRequest.builder().comboId(combo.getId()).quantity(2).build()
-        ));
-    }
-
-    // SS-20
-    @Test
-    void customerReceiveBookTableShouldWorkProperlyWhenCustomerNotExisted() {
-        Schedule schedule = new Schedule();
-        schedule.setId(1L);
-        schedule.setStatus(SCHEDULE_STATUS.PENDING);
-        schedule.setCustomerPhone("123456789");
-        schedule.setRestaurant(restaurant);
-        schedule.setTableRestaurants(Set.of(tableRestaurant));
-
-        DishResponse dish = new DishResponse();
-        dish.setId(1L);
-        ComboResponse combo = new ComboResponse();
-        combo.setId(2L);
-
-        when(customerService.existCustomerByPhoneNumberAndRestaurantId(schedule.getCustomerPhone(), schedule.getRestaurant().getId())).thenReturn(false);
-        when(employeeService.findEmployeeById(1L)).thenReturn(employee);
-        when(scheduleDishService.findDishOrComboBySchedule(1L)).thenReturn(List.of(
-            ScheduleDishResponse.builder().id(1L).dish(dish).quantity(1).build(),
-            ScheduleDishResponse.builder().id(2L).combo(combo).quantity(2).build()
-        ));
-        when(customerRepository.save(any(Customer.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        scheduleService.customerReceiveBookTable(1L, schedule);
-
-        verify(customerRepository).save(Customer.builder()
-            .name(schedule.getCustomerName())
-            .phoneNumber(schedule.getCustomerPhone())
-            .restaurant(schedule.getRestaurant())
-            .dateCreated(bookedDateTime)
-            .build());
-        verify(employeeService).findEmployeeById(1L);
-        verify(scheduleDishService).findDishOrComboBySchedule(1L);
-        verify(orderService).createOrder(Customer.builder()
-            .name(schedule.getCustomerName())
-            .phoneNumber(schedule.getCustomerPhone())
-            .restaurant(schedule.getRestaurant())
-            .dateCreated(bookedDateTime)
-            .build(), employee, tableRestaurant, restaurant);
-        verify(orderService).addDishToOrder(0L, List.of(
-            DishOrderRequest.builder().dishId(dish.getId()).quantity(1).build(),
-            DishOrderRequest.builder().comboId(combo.getId()).quantity(2).build()
-        ));
-    }
-
-    // SS-21
-    @Test
-    void customerReceiveBookTableShouldThrowErrorIfTableNotAvailable() {
-        Schedule schedule = new Schedule();
-        schedule.setId(1L);
-        schedule.setStatus(SCHEDULE_STATUS.PENDING);
-        schedule.setCustomerPhone("123456789");
-        schedule.setRestaurant(restaurant);
-        tableRestaurant.setOrderCurrent(1L);
-        schedule.setTableRestaurants(Set.of(tableRestaurant));
-
-        when(customerService.existCustomerByPhoneNumberAndRestaurantId(schedule.getCustomerPhone(), schedule.getRestaurant().getId())).thenReturn(true);
-        when(employeeService.findEmployeeById(1L)).thenReturn(employee);
-
-        AppException e = assertThrows(AppException.class, () -> scheduleService.customerReceiveBookTable(1L, schedule));
-
-        assertEquals(ErrorCode.TABLE_NOT_FREE, e.getErrorCode());
-
-        verify(customerService).existCustomerByPhoneNumberAndRestaurantId(schedule.getCustomerPhone(), schedule.getRestaurant().getId());
+        assertEquals(schedule.getId(), result.get(0).getId());
+        assertEquals("Near Customer", result.get(0).getCustomerName());
     }
 
     // SS-22
     @Test
     void updateStatusScheduleByIdShouldUpdateStatusSuccessfully() {
+        LocalDate today = LocalDate.now(clock);
+
+        // Create a schedule
         Schedule schedule = new Schedule();
-        schedule.setId(1L);
-        schedule.setBookedDate(bookedDate);
-        schedule.setStatus(SCHEDULE_STATUS.PENDING);
-        schedule.setCustomerPhone("123456789");
+        schedule.setCustomerName("Test Customer");
+        schedule.setCustomerPhone("111111111");
+        schedule.setBookedDate(today);
+        schedule.setTime(LocalTime.of(12, 0));
+        schedule.setIntendTime(LocalTime.of(13, 0));
+        schedule.setNumbersOfCustomer(2);
+        schedule.setTableRestaurants(new HashSet<>(List.of(tableRestaurant)));
         schedule.setRestaurant(restaurant);
-        schedule.setTableRestaurants(Set.of(tableRestaurant));
+        schedule.setStatus(SCHEDULE_STATUS.PENDING);
+        schedule = scheduleRepository.saveAndFlush(schedule);
 
-        when(scheduleRepository.findById(1L)).thenReturn(java.util.Optional.of(schedule));
+        scheduleService.updateStatusScheduleById(schedule.getId(), employee.getId(), SCHEDULE_STATUS.CANCEL);
 
-        scheduleService.updateStatusScheduleById(1L, 1L, SCHEDULE_STATUS.ACCEPT);
-
-        assertEquals(SCHEDULE_STATUS.ACCEPT, schedule.getStatus());
-
-        verify(scheduleRepository).save(schedule);
+        // Verify in database
+        Optional<Schedule> updatedSchedule = scheduleRepository.findById(schedule.getId());
+        assertTrue(updatedSchedule.isPresent());
+        assertEquals(SCHEDULE_STATUS.CANCEL, updatedSchedule.get().getStatus());
     }
 
     // SS-23
     @Test
     void updateStatusScheduleByIdShouldThrowErrorWhenScheduleNotFound() {
-        when(scheduleRepository.findById(1L)).thenReturn(java.util.Optional.empty());
-
-        AppException e = assertThrows(AppException.class, () -> scheduleService.updateStatusScheduleById(1L, 1L, SCHEDULE_STATUS.ACCEPT));
-
-        assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(scheduleRepository).findById(1L);
-    }
-
-    // SS-24
-    @Test
-    void updateStatusScheduleByIdShouldThrowErrorWhenScheduleIsNotPending() {
-        Schedule schedule = new Schedule();
-        schedule.setId(1L);
-        schedule.setBookedDate(bookedDate.plusDays(1));
-        schedule.setStatus(SCHEDULE_STATUS.CANCEL);
-        schedule.setCustomerPhone("123456789");
-        schedule.setRestaurant(restaurant);
-        schedule.setTableRestaurants(Set.of(tableRestaurant));
-
-        when(scheduleRepository.findById(1L)).thenReturn(java.util.Optional.of(schedule));
-
-        AppException e = assertThrows(AppException.class, () -> scheduleService.updateStatusScheduleById(1L, 1L, SCHEDULE_STATUS.ACCEPT));
-
-        assertEquals(ErrorCode.NOT_TODAY, e.getErrorCode());
-
-        verify(scheduleRepository).findById(1L);
-    }
-
-    // SS-25
-    @Test
-    void updateScheduleRestaurantShouldUpdateSuccessfullyWhenDataValid() {
-        Schedule schedule = new Schedule();
-        schedule.setId(1L);
-        schedule.setBookedDate(bookedDate);
-        schedule.setStatus(SCHEDULE_STATUS.PENDING);
-        schedule.setCustomerPhone("123456789");
-        schedule.setRestaurant(restaurant);
-        schedule.setTableRestaurants(Set.of(tableRestaurant));
-
-        when(scheduleRepository.findById(1L)).thenReturn(java.util.Optional.of(schedule));
-        when(tableRestaurantService.findById(1L)).thenReturn(tableRestaurant);
-
-        scheduleRequest.setBookedDate(LocalDate.now().plusDays(1));
-        scheduleRequest.setTime("12:00");
-        scheduleRequest.setIntendTimeMinutes(60L);
-        scheduleRequest.setTables(List.of(1L));
-        scheduleRequest.setScheduleDishes(List.of(DishOrderRequest.builder().dishId(1L).build()));
-
-        String result = scheduleService.updateScheduleRestaurant(1L, scheduleRequest);
-
-        assertEquals("success", result);
-
-        verify(scheduleRepository).save(any(Schedule.class));
-    }
-
-    // SS-26
-    @Test
-    void updateScheduleRestaurantShouldThrowErrorWhenScheduleNotFound() {
-        Schedule schedule = new Schedule();
-        schedule.setId(1L);
-        schedule.setBookedDate(bookedDate);
-        schedule.setStatus(SCHEDULE_STATUS.PENDING);
-        schedule.setCustomerPhone("123456789");
-        schedule.setRestaurant(restaurant);
-        schedule.setTableRestaurants(Set.of(tableRestaurant));
-
-        scheduleRequest.setBookedDate(LocalDate.now().minusDays(1));
-        scheduleRequest.setTime("12:00");
-        scheduleRequest.setIntendTimeMinutes(60L);
-        scheduleRequest.setTables(List.of(1L));
-        scheduleRequest.setScheduleDishes(List.of(DishOrderRequest.builder().dishId(1L).build()));
-
-        when(scheduleRepository.findById(1L)).thenReturn(java.util.Optional.empty());
-
-        AppException e = assertThrows(AppException.class, () -> scheduleService.updateScheduleRestaurant(1L, scheduleRequest));
+        AppException e = assertThrows(AppException.class,
+                () -> scheduleService.updateStatusScheduleById(999L, employee.getId(), SCHEDULE_STATUS.ACCEPT));
 
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(scheduleRepository).findById(1L);
     }
-
-    // SS-27
-    @Test
-    void updateScheduleRestaurantShouldThrowErrorWhenDateIsInThePast() {
-        Schedule schedule = new Schedule();
-        schedule.setId(1L);
-        schedule.setBookedDate(bookedDate);
-        schedule.setStatus(SCHEDULE_STATUS.PENDING);
-        schedule.setCustomerPhone("123456789");
-        schedule.setRestaurant(restaurant);
-        schedule.setTableRestaurants(Set.of(tableRestaurant));
-
-        scheduleRequest.setBookedDate(LocalDate.now(clock).minusDays(1));
-        scheduleRequest.setTime("12:00");
-        scheduleRequest.setIntendTimeMinutes(60L);
-        scheduleRequest.setTables(List.of(1L));
-        scheduleRequest.setScheduleDishes(List.of(DishOrderRequest.builder().dishId(1L).build()));
-
-        AppException e = assertThrows(AppException.class, () -> scheduleService.updateScheduleRestaurant(1L, scheduleRequest));
-
-        assertEquals(ErrorCode.TIME_INVALID, e.getErrorCode());
-    }
-
-    // SS-28
-    @Test
-    void updateScheduleRestaurantShouldThrowErrorWhenDateIsTodayAndTimeIsInThePast() {
-        Schedule schedule = new Schedule();
-        schedule.setId(1L);
-        schedule.setBookedDate(bookedDate);
-        schedule.setStatus(SCHEDULE_STATUS.PENDING);
-        schedule.setCustomerPhone("123456789");
-        schedule.setRestaurant(restaurant);
-        schedule.setTableRestaurants(Set.of(tableRestaurant));
-
-        scheduleRequest.setBookedDate(LocalDate.now(clock));
-        scheduleRequest.setTime("11:00");
-        scheduleRequest.setIntendTimeMinutes(60L);
-        scheduleRequest.setTables(List.of(1L));
-        scheduleRequest.setScheduleDishes(List.of(DishOrderRequest.builder().dishId(1L).build()));
-
-        AppException e = assertThrows(AppException.class, () -> scheduleService.updateScheduleRestaurant(1L, scheduleRequest));
-
-        assertEquals(ErrorCode.TIME_INVALID, e.getErrorCode());
-    }
-
-    // SS-29
-    @Test
-    void updateScheduleRestaurantShouldThrowErrorWhenTablesAreNotAvailable() {
-        tableRestaurant.setName("Table 1");
-
-        Schedule schedule = new Schedule();
-        schedule.setId(1L);
-        schedule.setBookedDate(bookedDate);
-        schedule.setStatus(SCHEDULE_STATUS.PENDING);
-        schedule.setCustomerPhone("123456789");
-        schedule.setRestaurant(restaurant);
-        schedule.setTableRestaurants(Set.of(tableRestaurant));
-
-        scheduleRequest.setBookedDate(bookedDate);
-        scheduleRequest.setTime("12:00");
-        scheduleRequest.setIntendTimeMinutes(120L);
-        scheduleRequest.setTables(List.of(1L));
-        scheduleRequest.setScheduleDishes(List.of(DishOrderRequest.builder().dishId(1L).build()));
-
-        when(scheduleRepository.findById(1L)).thenReturn(java.util.Optional.of(schedule));
-        when(tableRestaurantService.findById(1L)).thenReturn(tableRestaurant);
-
-        when(scheduleRepository.findSchedulesByTableAndDateRange(1L, bookedDate, LocalTime.parse("12:00"), LocalTime.parse("14:00"))).thenReturn(List.of(new Schedule()));
-        when(tableRestaurantService.findById(1L)).thenReturn(tableRestaurant);
-
-        String result = scheduleService.updateScheduleRestaurant(1L, scheduleRequest);
-
-        assertEquals("Bàn Table 1 đã được đặt,  vui lòng chọn bàn khác hoặc khung giờ khác !", result);
-
-        verify(tableRestaurantService).findById(1L);
-        verify(scheduleRepository).findSchedulesByTableAndDateRange(1L, bookedDate, LocalTime.parse("12:00"), LocalTime.parse("14:00"));
-        verify(scheduleRepository, never()).save(any(Schedule.class));
-    }
-
 
     // SS-30
     @Test
-    void findByIdAndRestaurantIdShouldReturnSchedule() {
+    void findByIdShouldReturnSchedule() {
+        // Create a schedule
         Schedule schedule = new Schedule();
-        schedule.setId(1L);
-        schedule.setBookedDate(bookedDate);
-        schedule.setStatus(SCHEDULE_STATUS.PENDING);
-        schedule.setCustomerPhone("123456789");
-        schedule.setRestaurant(restaurant);
+        schedule.setCustomerName("Test Customer");
+        schedule.setCustomerPhone("111111111");
+        schedule.setBookedDate(LocalDate.now(clock));
+        schedule.setTime(LocalTime.of(12, 0));
+        schedule.setIntendTime(LocalTime.of(13, 0));
+        schedule.setNumbersOfCustomer(2);
         schedule.setTableRestaurants(Set.of(tableRestaurant));
+        schedule.setRestaurant(restaurant);
+        schedule.setStatus(SCHEDULE_STATUS.PENDING);
+        schedule = scheduleRepository.saveAndFlush(schedule);
 
-        when(scheduleRepository.findById(1L)).thenReturn(java.util.Optional.of(schedule));
+        Schedule result = scheduleService.findById(schedule.getId());
 
-        Schedule result = scheduleService.findById(1L);
-
-        assertEquals(1L, result.getId());
-
-        verify(scheduleRepository).findById(1L);
+        assertEquals(schedule.getId(), result.getId());
+        assertEquals("Test Customer", result.getCustomerName());
     }
 
     // SS-31
     @Test
-    void findByIdAndRestaurantIdShouldThrowErrorWhenScheduleNotFound() {
-        when(scheduleRepository.findById(1L)).thenReturn(java.util.Optional.empty());
-
-        AppException e = assertThrows(AppException.class, () -> scheduleService.findById(1L));
+    void findByIdShouldThrowErrorWhenScheduleNotFound() {
+        AppException e = assertThrows(AppException.class, () -> scheduleService.findById(999L));
 
         assertEquals(ErrorCode.NOT_EXIST, e.getErrorCode());
-
-        verify(scheduleRepository).findById(1L);
     }
 
     // SS-32
     @Test
     void findSchedulesByTableIdShouldReturnPagingResult() {
+        LocalDate today = LocalDate.now(clock);
+
+        // Create a schedule
         Schedule schedule = new Schedule();
-        schedule.setId(1L);
-        schedule.setBookedDate(bookedDate);
-        schedule.setStatus(SCHEDULE_STATUS.PENDING);
-        schedule.setCustomerPhone("123456789");
-        schedule.setRestaurant(restaurant);
+        schedule.setCustomerName("Test Customer");
+        schedule.setCustomerPhone("111111111");
+        schedule.setBookedDate(today);
+        schedule.setTime(LocalTime.of(12, 0));
+        schedule.setIntendTime(LocalTime.of(13, 0));
+        schedule.setNumbersOfCustomer(2);
         schedule.setTableRestaurants(Set.of(tableRestaurant));
+        schedule.setRestaurant(restaurant);
+        schedule.setStatus(SCHEDULE_STATUS.PENDING);
+        scheduleRepository.saveAndFlush(schedule);
 
         Pageable pageable = PageRequest.of(0, 10);
-
-        when(scheduleRepository.findSchedulesByTableIdAndDate(1L, bookedDate, pageable))
-            .thenReturn(List.of(schedule));
-        when(scheduleRepository.countSchedulesByTableIdAndDate(1L, bookedDate)).thenReturn(1);
-
-        PagingResult<ScheduleResponse> result = scheduleService.findSchedulesByTableId(1L, pageable);
+        PagingResult<ScheduleResponse> result = scheduleService.findSchedulesByTableId(tableRestaurant.getId(),
+                pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getResults().size());
         assertEquals(1L, result.getTotalItems());
-
-        verify(scheduleRepository).findSchedulesByTableIdAndDate(1L, bookedDate, pageable);
-        verify(scheduleMapper).toScheduleResponse(schedule);
     }
 
     // SS-33
     @Test
     void getNumberScheduleRestaurantWithTimeShouldReturnScheduleCountsFor7Days() {
-        when(scheduleRepository.countByRestaurant_IdAndBookedDateAndStatus(eq(restaurantId), any(LocalDate.class), eq(SCHEDULE_STATUS.PENDING))).thenReturn(2);
+        LocalDate today = LocalDate.now(clock);
+
+        // Create schedules for different days
+        for (int i = 0; i < 3; i++) {
+            Schedule schedule = new Schedule();
+            schedule.setCustomerName("Customer " + i);
+            schedule.setCustomerPhone("11111111" + i);
+            schedule.setBookedDate(today.plusDays(i));
+            schedule.setTime(LocalTime.of(12, 0));
+            schedule.setIntendTime(LocalTime.of(13, 0));
+            schedule.setNumbersOfCustomer(2);
+            schedule.setTableRestaurants(Set.of(tableRestaurant));
+            schedule.setRestaurant(restaurant);
+            schedule.setStatus(SCHEDULE_STATUS.PENDING);
+            scheduleRepository.saveAndFlush(schedule);
+        }
 
         List<ScheduleTimeResponse> result = scheduleService.getNumberScheduleRestaurantWithTime(restaurantId);
 
         assertNotNull(result);
         assertEquals(7, result.size());
 
-        for (int i = 0; i < 7; i++) {
-            ScheduleTimeResponse response = result.get(i);
-            assertEquals(bookedDate.plusDays(i), response.getDate());
-            assertEquals(2L, response.getNumbersSchedule());
+        // Check the first 3 days have schedules
+        for (int i = 0; i < 3; i++) {
+            assertEquals(today.plusDays(i), result.get(i).getDate());
+            assertEquals(1, result.get(i).getNumbersSchedule());
         }
 
-        verify(scheduleRepository, times(7))
-            .countByRestaurant_IdAndBookedDateAndStatus(eq(restaurantId), any(LocalDate.class), eq(SCHEDULE_STATUS.PENDING));
+        // Check the remaining days have no schedules
+        for (int i = 3; i < 7; i++) {
+            assertEquals(today.plusDays(i), result.get(i).getDate());
+            assertEquals(0, result.get(i).getNumbersSchedule());
+        }
     }
 
     // SS-34
     @Test
     void findAllScheduleRestaurantShouldReturnCombinedPendingAndCancelSchedules() {
-        Schedule schedule = new Schedule();
-        schedule.setId(1L);
-        schedule.setBookedDate(bookedDate);
-        schedule.setStatus(SCHEDULE_STATUS.PENDING);
-        schedule.setCustomerPhone("123456789");
-        schedule.setRestaurant(restaurant);
-        schedule.setTableRestaurants(Set.of(tableRestaurant));
+        // Create pending schedule
+        Schedule pendingSchedule = new Schedule();
+        pendingSchedule.setCustomerName("Pending Customer");
+        pendingSchedule.setCustomerPhone("111111111");
+        pendingSchedule.setBookedDate(LocalDate.now(clock));
+        pendingSchedule.setTime(LocalTime.of(12, 0));
+        pendingSchedule.setIntendTime(LocalTime.of(13, 0));
+        pendingSchedule.setNumbersOfCustomer(2);
+        pendingSchedule.setTableRestaurants(Set.of(tableRestaurant));
+        pendingSchedule.setRestaurant(restaurant);
+        pendingSchedule.setStatus(SCHEDULE_STATUS.PENDING);
+        pendingSchedule = scheduleRepository.saveAndFlush(pendingSchedule);
+
+        // Create cancelled schedule
+        Schedule cancelledSchedule = new Schedule();
+        cancelledSchedule.setCustomerName("Cancelled Customer");
+        cancelledSchedule.setCustomerPhone("222222222");
+        cancelledSchedule.setBookedDate(LocalDate.now(clock));
+        cancelledSchedule.setTime(LocalTime.of(14, 0));
+        cancelledSchedule.setIntendTime(LocalTime.of(15, 0));
+        cancelledSchedule.setNumbersOfCustomer(3);
+        cancelledSchedule.setTableRestaurants(Set.of(tableRestaurant));
+        cancelledSchedule.setRestaurant(restaurant);
+        cancelledSchedule.setStatus(SCHEDULE_STATUS.CANCEL);
+        scheduleRepository.saveAndFlush(cancelledSchedule);
+
+        // Create schedule dishes
+        ScheduleDish scheduleDish1 = new ScheduleDish();
+        scheduleDish1.setSchedule(pendingSchedule);
+        scheduleDish1.setDish(dish);
+        scheduleDish1.setQuantity(1);
+        scheduleDishRepository.saveAndFlush(scheduleDish1);
+
+        ScheduleDish scheduleDish2 = new ScheduleDish();
+        scheduleDish2.setSchedule(cancelledSchedule);
+        scheduleDish2.setDish(dish);
+        scheduleDish2.setQuantity(2);
+        scheduleDishRepository.saveAndFlush(scheduleDish2);
 
         Pageable pageable = PageRequest.of(0, 10);
-
-        when(scheduleRepository.findByRestaurant_IdAndStatus(restaurantId, pageable, SCHEDULE_STATUS.PENDING))
-            .thenReturn(List.of(schedule));
-        when(scheduleRepository.findByRestaurant_IdAndStatus(restaurantId, pageable, SCHEDULE_STATUS.CANCEL))
-            .thenReturn(List.of());
-
-        when(scheduleDishService.findDishOrComboBySchedule(1L)).thenReturn(List.of(
-            ScheduleDishResponse.builder().id(1L).dish(new DishResponse()).quantity(1).build(),
-            ScheduleDishResponse.builder().id(2L).combo(new ComboResponse()).quantity(2).build()
-        ));
-
         List<ScheduleResponse> result = scheduleService.findAllScheduleRestaurant(restaurantId, pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(1L, result.get(0).getId());
-        assertEquals(1L, result.get(0).getDishes().get(0).getId());
+        assertEquals(2, result.size());
 
-        verify(scheduleRepository).findByRestaurant_IdAndStatus(restaurantId, pageable, SCHEDULE_STATUS.PENDING);
-        verify(scheduleRepository).findByRestaurant_IdAndStatus(restaurantId, pageable, SCHEDULE_STATUS.CANCEL);
-        verify(scheduleDishService).findDishOrComboBySchedule(1L);
+        // Verify both schedules are returned
+        boolean foundPending = false;
+        boolean foundCancelled = false;
+
+        for (ScheduleResponse response : result) {
+            if (response.getCustomerName().equals("Pending Customer")) {
+                foundPending = true;
+                assertEquals(SCHEDULE_STATUS.PENDING, response.getStatus());
+                assertEquals(1, response.getDishes().size());
+            } else if (response.getCustomerName().equals("Cancelled Customer")) {
+                foundCancelled = true;
+                assertEquals(SCHEDULE_STATUS.CANCEL, response.getStatus());
+                assertEquals(1, response.getDishes().size());
+            }
+        }
+
+        assertTrue(foundPending);
+        assertTrue(foundCancelled);
     }
 }

@@ -52,6 +52,9 @@ public class StatisticService implements IStatisticService {
 
     @Override
     public StatisticResponse getStatisticByRestaurantIdBetweenStartDayToEndDay(Long restaurantId, LocalDateTime start, LocalDateTime end) {
+        customerRepository.findCustomerByRestaurantIdInStartDateAndEndDate(restaurantId, start, end).forEach(customer ->
+         log.info("Customer: {}", customer.getName()));
+
         return StatisticResponse.builder()
             .numbersCustomer(customerRepository.findCustomerByRestaurantIdInStartDateAndEndDate(restaurantId, start, end).size())
             .numbersBill(billRepository.findByDateCreatedBetween(restaurantId, start, end).size())
