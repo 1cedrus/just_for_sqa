@@ -10,42 +10,40 @@ import com.restaurent.manager.repository.PermissionRepository;
 import com.restaurent.manager.service.impl.PermissionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
- * Unit test cho PermissionService
- * Sử dụng Mockito để mock PermissionRepository và PermissionMapper
- * Mục tiêu: Đạt branch coverage ~80% cho các phương thức
+ * Integration test cho PermissionService
+ * Sử dụng database thật thay vì mock
+ * Mục tiêu: Kiểm tra các phương thức service với database integration
  */
-@ExtendWith(MockitoExtension.class)
-public class PermissionServiceTest {
+@SpringBootTest
+@Transactional
+@ActiveProfiles("test")
+class PermissionServiceTest {
 
-    @Mock
-    private PermissionRepository permissionRepository; // Mock repository
+    @Autowired
+    private PermissionService permissionService;
 
-    @Mock
-    private PermissionMapper permissionMapper; // Mock mapper
+    @Autowired
+    private PermissionRepository permissionRepository;
 
-    @InjectMocks
-    private PermissionService permissionService; // Service cần test
+    @Autowired
+    private PermissionMapper permissionMapper;
 
-    /**
-     * Thiết lập trước mỗi test
-     * Khởi tạo các mock objects
-     */
+    // Phương thức chạy trước mỗi test case để đảm bảo trạng thái sạch sẽ
     @BeforeEach
-    void setUp() {
+    void setup() {
+        // Clean up database before each test
+        permissionRepository.deleteAll();
     }
 
     // --- Tests cho createPermission ---
@@ -55,26 +53,23 @@ public class PermissionServiceTest {
      */
     @Test
     void testCreatePermission_Success() {
-        // Chuẩn bị dữ liệu test
+        // Arrange (Chuẩn bị dữ liệu test)
         PermissionRequest request = new PermissionRequest("VIEW_USER", "View user data");
-        Permission permission = createPermission(1L, "VIEW_USER", "View user data");
-        PermissionResponse response = new PermissionResponse(1L, "VIEW_USER", "View user data");
 
-        // Mock hành vi
-        when(permissionMapper.toPermission(request)).thenReturn(permission); // Map request -> entity
-        when(permissionRepository.save(permission)).thenReturn(permission); // Lưu entity
-        when(permissionMapper.toPermissionResponse(permission)).thenReturn(response); // Map entity -> response
-
-        // Thực thi phương thức
+        // Act (Thực thi phương thức cần kiểm thử)
         PermissionResponse result = permissionService.createPermission(request);
 
-        // Kiểm tra kết quả
+        // Assert (Kiểm tra kết quả)
         assertNotNull(result); // Kết quả không được null
-        assertEquals(response.getId(), result.getId()); // ID phải khớp
-        assertEquals(response.getName(), result.getName()); // Name phải khớp
-        verify(permissionMapper, times(1)).toPermission(request); // Gọi mapper đúng 1 lần
-        verify(permissionRepository, times(1)).save(permission); // Gọi save đúng 1 lần
-        verify(permissionMapper, times(1)).toPermissionResponse(permission); // Gọi response mapper đúng 1 lần
+        assertEquals("VIEW_USER", result.getName()); // Name phải khớp
+        assertEquals("View user data", result.getDescription()); // Description phải khớp
+        assertNotNull(result.getId()); // ID được sinh tự động
+        
+        // Verify in database - kiểm tra permission đã được lưu đúng trong database
+        Permission savedPermission = permissionRepository.findById(result.getId()).orElse(null);
+        assertNotNull(savedPermission);
+        assertEquals("VIEW_USER", savedPermission.getName());
+        assertEquals("View user data", savedPermission.getDescription());
     }
 
     /**
@@ -83,11 +78,12 @@ public class PermissionServiceTest {
      */
     @Test
     void testCreatePermission_NullRequest() {
+        // Act & Assert
         // Thực thi với input null và mong đợi exception
         assertThrows(IllegalArgumentException.class, () -> permissionService.createPermission(null));
-
-        // Xác minh không gọi repository hoặc mapper
-        verifyNoInteractions(permissionMapper, permissionRepository);
+        
+        // Verify in database - không có permission nào được tạo
+        assertEquals(0, permissionRepository.count());
     }
 
     // --- Tests cho getPermissions ---
@@ -97,28 +93,24 @@ public class PermissionServiceTest {
      */
     @Test
     void testGetPermissions_WithData() {
-        // Chuẩn bị dữ liệu test
-        Permission permission1 = createPermission(1L, "VIEW_USER", "View user data");
-        Permission permission2 = createPermission(2L, "EDIT_USER", "Edit user data");
-        List<Permission> permissions = List.of(permission1, permission2);
-        PermissionResponse response1 = new PermissionResponse(1L, "VIEW_USER", "View user data");
-        PermissionResponse response2 = new PermissionResponse(2L, "EDIT_USER", "Edit user data");
+        // Arrange (Chuẩn bị dữ liệu test)
+        Permission permission1 = createPermission(null, "VIEW_USER", "View user data");
+        Permission permission2 = createPermission(null, "EDIT_USER", "Edit user data");
+        permissionRepository.save(permission1);
+        permissionRepository.save(permission2);
 
-        // Mock hành vi
-        when(permissionRepository.findAll()).thenReturn(permissions); // Trả về danh sách permissions
-        when(permissionMapper.toPermissionResponse(permission1)).thenReturn(response1); // Map permission1
-        when(permissionMapper.toPermissionResponse(permission2)).thenReturn(response2); // Map permission2
-
-        // Thực thi
+        // Act (Thực thi phương thức)
         List<PermissionResponse> result = permissionService.getPermissions();
 
-        // Kiểm tra
+        // Assert (Kiểm tra kết quả)
         assertNotNull(result); // Kết quả không null
         assertEquals(2, result.size()); // Phải có 2 phần tử
-        assertEquals("VIEW_USER", result.get(0).getName()); // Phần tử 1 đúng
-        assertEquals("EDIT_USER", result.get(1).getName()); // Phần tử 2 đúng
-        verify(permissionRepository, times(1)).findAll(); // Gọi findAll 1 lần
-        verify(permissionMapper, times(2)).toPermissionResponse(any(Permission.class)); // Gọi mapper 2 lần
+        
+        // Verify content - kiểm tra nội dung
+        assertTrue(result.stream().anyMatch(p -> "VIEW_USER".equals(p.getName())));
+        assertTrue(result.stream().anyMatch(p -> "EDIT_USER".equals(p.getName())));
+        assertTrue(result.stream().anyMatch(p -> "View user data".equals(p.getDescription())));
+        assertTrue(result.stream().anyMatch(p -> "Edit user data".equals(p.getDescription())));
     }
 
     /**
@@ -127,17 +119,13 @@ public class PermissionServiceTest {
      */
     @Test
     void testGetPermissions_EmptyList() {
-        // Mock hành vi trả về danh sách rỗng
-        when(permissionRepository.findAll()).thenReturn(List.of());
-
-        // Thực thi
+        // Act (Thực thi phương thức)
         List<PermissionResponse> result = permissionService.getPermissions();
 
-        // Kiểm tra
+        // Assert (Kiểm tra kết quả)
         assertNotNull(result); // Kết quả không null
         assertTrue(result.isEmpty()); // Danh sách rỗng
-        verify(permissionRepository, times(1)).findAll(); // Gọi findAll 1 lần
-        verifyNoInteractions(permissionMapper); // Không gọi mapper vì danh sách rỗng
+        assertEquals(0, result.size()); // Size = 0
     }
 
     // --- Tests cho updatePermission ---
@@ -147,29 +135,26 @@ public class PermissionServiceTest {
      */
     @Test
     void testUpdatePermission_Success() {
-        // Chuẩn bị dữ liệu
-        Long permissionId = 1L;
+        // Arrange (Chuẩn bị dữ liệu)
+        Permission existingPermission = createPermission(null, "VIEW_USER", "View user data");
+        existingPermission = permissionRepository.save(existingPermission);
+        
         PermissionRequest request = new PermissionRequest("EDIT_USER", "Edit user data");
-        Permission existingPermission = createPermission(1L, "VIEW_USER", "View user data");
-        Permission updatedPermission = createPermission(1L, "EDIT_USER", "Edit user data");
-        PermissionResponse response = new PermissionResponse(1L, "EDIT_USER", "Edit user data");
 
-        // Mock hành vi
-        when(permissionRepository.findById(permissionId)).thenReturn(Optional.of(existingPermission)); // Tìm thấy permission
-        doNothing().when(permissionMapper).updatePermission(existingPermission, request); // Cập nhật entity
-        when(permissionRepository.save(existingPermission)).thenReturn(updatedPermission); // Lưu entity
-        when(permissionMapper.toPermissionResponse(updatedPermission)).thenReturn(response); // Map response
+        // Act (Thực thi phương thức)
+        PermissionResponse result = permissionService.updatePermission(existingPermission.getId(), request);
 
-        // Thực thi
-        PermissionResponse result = permissionService.updatePermission(permissionId, request);
-
-        // Kiểm tra
+        // Assert (Kiểm tra kết quả)
         assertNotNull(result); // Kết quả không null
         assertEquals("EDIT_USER", result.getName()); // Name đã cập nhật
-        verify(permissionRepository, times(1)).findById(permissionId); // Gọi findById
-        verify(permissionMapper, times(1)).updatePermission(existingPermission, request); // Gọi update
-        verify(permissionRepository, times(1)).save(existingPermission); // Gọi save
-        verify(permissionMapper, times(1)).toPermissionResponse(updatedPermission); // Gọi response mapper
+        assertEquals("Edit user data", result.getDescription()); // Description đã cập nhật
+        assertEquals(existingPermission.getId(), result.getId()); // ID không thay đổi
+        
+        // Verify in database - kiểm tra trong database
+        Permission updatedPermission = permissionRepository.findById(existingPermission.getId()).orElse(null);
+        assertNotNull(updatedPermission);
+        assertEquals("EDIT_USER", updatedPermission.getName());
+        assertEquals("Edit user data", updatedPermission.getDescription());
     }
 
     /**
@@ -178,21 +163,19 @@ public class PermissionServiceTest {
      */
     @Test
     void testUpdatePermission_NotFound() {
-        // Chuẩn bị dữ liệu
-        Long permissionId = 1L;
+        // Arrange (Chuẩn bị dữ liệu)
+        Long nonExistentId = 999L;
         PermissionRequest request = new PermissionRequest("EDIT_USER", "Edit user data");
 
-        // Mock hành vi: không tìm thấy permission
-        when(permissionRepository.findById(permissionId)).thenReturn(Optional.empty());
-
-        // Thực thi và mong đợi exception
+        // Act & Assert (Thực thi và mong đợi exception)
         AppException exception = assertThrows(AppException.class,
-                () -> permissionService.updatePermission(permissionId, request));
+                () -> permissionService.updatePermission(nonExistentId, request));
 
-        // Kiểm tra
+        // Verify exception - kiểm tra exception
         assertEquals(ErrorCode.NOT_EXIST, exception.getErrorCode()); // Exception đúng
-        verify(permissionRepository, times(1)).findById(permissionId); // Gọi findById
-        verifyNoMoreInteractions(permissionMapper, permissionRepository); // Không gọi thêm
+        
+        // Verify database unchanged - database không thay đổi
+        assertEquals(0, permissionRepository.count());
     }
 
     // --- Tests cho findPermissionById ---
@@ -202,21 +185,18 @@ public class PermissionServiceTest {
      */
     @Test
     void testFindPermissionById_Success() {
-        // Chuẩn bị dữ liệu
-        Long permissionId = 1L;
-        Permission permission = createPermission(1L, "VIEW_USER", "View user data");
+        // Arrange (Chuẩn bị dữ liệu)
+        Permission permission = createPermission(null, "VIEW_USER", "View user data");
+        permission = permissionRepository.save(permission);
 
-        // Mock hành vi
-        when(permissionRepository.findById(permissionId)).thenReturn(Optional.of(permission));
+        // Act (Thực thi phương thức)
+        Permission result = permissionService.findPermissionById(permission.getId());
 
-        // Thực thi
-        Permission result = permissionService.findPermissionById(permissionId);
-
-        // Kiểm tra
+        // Assert (Kiểm tra kết quả)
         assertNotNull(result); // Kết quả không null
-        assertEquals(permissionId, result.getId()); // ID khớp
+        assertEquals(permission.getId(), result.getId()); // ID khớp
         assertEquals("VIEW_USER", result.getName()); // Name khớp
-        verify(permissionRepository, times(1)).findById(permissionId); // Gọi findById
+        assertEquals("View user data", result.getDescription()); // Description khớp
     }
 
     /**
@@ -225,24 +205,23 @@ public class PermissionServiceTest {
      */
     @Test
     void testFindPermissionById_NotFound() {
-        // Chuẩn bị dữ liệu
-        Long permissionId = 1L;
+        // Arrange (Chuẩn bị dữ liệu)
+        Long nonExistentId = 999L;
 
-        // Mock hành vi: không tìm thấy
-        when(permissionRepository.findById(permissionId)).thenReturn(Optional.empty());
-
-        // Thực thi và mong đợi exception
+        // Act & Assert (Thực thi và mong đợi exception)
         AppException exception = assertThrows(AppException.class,
-                () -> permissionService.findPermissionById(permissionId));
+                () -> permissionService.findPermissionById(nonExistentId));
 
-        // Kiểm tra
+        // Verify exception - kiểm tra exception
         assertEquals(ErrorCode.NOT_EXIST, exception.getErrorCode()); // Exception đúng
-        verify(permissionRepository, times(1)).findById(permissionId); // Gọi findById
     }
 
+    // Phương thức hỗ trợ tạo đối tượng Permission
     private Permission createPermission(Long id, String name, String description) {
         Permission perm = new Permission();
-        perm.setId(id);
+        if (id != null) {
+            perm.setId(id);
+        }
         perm.setPackages(new HashSet<>()); // Khởi tạo để tránh NPE
         perm.setName(name);
         perm.setDescription(description);

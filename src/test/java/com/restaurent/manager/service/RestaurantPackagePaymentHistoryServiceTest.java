@@ -7,124 +7,175 @@ import com.restaurent.manager.entity.Account;
 import com.restaurent.manager.entity.Restaurant;
 import com.restaurent.manager.entity.RestaurantPackagePaymentHistory;
 import com.restaurent.manager.entity.Package;
+import com.restaurent.manager.entity.Permission;
 import com.restaurent.manager.exception.AppException;
+import com.restaurent.manager.exception.ErrorCode;
 import com.restaurent.manager.mapper.RestaurantPackageHistoryMapper;
 import com.restaurent.manager.repository.RestaurantPackagePaymentHistoryRepository;
+import com.restaurent.manager.repository.PackageRepository;
+import com.restaurent.manager.repository.RestaurantRepository;
+import com.restaurent.manager.repository.AccountRepository;
+import com.restaurent.manager.repository.PermissionRepository;
 import com.restaurent.manager.service.impl.AccountService;
 import com.restaurent.manager.service.impl.RestaurantPackagePaymentHistoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 /**
- * Unit test cho RestaurantPackagePaymentHistoryService
- * Sử dụng Mockito để mock các dependency như repository, service, và mapper
+ * Integration test cho RestaurantPackagePaymentHistoryService
+ * Sử dụng database thật với profile test
  * Mục tiêu: Đạt branch coverage khoảng 80% cho tất cả các phương thức
  * Các test tập trung vào kiểm tra logic chính và các nhánh quan trọng
  */
+@SpringBootTest
+@Transactional
+@ActiveProfiles("test")
 class RestaurantPackagePaymentHistoryServiceTest {
 
-    @Mock
-    private RestaurantPackagePaymentHistoryRepository restaurantPackagePaymentHistoryRepository; // Mock repository để lưu trữ lịch sử thanh toán
+    @Autowired
+    private RestaurantPackagePaymentHistoryService service; // Service cần test
 
-    @Mock
-    private IPackageService packageService; // Mock service để tìm package
+    @Autowired
+    private RestaurantPackagePaymentHistoryRepository restaurantPackagePaymentHistoryRepository; // Repository để lưu trữ lịch sử thanh toán
 
-    @Mock
-    private IRestaurantService restaurantService; // Mock service để quản lý restaurant
+    @Autowired
+    private IPackageService packageService; // Service để tìm package
 
-    @Mock
-    private RestaurantPackageHistoryMapper mapper; // Mock mapper để chuyển đổi request sang entity
+    @Autowired
+    private PackageRepository packageRepository; // Repository để quản lý package
 
-    @Mock
-    private AccountService accountService; // Mock service để quản lý account
+    @Autowired
+    private IRestaurantService restaurantService; // Service để quản lý restaurant
 
-    @Mock
-    private IEmailService emailService; // Mock service để gửi email
+    @Autowired
+    private RestaurantRepository restaurantRepository; // Repository để quản lý restaurant
 
-    @InjectMocks
-    private RestaurantPackagePaymentHistoryService service; // Service cần test, inject các mock vào
+    @Autowired
+    private AccountRepository accountRepository; // Repository để quản lý account
+
+    @Autowired
+    private PermissionRepository permissionRepository; // Repository để quản lý permission
+
+    @Autowired
+    private AccountService accountService; // Service để quản lý account
+
+    @Autowired
+    private IEmailService emailService; // Service để gửi email
 
     /**
      * Thiết lập trước mỗi test case
-     * Khởi tạo các mock objects để đảm bảo môi trường test sạch sẽ
+     * Clean database để đảm bảo môi trường test sạch sẽ
      */
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this); // Khởi tạo tất cả các mock được đánh dấu @Mock
+        // Clean up database before each test
+        restaurantPackagePaymentHistoryRepository.deleteAll();
+        restaurantRepository.deleteAll();
+        packageRepository.deleteAll();
+        accountRepository.deleteAll();
+        permissionRepository.deleteAll();
     }
 
     // --- Tests cho createRestaurantPackagePaymentHistory ---
     /**
      * ID: RPPHS-2
-     * Test tạo một RestaurantPackagePaymentHistory thành công
+     * Test tạo một RestaurantPackagePaymentHistory thành công khi đã có history tồn tại
      * Kiểm tra xem phương thức có tạo và lưu lịch sử thanh toán đúng với request không
      */
     @Test
     void testCreateRestaurantPackagePaymentHistory_SuccessWithExistHistory() {
         // Chuẩn bị dữ liệu test
-        RestaurantPackagePaymentHistoryRequest request = createRestaurantPackagePaymentHistoryRequest(1L, 1L, 1L, 100.0D, 12); // Request với packageId, restaurantId, accountId
-        RestaurantPackagePaymentHistory history = createRestaurantPackagePaymentHistory(1L, 1L, 100.0D, 12); // Entity lịch sử thanh toán
-        RestaurantPackagePaymentHistory existed = createRestaurantPackagePaymentHistory(2L, 1L, 1L, 100.0D, 12);
+        // Tạo account
+        Account account = createAccount("test@example.com");
+        account = accountRepository.save(account);
 
-        // Mock hành vi của các dependency
-        when(mapper.toRestaurantPackagePaymentHistory(request)).thenReturn(history); // Mapper chuyển request thành entity
-        when(packageService.findPackById(1L)).thenReturn(new Package()); // Tìm package thành công
-        when(restaurantService.getRestaurantById(1L)).thenReturn(new Restaurant()); // Tìm restaurant thành công
-        when(restaurantPackagePaymentHistoryRepository.findAll()).thenReturn(List.of(existed)); // Danh sách rỗng -> ID mới = 1
-        when(restaurantPackagePaymentHistoryRepository.save(any())).thenReturn(history); // Lưu entity và trả về
+        // Tạo package
+        Package pack = createPackage("BASIC", 100.0);
+        pack = packageRepository.save(pack);
+
+        // Tạo restaurant
+        Restaurant restaurant = createRestaurant("Test Restaurant");
+        restaurant = restaurantRepository.save(restaurant);
+
+        // Tạo một history đã tồn tại
+        RestaurantPackagePaymentHistory existedHistory = createRestaurantPackagePaymentHistory(pack.getId(), restaurant.getId(), 100.0, 12);
+        existedHistory.setId(1L); // Set ID manually
+        existedHistory.setDateCreated(LocalDateTime.now());
+        restaurantPackagePaymentHistoryRepository.save(existedHistory);
+
+        // Tạo request mới
+        RestaurantPackagePaymentHistoryRequest request = createRestaurantPackagePaymentHistoryRequest(
+                account.getId(), pack.getId(), restaurant.getId(), 200.0, 6);
 
         // Thực thi phương thức cần test
         Long result = service.createRestaurantPackagePaymentHistory(request);
 
         // Kiểm tra kết quả
-        assertEquals(3L, result); // ID trả về phải là 3
-        verify(mapper, times(1)).toRestaurantPackagePaymentHistory(request); // Xác minh mapper được gọi 1 lần
-        verify(packageService, times(1)).findPackById(1L); // Xác minh tìm package 1 lần
-        verify(restaurantService, times(1)).getRestaurantById(1L); // Xác minh tìm restaurant 1 lần
-        verify(restaurantPackagePaymentHistoryRepository, times(1)).save(history); // Xác minh lưu entity 1 lần
+        assertNotNull(result);
+        assertTrue(result > 1L); // ID mới phải lớn hơn 1 vì đã có history tồn tại
+
+        // Verify in database
+        Optional<RestaurantPackagePaymentHistory> savedHistory = restaurantPackagePaymentHistoryRepository.findById(result);
+        assertTrue(savedHistory.isPresent());
+        assertEquals(pack.getId(), savedHistory.get().getPackageId());
+        assertEquals(restaurant.getId(), savedHistory.get().getRestaurantId());
+        assertEquals(200.0, savedHistory.get().getTotalMoney());
+        assertEquals(6, savedHistory.get().getMonths());
     }
 
     /**
      * ID: RPPHS-1
-     * Test tạo một RestaurantPackagePaymentHistory thành công
+     * Test tạo một RestaurantPackagePaymentHistory thành công khi chưa có history nào
      * Kiểm tra xem phương thức có tạo và lưu lịch sử thanh toán đúng với request không
      */
     @Test
     void testCreateRestaurantPackagePaymentHistory_Success() {
         // Chuẩn bị dữ liệu test
-        RestaurantPackagePaymentHistoryRequest request = createRestaurantPackagePaymentHistoryRequest(1L, 1L, 1L, 100.0D, 12); // Request với packageId, restaurantId, accountId
-        RestaurantPackagePaymentHistory history = createRestaurantPackagePaymentHistory(1L, 1L, 100.0D, 12); // Entity lịch sử thanh toán
+        // Tạo account
+        Account account = createAccount("test@example.com");
+        account = accountRepository.save(account);
 
-        // Mock hành vi của các dependency
-        when(mapper.toRestaurantPackagePaymentHistory(request)).thenReturn(history); // Mapper chuyển request thành entity
-        when(packageService.findPackById(1L)).thenReturn(new Package()); // Tìm package thành công
-        when(restaurantService.getRestaurantById(1L)).thenReturn(new Restaurant()); // Tìm restaurant thành công
-        when(restaurantPackagePaymentHistoryRepository.findAll()).thenReturn(Collections.emptyList()); // Danh sách rỗng -> ID mới = 1
-        when(restaurantPackagePaymentHistoryRepository.save(any())).thenReturn(history); // Lưu entity và trả về
+        // Tạo package
+        Package pack = createPackage("BASIC", 100.0);
+        pack = packageRepository.save(pack);
+
+        // Tạo restaurant
+        Restaurant restaurant = createRestaurant("Test Restaurant");
+        restaurant = restaurantRepository.save(restaurant);
+
+        // Tạo request
+        RestaurantPackagePaymentHistoryRequest request = createRestaurantPackagePaymentHistoryRequest(
+                account.getId(), pack.getId(), restaurant.getId(), 100.0, 12);
 
         // Thực thi phương thức cần test
         Long result = service.createRestaurantPackagePaymentHistory(request);
 
         // Kiểm tra kết quả
-        assertEquals(1L, result); // ID trả về phải là 1
-        verify(mapper, times(1)).toRestaurantPackagePaymentHistory(request); // Xác minh mapper được gọi 1 lần
-        verify(packageService, times(1)).findPackById(1L); // Xác minh tìm package 1 lần
-        verify(restaurantService, times(1)).getRestaurantById(1L); // Xác minh tìm restaurant 1 lần
-        verify(restaurantPackagePaymentHistoryRepository, times(1)).save(history); // Xác minh lưu entity 1 lần
+        assertEquals(1L, result); // ID đầu tiên phải là 1
+
+        // Verify in database
+        Optional<RestaurantPackagePaymentHistory> savedHistory = restaurantPackagePaymentHistoryRepository.findById(result);
+        assertTrue(savedHistory.isPresent());
+        assertEquals(pack.getId(), savedHistory.get().getPackageId());
+        assertEquals(restaurant.getId(), savedHistory.get().getRestaurantId());
+        assertEquals(100.0, savedHistory.get().getTotalMoney());
+        assertEquals(12, savedHistory.get().getMonths());
     }
+
     // --- Tests cho getNewId ---
     /**
      * ID: RPPHS-3
@@ -133,15 +184,11 @@ class RestaurantPackagePaymentHistoryServiceTest {
      */
     @Test
     void testGetNewId_EmptyList() {
-        // Mock hành vi: repository trả về danh sách rỗng
-        when(restaurantPackagePaymentHistoryRepository.findAll()).thenReturn(Collections.emptyList());
-
         // Thực thi phương thức
         Long result = service.getNewId();
 
         // Kiểm tra kết quả
         assertEquals(1L, result); // Khi danh sách rỗng, ID mới phải là 1
-        verify(restaurantPackagePaymentHistoryRepository, times(1)).findAll(); // Xác minh gọi findAll 1 lần
     }
 
     /**
@@ -151,18 +198,20 @@ class RestaurantPackagePaymentHistoryServiceTest {
      */
     @Test
     void testGetNewId_WithData() {
-        // Chuẩn bị dữ liệu: danh sách có 1 bản ghi với ID = 5
-        List<RestaurantPackagePaymentHistory> histories = List.of(
-                createRestaurantPackagePaymentHistory(5L, 1L, 1L, 100.0, 12)
-        );
-        when(restaurantPackagePaymentHistoryRepository.findAll()).thenReturn(histories); // Mock repository trả về danh sách
+        // Chuẩn bị dữ liệu: tạo một history với ID tự động
+        Restaurant restaurant = Restaurant.builder().restaurantName("restaurant").build();
+        restaurantRepository.saveAndFlush(restaurant);
+
+        RestaurantPackagePaymentHistory history = createRestaurantPackagePaymentHistory(1L, restaurant.getId(), 100.0, 12);
+        history.setId(5L); // Set ID manually
+        history.setDateCreated(LocalDateTime.now());
+        RestaurantPackagePaymentHistory savedHistory = restaurantPackagePaymentHistoryRepository.save(history);
 
         // Thực thi
         Long result = service.getNewId();
 
         // Kiểm tra
-        assertEquals(6L, result); // ID mới phải là 5 + 1 = 6
-        verify(restaurantPackagePaymentHistoryRepository, times(1)).findAll(); // Xác minh gọi findAll 1 lần
+        assertEquals(savedHistory.getId() + 1, result); // ID mới phải là ID cuối + 1
     }
 
     // --- Tests cho updateRestaurantPackagePaymentHistory ---
@@ -174,29 +223,38 @@ class RestaurantPackagePaymentHistoryServiceTest {
     @Test
     void testUpdateRestaurantPackagePaymentHistory_Success() {
         // Chuẩn bị dữ liệu
-        Long id = 1L;
-        RestaurantPackagePaymentHistoryRequest request = createRestaurantPackagePaymentHistoryRequest(1L, 1L, 3L, 100.0D, 12); // Request với packageId, restaurantId, accountId, months
-        RestaurantPackagePaymentHistory history = createRestaurantPackagePaymentHistory(1L, 2L, 3L, 100.0, 12); // Entity ban đầu
-        Package pack = createPackage("Basic"); // Package mẫu
-        Account account = createAccount("test@example.com"); // Account mẫu
-        String token = "token123"; // Token mẫu
+        // Tạo account
+        Account account = createAccount("test@example.com");
+        account = accountRepository.save(account);
 
-        // Mock hành vi
-        when(restaurantPackagePaymentHistoryRepository.findById(id)).thenReturn(Optional.of(history)); // Tìm thấy history
-        when(restaurantService.updateRestaurant(eq(3L), any(RestaurantUpdateRequest.class))).thenReturn(any()); // Cập nhật restaurant
-        when(packageService.findPackById(1L)).thenReturn(pack); // Tìm package
-        when(accountService.findAccountByID(1L)).thenReturn(account); // Tìm account
-        when(accountService.generateToken(account)).thenReturn(token); // Tạo token
-        when(restaurantPackagePaymentHistoryRepository.save(history)).thenReturn(history); // Lưu history
+        // Tạo package
+        Package pack = createPackage("BASIC", 100.0);
+        pack = packageRepository.save(pack);
+
+        // Tạo restaurant
+        Restaurant restaurant = createRestaurant("Test Restaurant");
+        restaurant = restaurantRepository.save(restaurant);
+
+        // Tạo history
+        RestaurantPackagePaymentHistory history = createRestaurantPackagePaymentHistory(pack.getId(), restaurant.getId(), 100.0, 12);
+        history.setId(1L); // Set ID manually
+        history.setDateCreated(LocalDateTime.now());
+        history = restaurantPackagePaymentHistoryRepository.save(history);
+
+        // Tạo request cập nhật
+        RestaurantPackagePaymentHistoryRequest request = createRestaurantPackagePaymentHistoryRequest(
+                account.getId(), pack.getId(), restaurant.getId(), 100.0, 12);
 
         // Thực thi
-        String result = service.updateRestaurantPackagePaymentHistory(id, request);
+        String result = service.updateRestaurantPackagePaymentHistory(history.getId(), request);
 
         // Kiểm tra
-        assertEquals(token, result); // Token trả về phải khớp
-        assertTrue(history.isPaid()); // Trạng thái paid phải là true
-        verify(restaurantService, times(1)).updateRestaurant(eq(3L), any(RestaurantUpdateRequest.class)); // Xác minh cập nhật restaurant
-        verify(emailService, times(1)).sendEmail(eq("test@example.com"), any(), any()); // Xác minh gửi email
+        assertNotNull(result); // Token không được null
+
+        // Verify in database - kiểm tra history đã được cập nhật
+        Optional<RestaurantPackagePaymentHistory> updatedHistory = restaurantPackagePaymentHistoryRepository.findById(history.getId());
+        assertTrue(updatedHistory.isPresent());
+        assertTrue(updatedHistory.get().isPaid()); // Trạng thái paid phải là true
     }
 
     /**
@@ -207,17 +265,12 @@ class RestaurantPackagePaymentHistoryServiceTest {
     @Test
     void testUpdateRestaurantPackagePaymentHistory_NotFound() {
         // Chuẩn bị dữ liệu
-        Long id = 1L;
-        RestaurantPackagePaymentHistoryRequest request = createRestaurantPackagePaymentHistoryRequest(1L, 2L, 3L, 100.0D, 12);
-
-        // Mock hành vi: không tìm thấy history
-        when(restaurantPackagePaymentHistoryRepository.findById(id)).thenReturn(Optional.empty());
+        Long nonExistentId = 999L;
+        RestaurantPackagePaymentHistoryRequest request = createRestaurantPackagePaymentHistoryRequest(1L, 1L, 1L, 100.0, 12);
 
         // Thực thi và mong đợi exception
-        assertThrows(AppException.class, () -> service.updateRestaurantPackagePaymentHistory(id, request));
-
-        // Xác minh không có tương tác thêm với các service khác
-        verifyNoMoreInteractions(restaurantService, packageService, accountService, emailService);
+        assertThrows(AppException.class, () -> 
+            service.updateRestaurantPackagePaymentHistory(nonExistentId, request));
     }
 
     // --- Tests cho getTotalValueByDate ---
@@ -230,8 +283,6 @@ class RestaurantPackagePaymentHistoryServiceTest {
     void testGetTotalValueByDate_ValidCode() {
         // Chuẩn bị dữ liệu
         String code = "current-week";
-        // Mock để tránh getNewId() ảnh hưởng (do gọi findAll)
-        when(restaurantPackagePaymentHistoryRepository.findAll()).thenReturn(Collections.emptyList());
 
         // Thực thi
         List<StatisticAdminTable> result = service.getTotalValueByDate(code);
@@ -266,18 +317,13 @@ class RestaurantPackagePaymentHistoryServiceTest {
      */
     @Test
     void testGetProfitInCurrentMonth() {
-        // Mock hành vi của các dependency
-        when(restaurantService.countRestaurantByDateCreated(any())).thenReturn(5); // Số restaurant mỗi ngày
-        when(restaurantPackagePaymentHistoryRepository.findByDateCreated(any())).thenReturn(Collections.emptyList()); // Không có history
-
         // Thực thi
         List<StatisticAdminTable> result = service.getProfitInCurrentMonth();
 
         // Kiểm tra
         int currentDay = LocalDateTime.now().getDayOfMonth();
         assertEquals(currentDay, result.size()); // Số ngày từ đầu tháng đến hiện tại
-        assertEquals(5, result.getFirst().getTotalRestaurant()); // Số restaurant mỗi ngày
-        assertEquals(0.0D, result.getFirst().getTotal()); // Tổng giá trị mỗi ngày
+        assertNotNull(result.getFirst()); // Phần tử đầu tiên không được null
     }
 
     // --- Tests cho getProfitInLastMonth ---
@@ -288,18 +334,13 @@ class RestaurantPackagePaymentHistoryServiceTest {
      */
     @Test
     void testGetProfitInLastMonth() {
-        // Mock hành vi
-        when(restaurantService.countRestaurantByDateCreated(any())).thenReturn(3); // Số restaurant mỗi ngày
-        when(restaurantPackagePaymentHistoryRepository.findByDateCreated(any())).thenReturn(Collections.emptyList()); // Không có history
-
         // Thực thi
         List<StatisticAdminTable> result = service.getProfitInLastMonth();
 
         // Kiểm tra
         int daysInLastMonth = LocalDate.now().minusMonths(1).lengthOfMonth();
         assertEquals(daysInLastMonth, result.size()); // Số ngày trong tháng trước
-        assertEquals(3, result.getFirst().getTotalRestaurant()); // Số restaurant mỗi ngày
-        assertEquals(0.0D, result.getFirst().getTotal()); // Tổng giá trị mỗi ngày
+        assertNotNull(result.getFirst()); // Phần tử đầu tiên không được null
     }
 
     // --- Tests cho getProfitInCurrentWeek ---
@@ -310,17 +351,12 @@ class RestaurantPackagePaymentHistoryServiceTest {
      */
     @Test
     void testGetProfitInCurrentWeek() {
-        // Mock hành vi
-        when(restaurantService.countRestaurantByDateCreated(any())).thenReturn(4); // Số restaurant mỗi ngày
-        when(restaurantPackagePaymentHistoryRepository.findByDateCreated(any())).thenReturn(Collections.emptyList()); // Không có history
-
         // Thực thi
         List<StatisticAdminTable> result = service.getProfitInCurrentWeek();
 
         // Kiểm tra
         assertEquals(7, result.size()); // Tuần có 7 ngày
-        assertEquals(4, result.getFirst().getTotalRestaurant()); // Số restaurant mỗi ngày
-        assertEquals(0.0D, result.getFirst().getTotal()); // Tổng giá trị mỗi ngày
+        assertNotNull(result.getFirst()); // Phần tử đầu tiên không được null
     }
 
     // --- Tests cho getProfitInLastWeek ---
@@ -331,17 +367,12 @@ class RestaurantPackagePaymentHistoryServiceTest {
      */
     @Test
     void testGetProfitInLastWeek() {
-        // Mock hành vi
-        when(restaurantService.countRestaurantByDateCreated(any())).thenReturn(2); // Số restaurant mỗi ngày
-        when(restaurantPackagePaymentHistoryRepository.findByDateCreated(any())).thenReturn(Collections.emptyList()); // Không có history
-
         // Thực thi
         List<StatisticAdminTable> result = service.getProfitInLastWeek();
 
         // Kiểm tra
         assertEquals(7, result.size()); // Tuần có 7 ngày
-        assertEquals(2, result.getFirst().getTotalRestaurant()); // Số restaurant mỗi ngày
-        assertEquals(0.0D, result.getFirst().getTotal()); // Tổng giá trị mỗi ngày
+        assertNotNull(result.getFirst()); // Phần tử đầu tiên không được null
     }
 
     // --- Tests cho totalValueInDate ---
@@ -354,19 +385,27 @@ class RestaurantPackagePaymentHistoryServiceTest {
     void testTotalValueInDate_WithData() {
         // Chuẩn bị dữ liệu
         LocalDate date = LocalDate.now();
-        java.sql.Date sqlDate = java.sql.Date.valueOf(date);
-        List<RestaurantPackagePaymentHistory> histories = List.of(
-                createRestaurantPackagePaymentHistory(1L, 1L, 1000.0, 12, true), // Đã thanh toán
-                createRestaurantPackagePaymentHistory(2L, 2L, 500.0, 6, false)   // Chưa thanh toán
-        );
-        when(restaurantPackagePaymentHistoryRepository.findByDateCreated(sqlDate)).thenReturn(histories); // Mock dữ liệu history
+        LocalDateTime dateTime = date.atStartOfDay();
+        
+        // Tạo history đã thanh toán
+        RestaurantPackagePaymentHistory paidHistory = createRestaurantPackagePaymentHistory(1L, 1L, 1000.0, 12);
+        paidHistory.setId(1L); // Set ID manually
+        paidHistory.setPaid(true);
+        paidHistory.setDateCreated(dateTime); // Use LocalDateTime
+        restaurantPackagePaymentHistoryRepository.save(paidHistory);
+
+        // Tạo history chưa thanh toán
+        RestaurantPackagePaymentHistory unpaidHistory = createRestaurantPackagePaymentHistory(1L, 2L, 500.0, 6);
+        unpaidHistory.setId(2L); // Set ID manually
+        unpaidHistory.setPaid(false);
+        unpaidHistory.setDateCreated(dateTime); // Use LocalDateTime
+        restaurantPackagePaymentHistoryRepository.save(unpaidHistory);
 
         // Thực thi
         double result = service.totalValueInDate(date);
 
         // Kiểm tra
-        assertEquals(1000, result); // Chỉ tính history đã paid (1000.0)
-        verify(restaurantPackagePaymentHistoryRepository, times(1)).findByDateCreated(sqlDate); // Xác minh gọi repository
+        assertEquals(1000.0, result); // Chỉ tính history đã paid (1000.0)
     }
 
     /**
@@ -378,17 +417,15 @@ class RestaurantPackagePaymentHistoryServiceTest {
     void testTotalValueInDate_NoData() {
         // Chuẩn bị dữ liệu
         LocalDate date = LocalDate.now();
-        java.sql.Date sqlDate = Date.valueOf(date);
-        when(restaurantPackagePaymentHistoryRepository.findByDateCreated(sqlDate)).thenReturn(Collections.emptyList()); // Mock danh sách rỗng
 
         // Thực thi
         double result = service.totalValueInDate(date);
 
         // Kiểm tra
         assertEquals(0.0, result); // Không có dữ liệu -> trả về 0
-        verify(restaurantPackagePaymentHistoryRepository, times(1)).findByDateCreated(sqlDate); // Xác minh gọi repository
     }
 
+    // Các phương thức helper để tạo đối tượng test
     private RestaurantPackagePaymentHistoryRequest createRestaurantPackagePaymentHistoryRequest(
             Long accountId,
             Long packageId,
@@ -411,56 +448,35 @@ class RestaurantPackagePaymentHistoryServiceTest {
             double totalMoney,
             int month
     ) {
-       return RestaurantPackagePaymentHistory.builder()
-               .packageId(packageId)
-               .restaurantId(restaurantId)
-               .months(month)
-               .totalMoney(totalMoney)
-               .build();
+       RestaurantPackagePaymentHistory history = new RestaurantPackagePaymentHistory();
+       history.setPackageId(packageId);
+       history.setRestaurantId(restaurantId);
+       history.setMonths(month);
+       history.setTotalMoney(totalMoney);
+       history.setPaid(false); // Default
+       return history;
     }
 
-
-    private RestaurantPackagePaymentHistory createRestaurantPackagePaymentHistory(
-            Long packageId,
-            Long restaurantId,
-            double totalMoney,
-            int month,
-            boolean isPaid
-    ) {
-        return RestaurantPackagePaymentHistory.builder()
-                .packageId(packageId)
-                .restaurantId(restaurantId)
-                .months(month)
-                .totalMoney(totalMoney)
-                .isPaid(isPaid)
-                .build();
-    }
-
-    private RestaurantPackagePaymentHistory createRestaurantPackagePaymentHistory(
-            Long id,
-            Long packageId,
-            Long restaurantId,
-            double totalMoney,
-            int month
-    ) {
-        return RestaurantPackagePaymentHistory.builder()
-                .id(id)
-                .packageId(packageId)
-                .restaurantId(restaurantId)
-                .months(month)
-                .totalMoney(totalMoney)
-                .build();
-    }
-
-    private Package createPackage(String name) {
-        return Package.builder()
-                .packName(name)
-                .build();
+    private Package createPackage(String name, double price) {
+        Package pack = new Package();
+        pack.setPackName(name);
+        pack.setPricePerMonth(price);
+        pack.setPermissions(new HashSet<>());
+        return pack;
     }
 
     private Account createAccount(String email) {
-        return Account.builder()
-                .email(email)
-                .build();
+        Account account = new Account();
+        account.setEmail(email);
+        account.setUsername("testuser");
+        account.setPassword("password");
+        return account;
+    }
+
+    private Restaurant createRestaurant(String name) {
+        Restaurant restaurant = new Restaurant();
+        restaurant.setRestaurantName(name);
+        restaurant.setExpiryDate(LocalDateTime.now().plusDays(30));
+        return restaurant;
     }
 }

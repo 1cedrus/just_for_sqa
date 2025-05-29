@@ -5,44 +5,41 @@ import com.restaurent.manager.dto.response.RoleResponse;
 import com.restaurent.manager.entity.Role;
 import com.restaurent.manager.exception.AppException;
 import com.restaurent.manager.exception.ErrorCode;
-import com.restaurent.manager.mapper.RoleMapper;
 import com.restaurent.manager.repository.RoleRepository;
 import com.restaurent.manager.service.impl.RoleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
-// Sử dụng MockitoExtension để tích hợp Mockito với JUnit 5
-@ExtendWith(MockitoExtension.class)
+/**
+ * Integration test cho RoleService
+ * Sử dụng database thật với profile test
+ * Mục tiêu: Đạt branch coverage khoảng 80% cho tất cả các phương thức
+ * Các test tập trung vào kiểm tra logic chính và các nhánh quan trọng
+ */
+@SpringBootTest
+@Transactional
+@ActiveProfiles("test")
 class RoleServiceTest {
 
-    // Mô phỏng RoleRepository để giả lập các thao tác với cơ sở dữ liệu
-    @Mock
-    private RoleRepository roleRepository;
-
-    // Mô phỏng RoleMapper để giả lập việc ánh xạ giữa các đối tượng
-    @Mock
-    private RoleMapper roleMapper;
-
-    // InjectMocks tạo instance RoleService và tiêm các mock vào
-    @InjectMocks
+    @Autowired
     private RoleService roleService;
 
-    // Chạy trước mỗi test để đảm bảo trạng thái sạch sẽ
+    @Autowired
+    private RoleRepository roleRepository;
+
     @BeforeEach
-    void setup() {
-        // Không cần khởi tạo thủ công vì @InjectMocks tự xử lý
+    void setUp() {
+        // Clean up database before each test
+        roleRepository.deleteAll();
     }
 
     // --- Kiểm thử cho createRole ---
@@ -51,18 +48,20 @@ class RoleServiceTest {
     // ID: RoS-2
     @Test
     void testCreateRole_RoleExists() {
-        // Chuẩn bị dữ liệu
+        // Chuẩn bị dữ liệu - tạo role đã tồn tại
+        Role existingRole = createRole("ADMIN");
+        roleRepository.save(existingRole);
+
         RoleRequest request = createRoleRequest("ADMIN");
-        when(roleRepository.existsByName("ADMIN")).thenReturn(true);
 
         // Thực thi và kiểm tra
         AppException exception = assertThrows(AppException.class, () ->
                 roleService.createRole(request)
         );
         assertEquals(ErrorCode.ROLE_EXISTED, exception.getErrorCode());
-        // Xác minh chỉ gọi existsByName, không gọi save
-        verify(roleRepository, times(1)).existsByName("ADMIN");
-        verify(roleRepository, never()).save(any());
+        
+        // Verify chỉ có 1 role trong database (role đã tồn tại)
+        assertEquals(1, roleRepository.count());
     }
 
     // ID: RoS-1
@@ -71,23 +70,17 @@ class RoleServiceTest {
     void testCreateRole_RoleNotExists() {
         // Chuẩn bị dữ liệu
         RoleRequest request = createRoleRequest("ADMIN");
-        Role role = createRole("ADMIN");
-        RoleResponse response = createRoleResponse("ADMIN");
-
-        when(roleRepository.existsByName("ADMIN")).thenReturn(false);
-        when(roleMapper.toRole(request)).thenReturn(role);
-        when(roleRepository.save(role)).thenReturn(role);
-        when(roleMapper.toRoleResponse(role)).thenReturn(response);
 
         // Thực thi
         RoleResponse result = roleService.createRole(request);
 
         // Kiểm tra
-        verify(roleRepository, times(1)).existsByName("ADMIN");
-        verify(roleMapper, times(1)).toRole(request);
-        verify(roleRepository, times(1)).save(role);
-        verify(roleMapper, times(1)).toRoleResponse(role);
+        assertNotNull(result);
         assertEquals("ADMIN", result.getName());
+        
+        // Verify trong database
+        assertTrue(roleRepository.existsByName("ADMIN"));
+        assertEquals(1, roleRepository.count());
     }
 
     // --- Kiểm thử cho getRoles ---
@@ -99,39 +92,26 @@ class RoleServiceTest {
         // Chuẩn bị dữ liệu
         Role role1 = createRole("ADMIN");
         Role role2 = createRole("USER");
-        List<Role> roles = Arrays.asList(role1, role2);
-        RoleResponse response1 = createRoleResponse("ADMIN");
-        RoleResponse response2 = createRoleResponse("USER");
-
-        when(roleRepository.findAll()).thenReturn(roles);
-        when(roleMapper.toRoleResponse(role1)).thenReturn(response1);
-        when(roleMapper.toRoleResponse(role2)).thenReturn(response2);
+        roleRepository.save(role1);
+        roleRepository.save(role2);
 
         // Thực thi
         List<RoleResponse> result = roleService.getRoles();
 
         // Kiểm tra
-        verify(roleRepository, times(1)).findAll();
-        verify(roleMapper, times(1)).toRoleResponse(role1);
-        verify(roleMapper, times(1)).toRoleResponse(role2);
         assertEquals(2, result.size());
-        assertEquals("ADMIN", result.get(0).getName());
-        assertEquals("USER", result.get(1).getName());
+        assertTrue(result.stream().anyMatch(r -> "ADMIN".equals(r.getName())));
+        assertTrue(result.stream().anyMatch(r -> "USER".equals(r.getName())));
     }
 
     // ID: RoS-4
     // Kiểm tra khi danh sách vai trò rỗng
     @Test
     void testGetRoles_EmptyList() {
-        // Chuẩn bị dữ liệu
-        when(roleRepository.findAll()).thenReturn(Collections.emptyList());
-
-        // Thực thi
+        // Thực thi (database đã được clean trong setUp)
         List<RoleResponse> result = roleService.getRoles();
 
         // Kiểm tra
-        verify(roleRepository, times(1)).findAll();
-        verify(roleMapper, never()).toRoleResponse(any());
         assertTrue(result.isEmpty());
     }
 
@@ -141,44 +121,45 @@ class RoleServiceTest {
     // Kiểm tra khi tất cả vai trò trong nhà hàng tồn tại
     @Test
     void testGetRolesInRestaurant_AllRolesExist() {
-        // Chuẩn bị dữ liệu
-        RoleResponse chef = createRoleResponse("CHEF");
-        RoleResponse waiter = createRoleResponse("WAITER");
-        RoleResponse hostess = createRoleResponse("HOSTESS");
-
-        when(roleRepository.findByName("CHEF")).thenReturn(Optional.of(createRole("CHEF")));
-        when(roleRepository.findByName("WAITER")).thenReturn(Optional.of(createRole("WAITER")));
-        when(roleRepository.findByName("HOSTESS")).thenReturn(Optional.of(createRole("HOSTESS")));
-        when(roleMapper.toRoleResponse(any())).thenReturn(chef, waiter, hostess);
+        // Chuẩn bị dữ liệu - tạo các role cần thiết cho restaurant
+        Role chef = createRole("CHEF");
+        Role waiter = createRole("WAITER");
+        Role hostess = createRole("HOSTESS");
+        
+        roleRepository.save(chef);
+        roleRepository.save(waiter);
+        roleRepository.save(hostess);
 
         // Thực thi
         List<RoleResponse> result = roleService.getRolesInRestaurant();
 
         // Kiểm tra
-        verify(roleRepository, times(1)).findByName("CHEF");
-        verify(roleRepository, times(1)).findByName("WAITER");
-        verify(roleRepository, times(1)).findByName("HOSTESS");
-        verify(roleMapper, times(3)).toRoleResponse(any());
         assertEquals(3, result.size());
-        assertEquals("CHEF", result.get(0).getName());
-        assertEquals("WAITER", result.get(1).getName());
-        assertEquals("HOSTESS", result.get(2).getName());
+        assertTrue(result.stream().anyMatch(r -> "CHEF".equals(r.getName())));
+        assertTrue(result.stream().anyMatch(r -> "WAITER".equals(r.getName())));
+        assertTrue(result.stream().anyMatch(r -> "HOSTESS".equals(r.getName())));
     }
 
     // ID: RoS-6
     // Kiểm tra khi một vai trò không tồn tại
     @Test
     void testGetRolesInRestaurant_RoleNotExist() {
-        // Chuẩn bị dữ liệu
-        when(roleRepository.findByName("CHEF")).thenReturn(Optional.empty());
+        // Chuẩn bị dữ liệu - chỉ tạo 2 trong 3 role cần thiết (thiếu CHEF)
+        Role waiter = createRole("WAITER");
+        Role hostess = createRole("HOSTESS");
+        
+        roleRepository.save(waiter);
+        roleRepository.save(hostess);
+        // Không tạo CHEF role
 
         // Thực thi và kiểm tra
         AppException exception = assertThrows(AppException.class, () ->
                 roleService.getRolesInRestaurant()
         );
         assertEquals(ErrorCode.ROLE_NOT_EXISTED, exception.getErrorCode());
-        verify(roleRepository, times(1)).findByName("CHEF");
     }
+
+    // --- Kiểm thử cho findByRoleName ---
 
     // ID: RoS-7
     // Kiểm tra khi vai trò tồn tại
@@ -187,37 +168,32 @@ class RoleServiceTest {
         // Chuẩn bị dữ liệu
         String name = "ADMIN";
         Role role = createRole("ADMIN");
-
-        // Cấu hình roleRepository trả về Optional chứa Role
-        when(roleRepository.findByName(name)).thenReturn(Optional.of(role));
+        roleRepository.save(role);
 
         // Thực thi
         Role result = roleService.findByRoleName(name);
 
         // Kiểm tra
-        verify(roleRepository, times(1)).findByName(name);
+        assertNotNull(result);
         assertEquals("ADMIN", result.getName());
     }
+
     // ID: RoS-8
     // Kiểm tra khi vai trò không tồn tại
     @Test
     void testFindByRoleName_RoleNotExists() {
-        // Chuẩn bị dữ liệu
-        String name = "ADMIN";
-
-        // Cấu hình roleRepository trả về Optional rỗng
-        when(roleRepository.findByName(name)).thenReturn(Optional.empty());
+        // Chuẩn bị dữ liệu - không tạo role nào
 
         // Thực thi và kiểm tra
         AppException exception = assertThrows(AppException.class, () ->
-                roleService.findByRoleName(name)
+                roleService.findByRoleName("ADMIN")
         );
 
-        // Xác minh ngoại lệ đúng và repository được gọi
+        // Xác minh ngoại lệ đúng
         assertEquals(ErrorCode.ROLE_NOT_EXISTED, exception.getErrorCode());
-        verify(roleRepository, times(1)).findByName(name);
     }
 
+    // Helper methods để tạo đối tượng test
     private RoleRequest createRoleRequest(String name) {
         return RoleRequest.builder()
                 .name(name)
@@ -225,14 +201,8 @@ class RoleServiceTest {
     }
 
     private Role createRole(String name) {
-        return Role.builder()
-                .name(name)
-                .build();
-    }
-
-    private RoleResponse createRoleResponse(String name) {
-        return RoleResponse.builder()
-                .name(name)
-                .build();
+        Role role = new Role();
+        role.setName(name);
+        return role;
     }
 }
