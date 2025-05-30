@@ -584,7 +584,6 @@ class RestaurantServiceTest {
 
     private Package createPackageWithPrice(double pricePerMonth, double pricePerYear) {
         Package pack = new Package();
-        pack.setPackName("TEST_PACK");
         pack.setPricePerMonth(pricePerMonth);
         pack.setPricePerYear(pricePerYear);
         pack.setPermissions(new HashSet<>());
